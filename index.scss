@@ -15,9 +15,8 @@
 //Utility mixins
 @import 'fontface';
 @import 'grid/grid';
+@import 'helpers';
 @import 'media-queries/media-queries';
-@import 'mixins';
-@import 'overrides';
+@import 'overrides/overrides';
 @import 'typography';
-@import 'utilities/utilities';
 @import 'zindex';
