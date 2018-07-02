@@ -1,46 +1,46 @@
 //Accepted media-query expression types
 $media-query-expressions: (
-	'device-width', 'orientation', 'aspect-ratio', 'device-aspect-ratio',
-	'color', 'color-index', 'monochrome', 'resolution', 'scan', 'grid'
+    'device-width', 'orientation', 'aspect-ratio', 'device-aspect-ratio',
+    'color', 'color-index', 'monochrome', 'resolution', 'scan', 'grid'
 ) !default;
 //Accepted media-query device types
 $media-query-devices: (
-	'screen','all','print','tv','handheld','braille',
-	'embossed','projection','speech','tty'
+    'screen','all','print','tv','handheld','braille',
+    'embossed','projection','speech','tty'
 ) !default;
 //Accepted media-query operator arguments
 $media-query-operators: (
-	'max-width',
-	'max-height',
-	'min-width',
-	'min-height',
-	'device-width',
-	'min-device-width',
-	'max-device-width',
-	'min-device-height',
-	'max-device-height',
-	'aspect-ratio',
-	'device-aspect-ratio',
-	'resolution'
+    'max-width',
+    'max-height',
+    'min-width',
+    'min-height',
+    'device-width',
+    'min-device-width',
+    'max-device-width',
+    'min-device-height',
+    'max-device-height',
+    'aspect-ratio',
+    'device-aspect-ratio',
+    'resolution'
 ) !default;
 
 //Used to switch a media-query from one type to another
 $media-query-switch: (
-	'max',
-	'min',
-	'height',
-	'width',
-	'landscape',
-	'portrait'
+    'max',
+    'min',
+    'height',
+    'width',
+    'landscape',
+    'portrait'
 ) !default;
 
 //Values to increase media-queries by
 $media-query-intervals: (
-	'px'		: 	  1,
-	'em'		: 	.01,
-	'rem'		: 	.01,
-	'vh'		: 	.01,
-	'vw'		:	.01
+    'px'		: 	  1,
+    'em'		: 	.01,
+    'rem'		: 	.01,
+    'vh'		: 	.01,
+    'vw'		:	.01
 ) !default;
 
 $max-site-width:         1360px !default;
@@ -56,14 +56,14 @@ $breakpoints: (
         "small": "(max-width: #{ems($max-content-width)})",
     // Large (Modern) phones/phablets
         "smallish":
-        	"(min-width: #{ems($max-content-width+1px)})" +
-			" and (max-width: #{ems($max-wide-content-width)})",
+            "(min-width: #{ems($max-content-width+1px)})" +
+            " and (max-width: #{ems($max-wide-content-width)})",
     // Tablets, Desktops and larger
         "bigs": "(min-width: #{ems($max-wide-content-width+1px)})",
     // Mostly Tablets and small laptops. Overrides Bigs
         "lap":
-        	"(min-width: #{ems($max-wide-content-width + 1px)})" +
-			" and (max-width: #{ems($max-site-width)})",
+            "(min-width: #{ems($max-wide-content-width + 1px)})" +
+            " and (max-width: #{ems($max-site-width)})",
     // Large Tablets and Desktops. Overrides Bigs.
         "desk": "(min-width: #{ems($max-site-width)})"
 ) !default;

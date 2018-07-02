@@ -1,12 +1,3 @@
-/* SG
-# Config/Propagation [[dev]]
-
-#### `@globalize-config()`
-Pulls together config variables and routes them into structures expected by the framework, then makes them global.
-For instance, the `$$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
-
-*/
-
 $base-font-size:        16px !default;
 $base-line-height:      24px !default;
 $type-h1-size:          modular-scale(7) !default;
@@ -28,10 +19,20 @@ $base-colors: (
     'bg': #f6f8fb, //Required
 ) !default;
 
-$primary-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', sans-serif !default;
+$system-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', sans-serif;
+$primary-font-stack: $system-font-stack !default;
 $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas, 'DejaVu Sans Mono', Menlo, monospace !default;
 
 $rem-px-fallback: false !default;
+
+/* SG
+# Config/Propagation [[dev]]
+
+#### `@globalize-config()`
+Pulls together config variables and routes them into structures expected by the framework, then makes them global.
+For instance, the `$$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
+
+*/
 
 @mixin globalize-config() {
 
@@ -55,23 +56,23 @@ Used for defining automatic headings functions.
 Abstracts the `$$scale-ratio` and makes sure it's a positive number.
 */
 
-    $type-base-unit:            $base-line-height !global;
+    $type-base-unit:           $base-line-height !global;
 
     @if $base-font-size >= $type-base-unit {
         $type-base-unit: baseline-calc($base-font-size) * $base-font-size !global;
     }
 
-    $type-base-ratio: ($type-base-unit / $base-font-size) !global;
+    $type-base-ratio:          ($type-base-unit / $base-font-size) !global;
 
     $type-headings:            6, 5, 4, 3, 2, 1 !global;
 
     //Spacing variable for simple inclusion.
-    $type-space: 2 * $type-base-ratio !global;
+    $type-space:               2 * $type-base-ratio !global;
 
     //Variable for easier reference:
     $stripped-base-font-size:  strip-units($base-font-size) !global;
 
-    $type-modular-scale: $scale-ratio !global;
+    $type-modular-scale:       $scale-ratio !global;
 
     //Checking for floats in $scale-ratio
     @if length($scale-ratio) == 2 {
@@ -92,9 +93,9 @@ Abstracts the `$$scale-ratio` and makes sure it's a positive number.
     $mobile-first:          true !global;
 
     //Expand color map if necessary
-    $base-colors: verify-color-map-depth($base-colors) !global;
+    $base-colors:           verify-color-map-depth($base-colors) !global;
 
-/*
+/* SG
 ##### `$$all-breakpoints`
 ###### List
 Stores all the names defined in `$$breakpoints` for use in abstract framework components so that if names are chagned, boilerplate media queries won't fail.
@@ -115,7 +116,7 @@ Grabs the last `$$breakpoints` name.
     @each $breakpoint in $breakpoints {
         $temp-bp: nth($breakpoint, 1) !global;
 
-        @if $temp-bp != ' '{
+        @if $temp-bp != ' ' {
             $all-breakpoints: append($all-breakpoints, $temp-bp, comma) !global;
         }
     }
