@@ -1,0 +1,136 @@
+/* SG
+
+# Mixins/CSS Helpers [[dev]]
+
+##### `@border()`
+###### mixin(`$border`)
+Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
+
+```scss
+    //scss
+    .foo {
+        @include border(2px 3px solid dashed dotted blue currentColor yellow);
+    }
+
+    //css
+    .foo {
+        border-width: 2px 3px;
+        border-style: solid dashed dotted;
+        border-color: blue currentColor yellow;
+    }
+
+*/
+
+@mixin border($border) {
+    $border-width: ();
+    $border-style: ();
+    $border-color: ();
+
+    //Make sure border isn't empty
+    @if $border != null {
+        @each $property in $border {
+            //Grab first argument, take the key value in case we're given a map
+            $property: nth($property, -1);
+            $prop-type: type-of($property);
+
+            //Check property types for types and store them into separate list values
+            //Numbers (width), colors (color), or strings (style)
+            @if ($prop-type == 'number') {
+                $border-width: append($border-width, $property)
+            }
+            @elseif (($prop-type == 'color') or ($property == 'currentColor')) {
+                $border-color: append($border-color, $property)
+            }
+            @elseif ($prop-type == 'string') {
+                $border-style: append($border-style, $property)
+            }
+
+        }
+    }
+
+    //If this is just a the typical shorthand (width style color)
+    // with all values in the correct place, just output the shorthand
+    @if length($border-width) == 1
+        and length($border-style) == 1
+        and length($border-color) == 1
+    {
+        border: $border-width $border-style $border-color;
+    } @else {
+    //Else, put them into nested properties and let sass handle the rest
+        border: {
+            width: $border-width;
+            style: $border-style;
+            color: $border-color;
+        }
+    }
+}
+
+
+/* SG
+##### `@specificity()`
+###### mixin(`$specificity: 1`)
+Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
+```scss
+.class {
+    @include specificity(2) {
+        color: red;
+    }
+}
+
+//css
+.class.class {
+    color: red;
+}
+
+```
+[Reference](http://www.sitepoint.com/selector-specificity-css-preprocessors/)
+```
+
+*/
+@mixin specificity($specificity: 1) {
+    $selector: unquote('&');
+
+    @if $specificity > 1 {
+        @for $i from 1 to $specificity {
+            $selector: $selector + unquote('&');
+        }
+        @at-root #{$selector} {
+            @content;
+        }
+    } @else {
+        @content;
+    }
+}
+
+
+/* SG
+##### `@opacity()`
+###### mixin(`$opacity`)
+Cross-browser (including IE8-) opacity.
+[Reference](https://gist.github.com/jgv/745754)
+
+*/
+
+@mixin opacity($opacity) {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$opacity * 100})";
+    opacity: $opacity;
+}
+
+
+//------------------------------------
+//    $LISTS
+//------------------------------------
+// http://compass-style.org/reference/compass/typography/lists/
+// Turn off the bullet for an element of a list
+
+@mixin no-bullet() {
+    list-style-image : none;
+    list-style-type  : none;
+    margin-left      : 0;
+}
+
+// turns off the bullets for an entire list
+@mixin no-bullets() {
+    list-style: none;
+    > li { @include no-bullet; }
+}
