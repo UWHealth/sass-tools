@@ -46,7 +46,12 @@ Example:
 Used exclusively by `@create-overrides()` to iterate through a map of classes, properties, and values to create responsive classes.
 
 */
+
 $breakpoint-namespace-character: '\\@' !default;
+
+@import 'display';
+@import 'spacing';
+@import 'clearfix';
 
 @mixin create-overrides($map, $breakpoints, $namespace: "", $separator: $breakpoint-namespace-character) {
 
