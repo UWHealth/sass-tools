@@ -224,14 +224,14 @@ Output REM values using the typographic grid. This is the prefered method of add
 // Lifted from inuit.css:
 // github.com/csswizardry/inuit.css/generic/_mixins.scss
 
-$headings-use: 0 !global;
+$_headings-use: 0 !global;
 
 @mixin headings($from: 1, $to: 6, $class-type: null) {
     //Used for multiple calls to this mixin.
     // Ensures no double extends.
-    $headings-use: $headings-use + 1 !global;
+    $_headings-use: $_headings-use + 1 !global;
 
-    %base-headings#{$headings-use} {
+    %base-headings#{$_headings-use} {
         @content;
     }
 
@@ -240,11 +240,12 @@ $headings-use: 0 !global;
         @for $i from $from through $to {
             $selector: '#{$class-type}h#{$i}';
             #{$selector} {
-                @extend %base-headings#{$headings-use};
+                @extend %base-headings#{$_headings-use};
             }
         }
     }
     @else {
-        @warn 'You need to supply numbers between 1 and 6 for headings mixin to work';
+        @warn 'You need to supply numbers between 1 and 6' +
+            ' for headings mixin to work';
     }
 }
