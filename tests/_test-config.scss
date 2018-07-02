@@ -1,8 +1,8 @@
 $base-font-size:            16px;
 $base-line-height:          24px;
-$font-looseness: 			15%;
+$font-looseness: 			35%;
 $auto-scale-type:           false;
-$scale-ratio:               1.35;
+$scale-ratio:               1.275;
 
 $vertical-space:			$base-line-height; // Maintains best vertical rhythm
 $horizontal-space: 			$base-line-height; // Simplifies measurements
@@ -126,20 +126,6 @@ $base-colors: generate-color-variations(
 
         'bg': #f6f8fb, //Required
 
-        //Change the following names and colors project-specific
-        'styleguide': (
-            'base': #5E839E,
-            'light': #CADDE2,
-            'lighter': #F5D1DD,
-            'lightest': #E0ECF0,
-            'highlight':#f60255,
-            'dark': #175CA2,
-            'darker': #114a84,
-            'darkest': #081D33
-        ),
-
-        'accent': mix(#d40026, #AD0909, 45%),
-
         'success': #bada55
     ),
     $variations: ( //Color variation names
@@ -162,8 +148,6 @@ $base-colors: generate-color-variations(
 
 
 $debug-fonts: false;
-
-$debug-baseline: true;
 
 $debug-silent-classes: false;
 
