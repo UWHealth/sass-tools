@@ -1,7 +1,3 @@
-$grid-columns:           12      !default;
-$grid-silent-classes:	 false   !default;
-$grid-flex:              true    !default;
-
 /* SG
 # Grid System/Variables [[dev]]
 
@@ -47,7 +43,7 @@ Creates a width property with a percentage based on the `$columns / $total`.
 
 */
 
-@mixin grid-width($columns, $total:$grid-columns) {
+@mixin grid-width($columns, $total: $grid-columns) {
     width: #{percentage($columns/$total)};
     @if $grid-flex {
         flex-basis: #{percentage($columns/$grid-columns)};
@@ -78,7 +74,8 @@ Creates a width property with a percentage based on the `$columns / $total`.
     $silent: $grid-silent-classes,
     $property: "width",
     $important: false,
-    $columns: $grid-columns
+    $columns: $grid-columns,
+    $space: if($grid-bem-naming, '-', '_')
 ) {
 
     // [1] Loop through the $grid-columns.
@@ -118,7 +115,7 @@ Creates a width property with a percentage based on the `$columns / $total`.
                 $size: grid-size($dividen, $divisor);
 
                 //Create class name
-                $class-name: "#{$prefix}#{$numerator}_#{$denominator}";
+                $class-name: "#{$prefix}#{$numerator}#{$space}#{$denominator}";
 
                 //Pluralize anything other than ratios with a numerator of 1
                 @if $numerator != "one" {                                    // [5]
@@ -145,22 +142,22 @@ Creates a width property with a percentage based on the `$columns / $total`.
     }
 
     //Allow for fourths as an alias to quarters
-    #{$prefix}one_fourth {
-		@extend #{$prefix}one_quarter;
+    #{$prefix}one#{$space}fourth {
+		@extend #{$prefix}one#{$space}quarter;
     }
 
-    #{$prefix}two_fourths {
-		@extend #{$prefix}two_quarters;
+    #{$prefix}two#{$space}fourths {
+		@extend #{$prefix}two#{$space}quarters;
     }
 
-    #{$prefix}three_fourths {
-		@extend #{$prefix}three_quarters;
+    #{$prefix}three#{$space}fourths {
+		@extend #{$prefix}three#{$space}quarters;
     }
 
 
 	@if $silent and $debug-silent-classes {
 		$class-name-list: map-merge($class-name-list,(
-			#{$prefix}one_whole: 100%
+			#{$prefix}one#{$space}whole: 100%
 		));
 		$silent-class-registry: silents-register($class-name-list, $type) !global;
 	}

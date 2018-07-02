@@ -44,6 +44,7 @@ _Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`
 
 $grid-columns:           12      !default;
 $grid-gutter:            32px    !default;
+$grid-bem-naming:        false   !default;
 $grid-silent-classes:	 false   !default;
 
 $grid-flex:              true    !default;
@@ -54,40 +55,42 @@ $grid-markup-fix:        false   !default;
 
 $grid-push:              true    !default;
 $grid-pull:              true    !default;
-$grid-push-namespace:    'push_' !default;
-$grid-pull-namespace:    'pull_' !default;
+$grid-push-namespace:    if($grid-bem-naming,
+    'push--', 'push_')           !default;
+$grid-pull-namespace:    if($grid-bem-naming,
+    'pull--', 'pull_')           !default;
 
 @import 'widths';
+@import '../overrides/clearfix';
 
 @mixin grid-setup(
     $silent: $grid-silent-classes,
     $columns: $grid-columns,
-    $floats: $grid-floats,
+    $gutter: $grid-gutter,
     $inline-block: $grid-inline-block,
     $flex: $grid-flex,
-    $gutter: $grid-gutter
+    $floats: $grid-floats,
+    $bem: $grid-bem-naming
     ) {
 
-    $class-type: if($silent, "%", ".");
+    // Allow for BEM naming instead of snake-case
+    $child: '_';
+    $mod: '_';
 
-    %grid-clearfix {
-    	*zoom: 1;
-
-    	&:before,
-        &:after {
-    		display: table;
-    		content: " ";
-    	}
-    	&:after{
-    		clear: both;
-    		height: 0;
-    		width: 0;
-    	}
+    @if $bem {
+        $child: '__';
+        $mod: '--';
     }
+
+    $class-type: if($silent, "%", ".");
 
     %grid_reset {
         letter-spacing: normal;
         word-spacing: normal;
+    }
+
+    %grid-clearfix {
+        @include clearfix;
     }
 
     //*------------------------------------
@@ -98,12 +101,13 @@ $grid-pull-namespace:    'pull_' !default;
         @include grid-row();
     }
 
-    #{$class-type}grid_item {
+    #{$class-type}grid#{$child}item {
         @include grid-item($columns);
     }
 
     // Special class for grid items that need to behave like both grids and grid__items.
-    #{$class-type}grid_reset_item {
+    #{$class-type}grid#{$child}item#{$mod}reset,
+    #{$class-type}grid#{$mod}reset#{$child}item {
         @include grid-item($columns);
         @extend #{$class-type}grid;
     }
@@ -112,12 +116,12 @@ $grid-pull-namespace:    'pull_' !default;
     // Reversed grids allow you to structure your source in the opposite order to
     // how your rendered layout will appear. Extends `.grid`.
     //
-    #{$class-type}grid_rev,
-    #{$class-type}grid_reverse{
+    #{$class-type}grid#{$mod}rev,
+    #{$class-type}grid#{$mod}reverse {
         @if $floats {
             @extend %grid-clearfix;
 
-            > #{$class-type}grid_item{
+            > #{$class-type}grid#{$child}item{
                 float: right;
             }
         }
@@ -127,7 +131,7 @@ $grid-pull-namespace:    'pull_' !default;
             direction: rtl;
             text-align: left;
 
-            > #{$class-type}grid_item{
+            > #{$class-type}grid#{$child}item{
                 direction: ltr;
                 text-align: left;
             }
@@ -138,11 +142,11 @@ $grid-pull-namespace:    'pull_' !default;
     //
     // Align the entire grid to the right. Extends `.grid`.
     //
-    #{$class-type}grid_right {
+    #{$class-type}grid#{$mod}right {
         @if $inline-block {
             text-align: right;
 
-            > #{$class-type}grid_item {
+            > #{$class-type}grid#{$child}item {
                 text-align: left;
             }
         }
@@ -154,7 +158,7 @@ $grid-pull-namespace:    'pull_' !default;
     // Centered grids align grid items centrally without needing to use push or pull
     // classes. Extends `.grid`.
     //
-    #{$class-type}grid_center{
+    #{$class-type}grid#{$mod}center{
 
         @if $flex {
             justify-content: center;
@@ -163,7 +167,7 @@ $grid-pull-namespace:    'pull_' !default;
         @if $inline-block {
             text-align: center;
 
-            > #{$class-type}grid_item {
+            > #{$class-type}grid#{$child}item {
                 text-align: left;
             }
         }
@@ -173,9 +177,9 @@ $grid-pull-namespace:    'pull_' !default;
     // Align grid cells vertically (`.grid--middle` or `.grid--bottom`). Extends
     // `.grid`.
     //
-    #{$class-type}grid_middle {
+    #{$class-type}grid#{$mod}middle {
 
-        > #{$class-type}grid_item {
+        > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: center;
             }
@@ -183,9 +187,9 @@ $grid-pull-namespace:    'pull_' !default;
         }
     }
 
-    #{$class-type}grid_bottom {
+    #{$class-type}grid#{$mod}bottom {
 
-        > #{$class-type}grid_item {
+        > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: flex-end;
             }
@@ -197,10 +201,10 @@ $grid-pull-namespace:    'pull_' !default;
     // Gutterless grids have all the properties of regular grids, minus any spacing.
     // Extends `.grid`.
 
-    #{$class-type}grid_full{
+    #{$class-type}grid#{$mod}full{
         margin-left: 0;
 
-        > #{$class-type}grid_item {
+        > #{$class-type}grid#{$child}item {
             padding-left: 0;
         }
     }
@@ -209,10 +213,10 @@ $grid-pull-namespace:    'pull_' !default;
     //
     // Create grids with narrower gutters. Extends `.grid`.
     //
-    #{$class-type}grid_narrow {
+    #{$class-type}grid#{$mod}narrow {
         @include type-space(margin-left, -.5, $unit: $gutter);
 
-        > #{$class-type}grid_item {
+        > #{$class-type}grid#{$child}item {
             @include type-space(padding-left, .5, $unit: $gutter);
         }
     }
@@ -221,10 +225,10 @@ $grid-pull-namespace:    'pull_' !default;
     //
     // Create grids with wider gutters. Extends `.grid`.
     //
-    #{$class-type}grid_wide {
+    #{$class-type}grid#{$mod}wide {
         @include type-space(margin-left, -2, $unit: $gutter);
 
-        > #{$class-type}grid_item {
+        > #{$class-type}grid#{$child}item {
             @include type-space(padding-left, 2, $unit: $gutter);
         }
     }
@@ -232,7 +236,7 @@ $grid-pull-namespace:    'pull_' !default;
     //
     // Cause layout items to take up a non-explicit amount of width.
     //
-    #{$class-type}grid_auto {
+    #{$class-type}grid#{$mod}auto {
 
         @if $inline-block {
             text-align: justify;
@@ -245,8 +249,8 @@ $grid-pull-namespace:    'pull_' !default;
             }
         }
 
-        & > #{$class-type}grid_item,
-        #{$class-type}grid_item_auto {
+        & > #{$class-type}grid#{$child}item,
+        #{$class-type}grid#{$child}item#{$mod}auto {
             width: auto;
 
             @if $inline-block {
@@ -265,7 +269,7 @@ $grid-pull-namespace:    'pull_' !default;
 /* SG
 # Grid System/Mixins [[dev]]
 
-##### `@grid-row()`
+##### `@grid-row($gutter, $letter-spacing)`
 ###### mixin()
 Creates a grid container (row) based on your grid configuration.
 @requires `@type-space()`
@@ -286,8 +290,8 @@ Creates a grid item (column) based on your grid configuration set to a width bas
     padding: 0;                      // [2]
     @include type-space(margin-left, -1, $unit: $gutter);
 
-    @if $grid-inline-block {
-        letter-spacing: $grid-letter-space-fix;
+    @if $grid-inline-block and $letter-spacing {
+        letter-spacing: $letter-spacing;
 
         // Opera hack
         .opera:-o-prefocus,
@@ -302,7 +306,7 @@ Creates a grid item (column) based on your grid configuration set to a width bas
     }
 
     @if $grid-floats {
-        @extend %clearfix;
+        @include clearfix;
     }
 }
 
@@ -405,10 +409,10 @@ Runs `@pull-setup()`, looping across all breakpoints in `$$breakpoint-has-pull`.
 
 */
 
+$breakpoint-namespace-character: '\\@' !default;
 $breakpoint-has-widths: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
 $breakpoint-has-push:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
 $breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
-
 
 @mixin grid-classes($silent: $grid-silent-classes) {
     @include grid-setup($silent);
@@ -424,7 +428,12 @@ $breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
     // Our responsive classes, if we have enabled them.
     @each $name in $breakpoint-has-widths {
         @include media-query($name) {
-           @include width-setup("#{$name}#{$breakpoint-namespace-character}", $silent, $column-props, $important);
+            @include width-setup(
+                "#{$name}#{$breakpoint-namespace-character}",
+                $silent,
+                $column-props,
+                $important
+            );
         }
     }
 }
@@ -434,7 +443,12 @@ $breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
 
     @each $name in $breakpoint-has-push {
         @include media-query($name) {
-           @include width-setup("#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}", $silent, "left", $important);
+            @include width-setup(
+                "#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}",
+                $silent,
+                "left",
+                $important
+            );
         }
     }
 }
@@ -445,7 +459,12 @@ $breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
 
     @each $name in $breakpoint-has-pull {
         @include media-query($name) {
-           @include width-setup("#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}", $silent, "right", $important);
+            @include width-setup(
+                "#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}",
+                $silent,
+                "right",
+                $important
+            );
         }
     }
 }
