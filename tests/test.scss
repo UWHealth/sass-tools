@@ -1,0 +1,70 @@
+@import '../index.scss';
+@import 'test-config.scss';
+
+@include globalize-config();
+@include web-fonts();
+
+html {
+    font-family: $primary-font-stack;
+    background-color: color('bg', 'dark');
+}
+
+body {
+    min-height: 100vh;
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
+    box-sizing: border-box;
+}
+
+.wrap {
+    max-width: $max-site-width;
+    width: 95%;
+    margin: 0 auto;
+    background-color: color('bg');
+    padding: type-space(1 2);
+}
+
+h1 {
+    font-size: $type-h1-size;
+    line-height: $type-h1-lh;
+}
+
+h2 {
+    @include fs($type-h2-size, true);
+}
+
+h3 {
+    @include fs($type-h3-size, true);
+}
+
+h4 {
+    @include fs($type-h4-size, true);
+}
+
+h5 {
+    @include fs($type-h5-size, true);
+}
+
+h6 {
+    @include fs($type-h6-size, false);
+    line-height: $h6-lh;
+}
+
+.web-font {
+    font-family: 'Asap';
+}
+
+.grid_item {
+    outline: 1px solid black;
+}
+
+@include grid-init();
+@include spacing-utilities-init();
+@include display-utilities-init();
