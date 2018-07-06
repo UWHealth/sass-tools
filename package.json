@@ -11,5 +11,8 @@
     "gulp": "4.0.0",
     "gulp-cli": "^2.0.1",
     "gulp-sass": "^4.0.1"
+  },
+  "dependencies": {
+    "sassdoc": "^2.5.0"
   }
 }
