@@ -25,53 +25,45 @@ $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas, 'De
 
 $rem-px-fallback: false !default;
 
-/* SG
-# Config/Propagation [[dev]]
-
-#### `@globalize-config()`
-Pulls together config variables and routes them into structures expected by the framework, then makes them global.
-For instance, the `$$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
-
-*/
-
+/// Pulls together config variables and routes them into structures expected by the framework, then makes them global.
+/// For instance, the `$$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
 @mixin globalize-config() {
 
-    @include set-global-typography-variables();
+    @include _set-global-typography-variables();
 
-/* SG
-##### `$$type-base-unit`
-###### Number
-Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
+    //Expand color map if necessary
+    $base-colors:           verify-color-map-depth($base-colors) !global;
 
-##### `$$type-base-ratio`
-###### Number
-Ratio used to calculate the difference between font sizes and spacing units.
+    /// Is this build mobile first? Setting to ‘true’ means that all grids will be
+    /// 100% width if you do not apply a more specific class to them.
+    $mobile-first:          true !global;
 
-##### `$$type-headings`
-###### List (number)
-Used for defining automatic headings functions.
-
-##### `$$type-modular-scale`
-###### Number
-Abstracts the `$$scale-ratio` and makes sure it's a positive number.
-*/
-
+    /// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
+    /// @type Number
     $type-base-unit:           $base-line-height !global;
 
     @if $base-font-size >= $type-base-unit {
         $type-base-unit: baseline-calc($base-font-size) * $base-font-size !global;
     }
 
+
+    /// Ratio used to calculate the difference between font sizes and spacing units.
+    /// @type Number
     $type-base-ratio:          ($type-base-unit / $base-font-size) !global;
 
+    /// Used for defining automatic headings functions.
+    /// @type List | Number
     $type-headings:            6, 5, 4, 3, 2, 1 !global;
 
-    //Spacing variable for simple inclusion.
+    /// Spacing variable for simple inclusion.
     $type-space:               2 * $type-base-ratio !global;
 
-    //Variable for easier reference:
+    /// Used for easier math
+    /// @type number
     $stripped-base-font-size:  strip-units($base-font-size) !global;
 
+    /// Abstracts the `$$scale-ratio` and makes sure it's a positive number.
+    /// @type Number
     $type-modular-scale:       $scale-ratio !global;
 
     //Checking for floats in $scale-ratio
@@ -84,32 +76,11 @@ Abstracts the `$$scale-ratio` and makes sure it's a positive number.
         }
     }
 
-    //Silent class registry
-    // Holds all auto-generated silent classes for debugging.
+    /// Silent class registry.
+    /// Holds all auto-generated silent classes for debugging.
     $silent-class-registry: () !global;
 
-    // Is this build mobile first? Setting to ‘true’ means that all grids will be
-    // 100% width if you do not apply a more specific class to them.
-    $mobile-first:          true !global;
-
-    //Expand color map if necessary
-    $base-colors:           verify-color-map-depth($base-colors) !global;
-
-/* SG
-##### `$$all-breakpoints`
-###### List
-Stores all the names defined in `$$breakpoints` for use in abstract framework components so that if names are chagned, boilerplate media queries won't fail.
-
-##### `$$breakpoint-smallest`
-###### String
-Grabs the first `$$breakpoints` name.
-
-##### `$$breakpoint-largest`
-###### String
-Grabs the last `$$breakpoints` name.
-*/
-
-    //Move all breakpoint names into a list
+    /// Stores all the names defined in `$$breakpoints` for use in abstract framework components so that if names are chagned, boilerplate media queries won't fail.
     $all-breakpoints: () !global;
 
     //Grab all breakpoint names
@@ -121,9 +92,10 @@ Grabs the last `$$breakpoints` name.
         }
     }
 
-
-    //Abstracting the smallest and largest breakpoints
+    /// Grabs the first `$$breakpoints` name, allowing for abstraction.
     $breakpoint-smallest: nth($all-breakpoints, 1) !global;
+
+    /// Grabs the last `$$breakpoints` name, allowing for abstraction.
     $breakpoint-largest:  nth($all-breakpoints, length($all-breakpoints)) !global;
 
     //------------------------------------
@@ -186,8 +158,9 @@ Grabs the last `$$breakpoints` name.
     @return $color-map;
 }
 
-
-@mixin set-global-typography-variables() {
+/// Pulls typography variables apart and puts them into easier to use pieces.
+/// For instance `$type-h1-size` starts as a list and becomes a single value, while adding `$type-h1-lh` (line-height) to the global scope for use.
+@mixin _set-global-typography-variables() {
     @if $auto-scale-type {
         $type-h1-size:          modular-scale(7) !global;
         $type-h2-size:          modular-scale(5) !global;

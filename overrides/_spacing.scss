@@ -1,36 +1,26 @@
 //------------------------------------
-//      $SPACING TOOLS
+//      $SPACING UTILITIES
 //------------------------------------
 
-/* SG
-# Utilities/Spacing Utilities [[dev]]
-
-##### `@spacing-utilities()`
-###### mixin(`$namespace:''`, `$config`)
-Generates responsive spacing and padding classes. The `$namespace` argument is the media query's name, which will be appended to all generated classes. The `$config` argument is a map that allows JS-style arguments. Outputs class name as: `breakpoint_prefix_direction_amount`.
-
-**`$config` Keys:**
-* `silent:` boolean for outputting silent/non-silent classes.
-* `important:` whether to output !important after each declaration.
-* `directions:` names that get appended to class names.
-* `amounts:` how much to multiply spacing unit by `$$base-line-height`.
-* `names:` corresponding names for each `amounts` that gets appended to class names.
-* `prefixes:` first word in the class name. Must contain the words 'pad' and 'space'. Used by `layout-type()` to determine padding or margin.
-
-
-##### `@spacing-utilities-init()`
-###### mixin(`$breakpoints:` `$$all-breakpoints`, `$namespace:''`, `$config:(silent:true)`)
-The responsive component to `@spacing-utilities()`. Invoke `@spacing-utilites()` with that loops through a set of media-queries defined in `$$breakpoints`. This is most useful for creating responsive spacing classes.
-
-*/
-
+/// The base horizontal unit. Used in `type-space` and grid functions.
+/// @group config
 $vertical-space: $base-line-height !default;
+
+/// The base horizontal unit. Used in `type-space` and grid functions.
+/// @group config
 $horizontal-space: $base-line-height !default;
 
-//Spacing utility classes
-//Generates responsive spacing and padding classes
-// The first argument is the media query's name, which will be appended to all generated classes.
-// The second argument is a map. This allows JS-style arguments.
+/// Generates responsive spacing and padding classes. The `$namespace` argument is the media query's name, which will be appended to all generated classes. The `$config` argument is a map that allows JS-style arguments. Outputs class name as: `breakpoint_prefix_direction_amount`.
+///
+/// **`$config` Keys:**
+/// * `silent:` boolean for outputting silent/non-silent classes.
+/// * `important:` whether to output !important after each declaration.
+/// * `directions:` names that get appended to class names.
+/// * `amounts:` how much to multiply spacing unit by `$$base-line-height`.
+/// * `names:` corresponding names for each `amounts` that gets appended to class names.
+/// * `prefixes:` first word in the class name. Must contain the words 'pad' and 'space'. Used by `layout-type()` to determine padding or margin.
+/// @param {string} $namespace [""] - a string to prepend to all spacing classes. Usually used for the media query's name that is calling this mixin.
+/// @param {map} $config []
 
 @mixin spacing-utilities ($namespace: "", $config: ()){
 
@@ -128,6 +118,13 @@ $horizontal-space: $base-line-height !default;
         $silent-class-registry: silents-register($class-name-list, 'spacing') !global;
     }
 }
+
+
+/// ###### mixin(`$breakpoints:` `$$all-breakpoints`, `$namespace:''`, `$config:(silent:true)`)
+/// The responsive component to `spacing-utilities`. Invoke `spacing-utilites` with that loops through a set of media-queries defined in `$breakpoints`. This is most useful for creating responsive spacing classes.
+/// @param {map} $breakpoints [$all-breakpoints] - breakpoints to loop over.
+/// @param {string} $namespace [""] - string to prepend to all classes.
+/// @param {map} $config [(silent: false)] - Passed to `spacing-utilities` mixin.
 
 @mixin spacing-utilities-init(
     $breakpoints: $all-breakpoints,
