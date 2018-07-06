@@ -33,6 +33,12 @@ Font file names must be the same as their CSS font-family values. Example: arial
 //
 //}
 
+/// Description of weights, styles and formats for the project's web fonts. The root key value determines the name, while each inner key determines the weights, styles, and formats.
+/// @prop font-name - name of the font family
+/// @prop {list|number} font-name.weights - font-weights to include
+/// @prop {list|number} font-name.italics - include italics for weights
+/// @prop {list|string} font-name.formats - file formats to include
+/// @group config
 $web-fonts: (
     'system': (
         'weights': (400, 700),
@@ -41,8 +47,15 @@ $web-fonts: (
     )
 ) !default;
 
+/// Relative path to fonts from CSS file
+/// @group config
 $font-file-location: '' !default;
 
+/// A wrapper function for `@font-face()`. Takes a configuration map and passes the keys to `@font-face()`. Loops through each font-name's (root map keys) weight and style.
+///
+/// Font file names must be the same as their CSS font-family values. Example: arial font, 400 weight would be arial-400.ttf and the CSS value would be font-family: 'arial'; font-weight: 400.
+/// @param {map} $font-map [$web-fonts]
+/// @see $web-fonts
 @mixin web-fonts($font-map: $web-fonts) {
     @each $name in map-keys($font-map) {
         $inner-map: map-get($font-map, $name);
@@ -53,23 +66,25 @@ $font-file-location: '' !default;
         $path: map-get($inner-map, 'path') or $font-file-location;
 
         @each $weight in $weights {
-            @include font-weights($name, $path, $weight, $formats);
+            @include _font-weights($name, $path, $weight, $formats);
         }
         @each $weight in $italics {
-            @include font-weights($name, $path, $weight, $formats, italic);
+            @include _font-weights($name, $path, $weight, $formats, italic);
         }
     }
 }
-// Deprecated name
+/// @alias web-fonts
+/// @deprecated
 @mixin include-web-fonts($font-map: $web-fonts) {@include web-fonts($font-map);}
 
-@mixin font-weights($name, $path, $weight, $formats, $style: '') {
+/// Formats fonts taken from `$web-fonts` and creates their equivilent weight (with correct font-style) output.
+@mixin _font-weights($name, $path, $weight, $formats, $style: '') {
     $style-string: if($style != '', '-#{$style}', '');
     $svg-id: ('##{$name}#{$weight}#{$style}');
     $font-name: #{$path}/#{unquote('#{$name}-#{$weight}#{$style-string}')};
     $style: if($style == '', 'normal', $style);
 
-    $fonts: join-formats($font-name, $formats, $svg-id);
+    $fonts: _join-formats($font-name, $formats, $svg-id);
 
     $eot: map-get($fonts, 'eot');
     $font-files: map-get($fonts, 'font-files');
@@ -83,21 +98,13 @@ $font-file-location: '' !default;
     );
 }
 
-
-/* SG
-##### `@font-face()`
-###### mixin(`$name`, `$font-files`, `$weight:false`,` $style:false`, `$eot:false`)
-Generates cross-browser font-face declarations when called.
-$name is required, arbitrary, and what you will use in font stacks.
-**Arguments:**
-* $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
-* $eot is required by IE, and is a relative location of the eot file.
-* $weight shows if the font is bold, defaults to normal
-* $style defaults to normal, might be also italic
-
-Based on [Compass' font-face mixin](http://compass-style.org/reference/compass/css3/font_face/).
-*/
-
+/// Generates cross-browser font-face declarations when called.
+/// `$name` is required, arbitrary, and what you will use in font stacks.
+/// @param {} $name
+/// @param {} $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
+/// @param {} $eot is required by IE, and is a relative location of the eot file.
+/// @param {} $weight shows if the font is bold, defaults to normal
+/// @param {} $style defaults to normal, might be also italic
 @mixin font-face(
     $name,
     $font-files,
@@ -123,7 +130,7 @@ Based on [Compass' font-face mixin](http://compass-style.org/reference/compass/c
     }
 }
 
-@function join-formats($font-name, $formats, $svg-id) {
+@function _join-formats($font-name, $formats, $svg-id) {
     $font-files: ();
     $eot: null;
 

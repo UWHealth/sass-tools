@@ -1,16 +1,12 @@
-/* SG
-# Typography/Conversion [[dev]]
-
-##### `@px-to-rems()`
-###### mixin(`$property`, `$sizes`, `$important`: `false`, `$base-font`: `$$base-font-size`)
-Takes a pixel value and creates a property with a `rem` value. If `$$rem-px-fallback` is `true`, a pixel fallback is also included. `$sizes` also accepts 'auto'.
-@alias `@rems()`
-@requires `px-to-rems()`
-
-*/
+$rem-px-fallback: false !default;
 
 // REM generator
-// Used to create a property with a rem value and PX fallback
+/// Takes a pixel value and creates a property with a `rem` value. If `$rem-px-fallback` is `true`, a pixel fallback is also included.
+/// @param {Property} $property - CSS property value to output
+/// @param {List | Pixel} $sizes - Pixel value(s) to be converted. A list results in a each value being processed. Can also be 'auto' or 'normal' (which avoid conversion).
+/// @param {Boolean} $important [false] - Whether to add `!important` to the end of the output.
+/// @param {Pixel} $base-font [$base-font-size] - The base value at which the pixels should be calculated against. Usually not necessary to change.
+
 @mixin px-to-rems($property, $sizes, $important: false, $base-font: $base-font-size) {
     $important-val: if($important, ' !important', '');
     $rem-sizes: ();
@@ -49,39 +45,39 @@ Takes a pixel value and creates a property with a `rem` value. If `$$rem-px-fall
 
 }
 
-//ALIAS: same as above
+/// @alias px-to-rems
 @mixin rems($property, $sizes, $important: false, $base-font: $base-font-size) {
     @include px-to-rems($property, $sizes, $important, $base-font);
 }
 
-
-/* SG
-
-# Typography/Sizing [[dev]]
-
-##### `@type-font-size()`
-###### mixin(`$font-size, $line-height: auto, $font-base:``$$base-font-size`)
-Quickly generate a font-size in rems, with a pixel fallback, based on the value we pass into the mixin. Optionally calculates line-height using `$$base-line-height`.
-
-_`$line-height` also accepts a pixel value and will be converted to a unitless one._
-
-@alias `@font-size()`
-@requires `@px-to-rems()`, `cache()`, `baseline-calc()`
-
-*/
+/// Quickly generate a font-size in rems (with a pixel fallback if `$rem-px-fallback = true`). Optionally calculates baseline-aligned line-height a using `$base-line-height` and the `baseline-calc` function.
+/// @param {Pixel} $font-size - Pixel value to be converted.
+/// @param {Boolean | String | Number} $line-height ['auto'] -
+/// * `'auto'` or `true` will automatically create a line-height that is aligned to the `$base-line-height`.
+/// * Pixel values will be converted to a unitless value.
+/// * Unitless numbers will be passed straight through.
+/// * `false` will result in no line-height declaration.
+/// @param {Boolean} $important [false] - Whether to add `!important` after the font-size.
+/// @param {Pixel} $base-font [$base-font-size]
+/// @requires {function} baseline-calc
+/// @requires {function} cache
 
 @mixin type-font-size (
     $font-size,
     $line-height: 'auto',
-    $font-base: $base-font-size,
-    $important: false
+    $important: false,
+    $base-font: $base-font-size,
 ) {
+    @if type-of($important) == 'number' {
+        $base-font: $important;
+        $important: false;
+    }
     //Create REM-based font-size
-    @include px-to-rems('font-size', $font-size);
+    @include px-to-rems('font-size', $font-size, $important, $base-font);
 
     @if $line-height == true or $line-height == 'auto' {
 
-        $line-height: cache(baseline-calc, $font-size, $font-base);
+        $line-height: cache(baseline-calc, $font-size, $base-font);
         line-height: $line-height;
 
     }
@@ -104,13 +100,15 @@ _`$line-height` also accepts a pixel value and will be converted to a unitless o
         line-height: $line-height;
     }
 }
-//Alias
-@mixin font-size($font-size, $line-height: true, $font-base: $base-font-size, $important: false) {
-    @include type-font-size($font-size, $line-height, $font-base, $important);
+/// @alias type-font-size
+@mixin font-size(
+    $font-size, $line-height: true, $important: false, $base-font: $base-font-size) {
+    @include type-font-size($font-size, $line-height, $base-font, $important);
 }
-
-@mixin fs($font-size, $line-height: true, $font-base: $base-font-size, $important: false) {
-    @include type-font-size($font-size, $line-height, $font-base, $important);
+/// @alias type-font-size
+@mixin fs(
+    $font-size, $line-height: true, $important: false, $base-font: $base-font-size) {
+    @include type-font-size($font-size, $line-height, $base-font, $important);
 }
 
 
@@ -144,6 +142,26 @@ Output REM values using the typographic grid. This is the prefered method of add
 @alias `@space()`
 
 */
+/// Output `rem` values using the typographic grid. This is the prefered method of adding padding and margins because it enforces consistent spacing around all elements.
+/// @param {Property} $property -
+/// Can be any `CSS` property that accepts a length value (e.g. `rem`). Also accepts multiple properties as a nested list (e.g. `(padding-left, padding-right)`).
+/// @param {List | Number} $multipliers -
+/// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
+/// @param {Boolean | String} $important [false] - `'!important'` is allowed as well as `true` or `false`.
+/// @example
+/// // SCSS input
+/// .foo {
+///     @include type-space(padding, 1 .25 .5 auto, '!important');
+/// }
+///
+/// // CSS output
+/// .foo {
+///     padding: 24px 8px 12px auto !important;
+///     padding: 1.5rem .375rem .75rem auto !important;
+/// }
+/// @requires $horizontal-space
+/// @requires $vertical-space
+/// @see {Function} type-space
 
 @mixin type-space(
     $properties,
@@ -195,36 +213,45 @@ Output REM values using the typographic grid. This is the prefered method of add
     }
 }
 
-//Alias
+/// @alias type-space
 @mixin space($properties, $multipliers, $important: false, $unit: $vertical-space) {
     @include type-space($properties, $multipliers, $important, $unit);
 }
 
+/// A functional version of the `type-space` mixin.
+/// @param {List | Number} $multipliers -
+/// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
 
 @function type-space($multipliers) {
     $base: $horizontal-space;
-
     $values: ();
+    $multiple-index: 1;
+
     @each $multiple in $multipliers {
+        // determine if horizontal or vertical
+        $base: if($multiple-index % 2 == 0, $horizontal-space, $vertical-space);
+        // Multiply space-type by multiple
         $pixel: if($multiple == 'auto', $multiple, $base * $multiple);
+        // Convert to rems
         $multiple: px-to-rems($pixel);
+        // Move value into list
         $values: join($values, $multiple, space);
+        // Increase index
+        $multiple-index: $multiple-index + 1;
     }
 
     @return $values;
 }
 
-// Style any number of headings all at once, e.g.:
-//
-//    @include headings(1, 3){color:#BADA55;}
-//
-//    outputs:
-//    h1, h2, h3 {color:#BADA55;}
-//
-// Lifted from inuit.css:
-// github.com/csswizardry/inuit.css/generic/_mixins.scss
-
 $_headings-use: 0 !global;
+
+/// Style any number of headings all at once.
+/// @param {Number} $from [1] - Starting heading number
+/// @param {Number} $to [6] - Ending heading number
+/// @example
+///    @include headings(1, 3){color:#BADA55;}
+///    // outputs:
+///    h1, h2, h3 {color:#BADA55;}
 
 @mixin headings($from: 1, $to: 6, $class-type: null) {
     //Used for multiple calls to this mixin.

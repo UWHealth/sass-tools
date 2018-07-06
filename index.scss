@@ -5,14 +5,15 @@
 // Created to be portable to any project.
 //-----------------------------
 
-//Global functions and variables
+// Global functions and variables
 @import 'functions';
 @import 'colors/colors';
-@import 'easings';
-//Framework variables
+
+// Framework variables
 @import 'variables';
 
-//Utility mixins
+// Utility mixins
+@import 'easings';
 @import 'fontface';
 @import 'grid/grid';
 @import 'helpers';

@@ -21,6 +21,22 @@ Allows creating many border properties at once. Works like the standard border s
 
 */
 
+
+/// Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
+/// @param {list} $border
+///
+/// @example
+///     //scss
+///     .foo {
+///         @include border(2px 3px solid dashed dotted blue currentColor yellow);
+///     }
+///
+///     //css
+///     .foo {
+///         border-width: 2px 3px;
+///         border-style: solid dashed dotted;
+///         border-color: blue currentColor yellow;
+///     }
 @mixin border($border) {
     $border-width: ();
     $border-style: ();
@@ -87,6 +103,21 @@ Specificity increaser. Useful for increasing specificity of a selector instead o
 ```
 
 */
+/// Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
+/// @param {number} $specificity [1]
+/// @example
+/// .class {
+///     @include specificity(2) {
+///         color: red;
+///     }
+/// }
+///
+/// //css
+/// .class.class {
+///     color: red;
+/// }
+
+
 @mixin specificity($specificity: 1) {
     $selector: unquote('&');
 
@@ -111,6 +142,7 @@ Cross-browser (including IE8-) opacity.
 
 */
 
+/// Cross-browser (including IE8-) opacity.
 @mixin opacity($opacity) {
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$opacity * 100})";
     opacity: $opacity;
@@ -123,13 +155,14 @@ Cross-browser (including IE8-) opacity.
 // http://compass-style.org/reference/compass/typography/lists/
 // Turn off the bullet for an element of a list
 
+/// Turn off the bullet for an element of a list
 @mixin no-bullet() {
     list-style-image : none;
     list-style-type  : none;
     margin-left      : 0;
 }
 
-// turns off the bullets for an entire list
+/// Turns off the bullets for an entire list
 @mixin no-bullets() {
     list-style: none;
     > li { @include no-bullet; }
