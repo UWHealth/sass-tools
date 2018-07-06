@@ -1,6 +1,6 @@
 {
   "name": "@uwhealth/sass-tools",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Starter kit for Sass projects",
   "main": "index.scss",
   "repository": "https://github.com/UWHealth/sass-tools.git",
@@ -10,9 +10,8 @@
     "browser-sync": "^2.24.5",
     "gulp": "4.0.0",
     "gulp-cli": "^2.0.1",
-    "gulp-sass": "^4.0.1"
-  },
-  "dependencies": {
+    "gulp-sass": "^4.0.1",
     "sassdoc": "^2.5.0"
-  }
+  },
+  "dependencies": {}
 }
