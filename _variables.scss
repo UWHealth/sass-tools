@@ -1,38 +1,72 @@
+/// Font size all other values will use for calculation. Will be converted to `rems`.
+/// @group config
 $base-font-size:        16px !default;
+/// Line-height for base font-size. Essentially determines the baseline grid for alignment.
+/// @see {function} type-space
+/// @group config
 $base-line-height:      24px !default;
-$type-h1-size:          modular-scale(7) !default;
-$type-h2-size:          modular-scale(5) !default;
-$type-h3-size:          modular-scale(4) !default;
-$type-h4-size:          modular-scale(3) !default;
-$type-h5-size:          modular-scale(2) !default;
-$type-h6-size:			modular-scale(1) !default;
-$type-small-size:		modular-scale(-1) !default;
 
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h1-size:          modular-scale(7) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h2-size:          modular-scale(5) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h3-size:          modular-scale(4) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h4-size:          modular-scale(3) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h5-size:          modular-scale(2) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h6-size:			modular-scale(1) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-p-size:           ($base-font-size, $base-line-height) !global;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-small-size:		modular-scale(-1) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
 $auto-scale-type:       false !default;
 
+/// Index of all colors used in the project. This is the one place colors should be used from. Accessing them should be done via the colors function.
+/// @see {function} colors
+/// @group config
 $base-colors: (
     'type': (
         'base': #0a1c2b //Required
     ),
-    'links': #0d497b, //Required
+    'links':    #0d497b, //Required
 
-    'bg': #f6f8fb, //Required
+    'bg':       #f6f8fb, //Required
 ) !default;
 
+/// Font-stack for using the user's operating system's native font.
 $system-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', sans-serif;
+
+/// Reference for the project's main font-stack.
 $primary-font-stack: $system-font-stack !default;
+
+/// Reference for the project's monospaced font-stack.
 $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas, 'DejaVu Sans Mono', Menlo, monospace !default;
 
 $rem-px-fallback: false !default;
 
+/// **Important: This must be called in order to use any of the tools. It should be called after you've set your own variables. **
 /// Pulls together config variables and routes them into structures expected by the framework, then makes them global.
-/// For instance, the `$$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
+/// For instance, the `$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
+/// @group core
 @mixin globalize-config() {
 
     @include _set-global-typography-variables();
 
     //Expand color map if necessary
-    $base-colors:           verify-color-map-depth($base-colors) !global;
+    $base-colors:           _verify-color-map-depth($base-colors) !global;
 
     /// Is this build mobile first? Setting to ‘true’ means that all grids will be
     /// 100% width if you do not apply a more specific class to them.
@@ -46,7 +80,6 @@ $rem-px-fallback: false !default;
         $type-base-unit: baseline-calc($base-font-size) * $base-font-size !global;
     }
 
-
     /// Ratio used to calculate the difference between font sizes and spacing units.
     /// @type Number
     $type-base-ratio:          ($type-base-unit / $base-font-size) !global;
@@ -59,7 +92,7 @@ $rem-px-fallback: false !default;
     $type-space:               2 * $type-base-ratio !global;
 
     /// Used for easier math
-    /// @type number
+    /// @type Number
     $stripped-base-font-size:  strip-units($base-font-size) !global;
 
     /// Abstracts the `$$scale-ratio` and makes sure it's a positive number.
@@ -92,10 +125,10 @@ $rem-px-fallback: false !default;
         }
     }
 
-    /// Grabs the first `$$breakpoints` name, allowing for abstraction.
+    /// Grabs the first `$all-breakpoints` name, allowing for abstraction.
     $breakpoint-smallest: nth($all-breakpoints, 1) !global;
 
-    /// Grabs the last `$$breakpoints` name, allowing for abstraction.
+    /// Grabs the last `$all-breakpoints` name, allowing for abstraction.
     $breakpoint-largest:  nth($all-breakpoints, length($all-breakpoints)) !global;
 
     //------------------------------------
@@ -130,7 +163,9 @@ $rem-px-fallback: false !default;
     $table-border-spacing: 0 !global;
 }
 
-@function verify-color-map-depth($color-map) {
+/// Makes sure color map contains the necessary depth to be used by `colors` function
+/// @param $color-map
+@function _verify-color-map-depth($color-map) {
     $is-deep-enough: true;
 
     @if map-depth($color-map) {
@@ -172,56 +207,35 @@ $rem-px-fallback: false !default;
     }
 
     //Check for existence of line-height override, and store it
-    $type-h1-lh: if(length($type-h1-size) > 1,
-        nth($type-h1-size, 2),
-        baseline-calc(nth($type-h1-size, 1))
-    ) !global;
+    $type-h1-lh: _extract-line-height($type-h1-size) !global;
 
     $h1-lh: $type-h1-lh !global; //alias
 
-    $type-h2-lh: if(length($type-h2-size) > 1,
-        nth($type-h2-size, 2),
-        baseline-calc(nth($type-h2-size,1))
-    ) !global;
+    $type-h2-lh: _extract-line-height($type-h2-size) !global;
 
     $h2-lh: $type-h2-lh !global; //alias
 
-    $type-h3-lh: if(length($type-h3-size) > 1,
-        nth($type-h3-size, 2),
-        baseline-calc(nth($type-h3-size,1))
-    ) !global;
+    $type-h3-lh: _extract-line-height($type-h3-size)!global;
 
     $h3-lh: $type-h3-lh !global; //alias
 
-    $type-h4-lh: if(length($type-h4-size) > 1,
-        nth($type-h4-size, 2),
-        baseline-calc(nth($type-h4-size, 1))
-    ) !global;
+    $type-h4-lh: _extract-line-height($type-h4-size)!global;
 
     $h4-lh: $type-h4-lh !global; //alias
 
-    $type-h5-lh: if(length($type-h5-size) > 1,
-        nth($type-h5-size, 2),
-        baseline-calc(nth($type-h5-size, 1))
-    ) !global;
+    $type-h5-lh: _extract-line-height($type-h5-size)!global;
 
     $h5-lh: $type-h5-lh !global; //alias
 
-    $type-h6-lh: if(length($type-h6-size) > 1,
-        nth($type-h6-size, 2),
-        baseline-calc(nth($type-h6-size, 1))
-    ) !global;
+    $type-h6-lh: _extract-line-height($type-h6-size)!global;
 
     $h6-lh: $type-h6-lh !global; //alias
 
-    $type-p-lh: baseline-calc($base-font-size) !global;
+    $type-p-lh: _extract-line-height($type-p-size) !global;
 
     $p-lh: $type-p-lh !global; //alias
 
-    $type-small-lh:	if(length($type-small-size) > 1,
-        nth($type-small-size, 2),
-        baseline-calc(nth($type-small-size, 1))
-    ) !global;
+    $type-small-lh:	_extract-line-height($type-small-size) !global;
 
     $small-lh: $type-small-lh !global; //alias
 
@@ -234,4 +248,14 @@ $rem-px-fallback: false !default;
     $type-h6-size:              nth($type-h6-size, 1) !global;
     $type-p-size:               $base-font-size !global;
     $type-small-size: 			nth($type-small-size, 1) !global;
+}
+
+/// Checks if a type-size is declared as larger than 1, then either extracts the second value or calculates a line-height.
+/// @param {List|Number} $type-size
+/// @returns {number} The line-height
+@function _extract-line-height($type-size) {
+    @return if(length($type-size) > 1,
+        nth($type-size, 2),
+        baseline-calc(nth($type-size, 1))
+    );
 }
