@@ -2,16 +2,6 @@
 //    $DISPLAY UTILITIES
 //------------------------------------*/
 
-/* SG
-# Tools/Display Utilities [[dev]]
-
-@file globals/tools/_t-display.scss
-
-##### `@display-utilities()`
-###### mixin(`$namespace:"", $silent:false, $important:true, $class-list:$display-classes`)
-Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-*/
-
 $display-classes: (
     'show': 'block',
     'hide': 'none'

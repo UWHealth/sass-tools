@@ -1,0 +1,7 @@
+/// Whether to show console outputs of line-heights that are automatically calculated.
+/// @group config
+$debug-fonts: false !default;
+
+/// Stores all auto-generated silent classes into a map that is then output as a comment at the end of the final css. Useful for getting an overview of values that are stored by the framework.
+/// @group config
+$debug-silent-classes: false !default;

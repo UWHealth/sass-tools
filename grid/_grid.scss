@@ -2,43 +2,43 @@
 //      $GRID SYSTEM
 //------------------------------------
 
-/*
-_Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`). Based on the `$$grid-silent-classes` setting._
-
-* `%grid_reset`
- Useful for resetting the grid's effects without making full grid items.
-
-* `[% || .]grid`
- Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
-
-* `[% || .]grid_item`
- Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
-
-* `[% || .]grid_rev`
- Makes grid columns start from the right.
-
-* `[% || .]grid_right`
- Makes all grid columns align to the right.
-
-* `[% || .]grid_center`
- Makes all grid columns align to the center.
-
-* `[% || .]grid_middle`
- Makes all grid columns vertical align to the middle.
-
-* `[% || .]grid_bottom`
- Makes all grid columns vertical align to the bottom.
-
-* `[% || .]grid_full`
- Eliminates padding between grid columns.
-
-* `[% || .]grid_narrow`
- Reduces the padding between grid columns.
-
-* `[% || .]grid_wide`
- Increases the padding between grid columns.
-
-*/
+//
+// _Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`). Based on the `$$grid-silent-classes` setting._
+//
+// * `%grid_reset`
+//  Useful for resetting the grid's effects without making full grid items.
+//
+// * `[% || .]grid`
+//  Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
+//
+// * `[% || .]grid_item`
+//  Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
+//
+// * `[% || .]grid_rev`
+//  Makes grid columns start from the right.
+//
+// * `[% || .]grid_right`
+//  Makes all grid columns align to the right.
+//
+// * `[% || .]grid_center`
+//  Makes all grid columns align to the center.
+//
+// * `[% || .]grid_middle`
+//  Makes all grid columns vertical align to the middle.
+//
+// * `[% || .]grid_bottom`
+//  Makes all grid columns vertical align to the bottom.
+//
+// * `[% || .]grid_full`
+//  Eliminates padding between grid columns.
+//
+// * `[% || .]grid_narrow`
+//  Reduces the padding between grid columns.
+//
+// * `[% || .]grid_wide`
+//  Increases the padding between grid columns.
+//
+//
 
 @import 'variables';
 @import 'widths';

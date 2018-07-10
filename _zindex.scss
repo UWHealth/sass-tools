@@ -2,18 +2,18 @@
 //      $MIXINS
 //------------------------------------
 
-/* SG
-# Tools/Z-Index [[dev]]
-
-@file globals/tools/_t-zindex.scss
-
-##### `z()`
-###### function(`$layer`, `$modifier: false`)
-Returns a numeric value (used for z-index) from a named layer, stored in `$$z-index`. Changing the modifier to anything other than `false` will add 1 plus however many times the value has been called. So, if you've called `z(head, true)` 5 times, and `head`'s default value is 100, you would get a value of 105.
-
-The `$modifier` is useful if you'd like to closely layer z-indexes within the same module. It is rarely necessary, though since z-indexes stack.
-
-*/
+// /* SG
+// # Tools/Z-Index [[dev]]
+//
+// @file globals/tools/_t-zindex.scss
+//
+// ##### `z()`
+// ###### function(`$layer`, `$modifier: false`)
+// Returns a numeric value (used for z-index) from a named layer, stored in `$$z-index`. Changing the modifier to anything other than `false` will add 1 plus however many times the value has been called. So, if you've called `z(head, true)` 5 times, and `head`'s default value is 100, you would get a value of 105.
+//
+// The `$modifier` is useful if you'd like to closely layer z-indexes within the same module. It is rarely necessary, though since z-indexes stack.
+//
+// */
 
 $z-index: (
 	reset: 0,

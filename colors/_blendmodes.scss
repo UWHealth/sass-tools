@@ -1,44 +1,44 @@
-/* SG
-
-# Colors/Blending Modes [[dev]]
-
-@file tools/_t-blend-modes.scss
-
-@priority 1
-
-[Taken from Sass Blend Modes](https://github.com/heygrady/scss-blend-modes/blob/master/stylesheets/_blend-modes.scss)
-
-##### `blend-normal()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-multiply()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-lighten()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-darken()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-lineardodge()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-linearburn()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-difference`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-screen()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-exclusion()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-multiply()`
-###### function(`$forground, $background, $amount:0`)
-
-*/
+// /* SG
+//
+// # Colors/Blending Modes [[dev]]
+//
+// @file tools/_t-blend-modes.scss
+//
+// @priority 1
+//
+// [Taken from Sass Blend Modes](https://github.com/heygrady/scss-blend-modes/blob/master/stylesheets/_blend-modes.scss)
+//
+// ##### `blend-normal()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-multiply()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-lighten()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-darken()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-lineardodge()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-linearburn()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-difference`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-screen()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-exclusion()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-multiply()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// */
 
 //Taken from: https://github.com/heygrady/scss-blend-modes/blob/master/stylesheets/_blend-modes.scss
 

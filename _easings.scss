@@ -2,14 +2,14 @@
 //    $EASING VARIABLES
 //------------------------------------*/
 
-/* SG
-# Variables/Easing [[dev]]
-
-Each easing variable is a cubic-bezier value that specifies rate of change of an animation. [See easings for more](http://www.easings.net).
-
-[Reference](https://github.com/matthewlein/Ceaser/blob/master/developer/)
-
-*/
+// /* SG
+// # Variables/Easing [[dev]]
+//
+// Each easing variable is a cubic-bezier value that specifies rate of change of an animation. [See easings for more](http://www.easings.net).
+//
+// [Reference](https://github.com/matthewlein/Ceaser/blob/master/developer/)
+//
+// */
 
 $linear         : cubic-bezier(0.250, 0.250, 0.750, 0.750) !default;
 $ease           : cubic-bezier(0.250, 0.100, 0.250, 1.000) !default;

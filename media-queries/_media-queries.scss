@@ -2,30 +2,6 @@
 //	$MEDIA QUERIES
 //------------------------------------
 
-/* SG
-# Mixins/Media Queries [[dev]]
-
-@file globals/tools/_t-media-queries.scss
-
-##### `@media-query()`
-###### mixin(`$media-queries...`)
-Enclose a block of code with a media query as named in `$breakpoints`. To create more consolodated code, most (if not all) media queries should be called through this mixin. Multiple media-queries can be defined, separated by a comma. This will place your content into multiple separate media-queries at once (useful if you need the same css at different breakpoints).
-
-**Alternative Uses:**
-
-* Passing multiple media queries separated by an `'and'` (quoted) to combine them, compiles to something like `@media screen and (min-width: 500px) and (max-width: 900px){}`.
-
-* Passing a value like `min-width 1200px` or `max-height 300px` allows for arbitrary breakpoints.
-
-* Passing `max 1200px 'and' smalls` will create a combined media-query with a predefined one from `$$breakpoints`.
-
-* Passing `height smalls` will replace `width` with `height` within the `smalls` breakpoint. Similarly, using `min smalls` would replace 'max' with 'min'.
-
-@requires `_mq-arglist-to-map()`, `_mq-parse-query-args()` `$$breakpoints`
-@alias @mq(), @breakpoint(), @bp()
-
-*/
-
 @import 'variables';
 
 /// Enclose a block of code with a media query as named in `$breakpoints`. To create more consolodated code, most (if not all) media queries should be called through this mixin. Multiple media-queries can be defined, separated by a comma. This will place your content into multiple separate media-queries at once (useful if you need the same css at different breakpoints).
