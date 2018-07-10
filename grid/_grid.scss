@@ -111,7 +111,7 @@
         @if $floats {
             @extend %grid--clearfix;
 
-            > #{$class-type}grid#{$child}item{
+            & > #{$class-type}grid#{$child}item{
                 float: right;
             }
         }
@@ -121,7 +121,7 @@
             direction: rtl;
             text-align: left;
 
-            > #{$class-type}grid#{$child}item{
+            & > #{$class-type}grid#{$child}item{
                 direction: ltr;
                 text-align: left;
             }
@@ -157,7 +157,7 @@
         @if $inline-block {
             text-align: center;
 
-            > #{$class-type}grid#{$child}item {
+            & > #{$class-type}grid#{$child}item {
                 text-align: left;
             }
         }
@@ -169,7 +169,7 @@
     //
     #{$class-type}grid#{$mod}middle {
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: center;
             }
@@ -179,7 +179,7 @@
 
     #{$class-type}grid#{$mod}bottom {
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: flex-end;
             }

@@ -55,6 +55,7 @@
     }
 }
 
+///Used exclusively by `create-overrides` to iterate through a map of classes, properties, and values to create responsive classes.
 @mixin _override-output($map, $namespace) {
 
     @each $class-name in map-keys($map) {

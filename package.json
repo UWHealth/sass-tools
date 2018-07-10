@@ -3,6 +3,7 @@
   "version": "1.0.6",
   "description": "Starter kit for Sass projects",
   "main": "index.scss",
+  "homepage": "https://github.com/UWHealth/sass-tools",
   "repository": "https://github.com/UWHealth/sass-tools.git",
   "author": "UW Health Web Center",
   "license": "MIT",

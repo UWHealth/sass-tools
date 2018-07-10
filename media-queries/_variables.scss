@@ -2,13 +2,13 @@
 $media-query-expressions: (
     'device-width', 'orientation', 'aspect-ratio', 'device-aspect-ratio',
     'color', 'color-index', 'monochrome', 'resolution', 'scan', 'grid'
-) !default;
+);
 
 //Accepted media-query device types
 $media-query-devices: (
     'screen','all','print','tv','handheld','braille',
     'embossed','projection','speech','tty'
-) !default;
+);
 
 //Accepted media-query operator arguments
 $media-query-operators: (
@@ -24,7 +24,7 @@ $media-query-operators: (
     'aspect-ratio',
     'device-aspect-ratio',
     'resolution'
-) !default;
+);
 
 //Used to switch a media-query from one type to another
 $media-query-switch: (
@@ -34,7 +34,7 @@ $media-query-switch: (
     'width',
     'landscape',
     'portrait'
-) !default;
+);
 
 //Values to increase media-queries by
 $media-query-intervals: (
@@ -43,12 +43,15 @@ $media-query-intervals: (
     'rem'		: 	.01,
     'vh'		: 	.01,
     'vw'		:	.01
-) !default;
+);
 
+/// @group config
 $max-site-width:         1360px !default;
 
+/// @group config
 $max-content-width: 	 690px !default;
 
+/// @group config
 $max-wide-content-width: 910px !default;
 
 /// Breakpoint strings to use with `media-query` mixin.
@@ -56,19 +59,23 @@ $max-wide-content-width: 910px !default;
 /// @group config
 $breakpoints: (
     // Mostly phones
-        "smalls": "(max-width:#{ems($max-wide-content-width)})",
+    "smalls": "(max-width:#{ems($max-wide-content-width)})",
+
     // Small Phones
-        "small": "(max-width: #{ems($max-content-width)})",
+    "small": "(max-width: #{ems($max-content-width)})",
+
     // Large (Modern) phones/phablets
-        "smallish":
-            "(min-width: #{ems($max-content-width+1px)})" +
-            " and (max-width: #{ems($max-wide-content-width)})",
+    "smallish":
+        "(min-width: #{ems($max-content-width+1px)})" +
+        " and (max-width: #{ems($max-wide-content-width)})",
     // Tablets, Desktops and larger
-        "bigs": "(min-width: #{ems($max-wide-content-width+1px)})",
+    "bigs": "(min-width: #{ems($max-wide-content-width+1px)})",
+
     // Mostly Tablets and small laptops. Overrides Bigs
-        "lap":
-            "(min-width: #{ems($max-wide-content-width + 1px)})" +
-            " and (max-width: #{ems($max-site-width)})",
+    "lap":
+        "(min-width: #{ems($max-wide-content-width + 1px)})" +
+        " and (max-width: #{ems($max-site-width)})",
+
     // Large Tablets and Desktops. Overrides Bigs.
-        "desk": "(min-width: #{ems($max-site-width)})"
+    "desk": "(min-width: #{ems($max-site-width)})"
 ) !default;

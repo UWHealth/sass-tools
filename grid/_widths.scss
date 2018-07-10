@@ -2,13 +2,13 @@
 //      $WIDTHS
 //------------------------------------
 
-///Second words used to represent numbers in a fraction; Corresponds to grid interval names (whole, half, third, etc.).
+/// Second words used to represent numbers in a fraction; Corresponds to grid interval names (whole, half, third, etc.).
 /// @group grid
-$human-readable-numerators: one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen, twenty;
+$_human-readable-numerators: one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen, twenty;
 
 /// First words used to represent numbers in a fraction; Corresponds to grid interval names (one, two, three, etc.).
 /// @group grid
-$human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelfth, thirteenth, fourteenth, fifteenth, sixteenth, seventeenth, eighteenth, nineteenth, twentieth, twentyfirst, twentysecond, twentythird, twentyfourth, twentyfifth, twentysixth, twentyseventh,twentyeigth, twentyninth;
+$_human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelfth, thirteenth, fourteenth, fifteenth, sixteenth, seventeenth, eighteenth, nineteenth, twentieth, twentyfirst, twentysecond, twentythird, twentyfourth, twentyfifth, twentysixth, twentyseventh,twentyeigth, twentyninth;
 
 /// Creates a percentage based on the `$size / $total`.
 /// @group grid
@@ -18,15 +18,15 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
     @return percentage($size / $total);
 }
 
-/// Creates a width property with a percentage based on the `$columns / $total`.
+/// Creates a width property with a percentage based on the `$columns / $total`. Also includes flex-based properties if `$grid-flex` is enabled.
 /// @group grid
 /// @param {number} $columns - Column span.
 /// @param {number} $total [$grid-columns]
 @mixin grid-width($columns, $total: $grid-columns) {
-    width: #{percentage($columns/$total)};
+    width: #{grid-size($columns, $total)};
     @if $grid-flex {
-        flex-basis: #{percentage($columns/$grid-columns)};
-        max-width: #{percentage($columns/$grid-columns)};
+        flex-basis: #{grid-size($columns, $grid-columns)};
+        max-width: #{grid-size($columns, $grid-columns)};
     }
 }
 
@@ -36,7 +36,7 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
     @include grid-width($columns, $total);
 }
 
-/// Uses `$human-readable-numerators` and `$human-readable-denominators` to create percentages based on `$grid-columns`. `$property` accepts any property, as well as lists of properties.
+/// Uses `$_human-readable-numerators` and `$_human-readable-denominators` to create percentages based on `$grid-columns`. `$property` accepts any property, as well as lists of properties.
 /// @group grid
 /// @param {string} $namespace [""] - String to put before grid classes.
 /// @param {boolean} $silent [$grid-silent-classes] - Use silent classes?
@@ -45,9 +45,9 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
 /// @param {string} $property ["width"] - What property should these widths applied to?
 
 @mixin width-setup(
-    $namespace:"",
+    $namespace: '',
     $silent: $grid-silent-classes,
-    $property: "width",
+    $property: 'width',
     $important: false,
     $columns: $grid-columns,
     $space: if($grid-bem-naming, '-', '_')
@@ -62,14 +62,14 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
     // [6] If the numerator is larger than 1(one), add an 's' to our selector (e.g. two_eighths).
     //
     // Same system used for pushes and pulls.
-    $class-type: if($silent, "%", ".");
+    $class-type: if($silent, '%', '.');
     $divisor: $columns;
 	$class-name-list: ();
-    $prefix: "#{$class-type}#{$namespace}";
-    $important: if($important, "!important", "");
+    $prefix: '#{$class-type}#{$namespace}';
+    $important: if($important, '!important', '');
 
     //To prevent stuff like 12/12 (five-fifths, etc.), we need to declare 1/1 here
-    #{$prefix}one_whole {
+    #{$prefix}one#{$space}whole {
         @each $type in $property {
             #{$type}: 100% #{$important};
         }
@@ -81,10 +81,10 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
 
             @for $dividen from 1 to $divisor {                              // [3a]
 				//Create numerator (first number, e.g. 'two').
-                $numerator: nth($human-readable-numerators, $dividen);      // [4]
+                $numerator: nth($_human-readable-numerators, $dividen);      // [4]
 
 				//Create denominator (second number, e.g. 'thirds').
-                $denominator: nth($human-readable-denominators, $divisor);
+                $denominator: nth($_human-readable-denominators, $divisor);
 
 				//Divide first number(numerator) by second number(denominator).
                 $size: grid-size($dividen, $divisor);
@@ -107,7 +107,7 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
                 }
 
 				@if $grid-silent-classes and $debug-silent-classes {
-					$class-name-list: map-merge($class-name-list, ($class-name:$size));
+					$class-name-list: map-merge($class-name-list, ($class-name: $size));
 				}
 
             }
@@ -134,6 +134,6 @@ $human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh
 		$class-name-list: map-merge($class-name-list,(
 			#{$prefix}one#{$space}whole: 100%
 		));
-		$silent-class-registry: silents-register($class-name-list, $type) !global;
+		$_silent-class-registry: silents-register($class-name-list, $type) !global;
 	}
 }

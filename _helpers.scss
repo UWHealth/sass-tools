@@ -1,6 +1,6 @@
 /// Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
-/// @param {list} $border
 ///
+/// @param {list} $border
 /// @example
 ///     //scss
 ///     .foo {
@@ -71,7 +71,6 @@
 /// .class.class {
 ///     color: red;
 /// }
-
 
 @mixin specificity($specificity: 1) {
     $selector: unquote('&');
