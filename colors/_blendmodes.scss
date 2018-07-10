@@ -44,7 +44,7 @@
 
 //Mimic blending modes found in photoshop.
 
-@function color-convert($color-input) {
+@function _color-convert($color-input) {
     $color-input: invert($color-input);
     $color-input: invert($color-input);
     @return $color-input;
