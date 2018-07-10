@@ -1,168 +1,4 @@
 /* SG
-# Functions/Conversion [[dev]]
-
-##### `strip-units()`
-###### function(`$value`)
-Remove lengths (`px`, `em`, `rem`, etc.) from a value. Usually a variable. This is sometimes required because Sass cannot calculate incompatible units (`px * rem` for instance).
-[Reference](http://stackoverflow.com/questions/12328259/how-do-you-strip-the-unit-from-any-number-in-sass)
-
-##### `percentage-to-decimal()`
-###### function(`$percentage`)
-Changes percent value to decimal.
-@returns number
-
-##### `px-to-vw()`
-###### function(`$pixels`)
-Converts pixel dimensions to viewport width (vw) dimensions.
-@returns number (vw)
-
-##### `px-to-rems()`
-###### function(`$pixels, $base-font:` `$$base-font-size`)
-Function for calculating `rem` values. Used by `@px-to-rems()`. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
-@returns number (rems)
-@alias rems()
-
-##### `px-to-ems()`
-###### function(`$pixels, $context:` `$base-font-size`)
-Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
-@returns number(ems)
-@alias ems()
-
-##### `list-to-string()`
-###### function(`$list, $separator:','`)
-Converts a list to a string with an optional separator.
-@returns string
-@alias str-join()
-
-##### `str-to-number()`
-###### function(`$string, $unitless: false`)
-Converts a number-like string to a number. Since Sass accepts quoted and non-quoted values like `"10px"` and `10px`, but can only do math on the unquoted (number) value, it is sometimes necessary to convert/cast a string to a number.
-@returns number
-*/
-/* SG
-# Functions/Strings & Lists [[dev]]
-
-[Reference](https://github.com/devatrox/Sunglass)
-
-##### `contains()`
-###### function(`$data, $value`)
-Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean.
-@returns boolean
-@requires `str-contains()`, `list-contains()`
-
-##### `str-join()`
-###### function(`$list, $separator:','`)
-Converts a map or list to a string (`('this', 'and', 'this')` becomes `'this,and,this'`).
-@returns string
-
-##### `str-contains()`
-###### function(`$string, $value, $pos: 0`)
-Checks if a `$string` contains a `$value`. Optionally accepts a start positon.
-@returns boolean
-
-##### `str-append()`
-###### function(`$data, $separator:','`)
-Adds one string to another (e.g. `str-append('hello', 'world')` becomes `hello world`).
-@returns string
-
-##### `list-contains()`
-###### function(`$list, $value`)
-Checks whether a `$list` contains a `$value`.
-@returns boolean
-
-##### `list-print()`
-###### function(`$list, $depth: 1`)
-Used to turn a list into a flat string. For debug purposes.
-@returns string
-
-##### `to-list()`
-###### function(`$string, $keep: 'both'`)
-Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
-@returns list
-
-*/
-/* SG
-# Functions/Maps [[dev]]
-
-@file globals/_gl-functions.scss
-
-[Reference](http://www.sitepoint.com/extra-map-functions-sass/)
-
-##### `map-deep-set()`
-###### function(`$map, $keys... [, $value]`)
-Add to a deeply nested map key. Accepts any number of keys, but the final value is the new key.
-@returns map
-
-##### `map-depth()`
-###### function(`$map`)
-Find depth of a `$map`.
-@returns number
-
-##### `map-has-keys()`
-###### `[map], [key(s) to be checked ...]`
-Determine whether a map contains certain keys.
-@returns boolean
-@alias map-contains-keys()
-
-##### `map-has-nested-keys()`
-###### function(`$map`, `$keys...`)
-Check for the value of a nested key.
-@returns boolean
-@alias map-contains-nested-keys()
-
-##### `map-get-nested()`
-###### function(`$map`, `$keys...`)
-Returns nested map values. A deep version of Sass' `map-get()`.
-@returns string, boolean, list, or map
-
-##### `map-extend()`
-###### function(`$map`, `$maps...`(`$deep:true`))
-Merges multiple maps. Similar to jQuery's .extend().
-@returns map
-
-##### `map-add-depth()`
-###### function(`$map`, `$new-key:'base'`)
-Adds one level to a map using the new key to a map. Used by `generate_color_varations()`. (e.g. `(key: value, key: value)` becomes `(key:(new-key: value), key:(new-key: value))` )
-@returns map
-
-##### `map-print()`
-###### function(`$map`, `$level:1`)
-Prints map into a string (in a JSON-esque format). Useful for debugging.
-@returns string
-@alias map-inspect()
-
-*/
-/* SG
-# Typography/Line-height [[dev]]
-
-##### `baseline()`
-###### function(`$font-size`, `$baseline`, `$multiple:1`)
-
-Aligns a font-size to a baseline (`$baseline`). Returns a unitless value relative to the font-size (equivilent to ems). An optional multiple can be used to make a variation on the given baseline (using decimals will divide the the baseline).
-@returns number (unitless)
-
-*/
-/*SG
-
-##### `baseline-calc()`
-###### function(`$font-size: $base-font-size, $font-base: $base-font-size, $basline-slack: $font-looseness`)
-
-Creates unitless line-heights that align to the baseline grid with consideration to the aesthetics of a given font size. Essentially makes sure larger font-sizes have smaller line-heights, while smaller font-sizes have larger ones.
-Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
-Depends on `baseline()` for calculation and `baseline-curve()` to determine the deviance from the upper and lower constraints.
-
-@returns number (unitless)
-@requires `baseline()`, `baseline-curve()`
-
-*/
-/* SG
-
-# Functions/Math [[dev]]
-
-Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
-
-*/
-/* SG
 
 # Colors/Blending Modes [[dev]]
 
@@ -204,59 +40,6 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
 
 */
 /* SG
-# Colors/Lookup [[dev]]
-
-@file tools/_t-color-functions.scss
-
-@priority 99
-
-##### `colors()`
-###### function(`$color-name, $tone: 'base', $opacity: 1`)
-Get a color value from the global `$$base-colors` map. Darker and lighter tones are available by passing a second string.
-
-```scss
-.foo {
-    background-color: colors(links, light));
-}
-```
-
-Passing only a color name will default to the 'base' color.
-
-@alias color(), clr()
-@requires `$$base-colors`
-
-[Reference](http://blog.12spokes.com/web-design-development/simple-css-color-management-with-sass/)
-*/
-/* SG
-# Colors/Lookup [[dev]]
-
-##### `combine-color-maps()`
-###### function(`$map1 , $map2`)
-Specialized function used by `generate-color-variations()` to merge two color maps.
-
-@returns map
-
-*/
-/* SG
-# Colors/Manipulation [[dev]]
-
-
-##### `black-or-white()`
-###### function(`$color`)
-Change text color based on background-color's darkness.
-
-```scss
-div {
-    background-color: #f8cd12;
-    color: set_text_color(#f8cd12);
-}
-// Your text color would be black because #f8cd12 and #00000 have more contrast.
-```
-@alias set-text-color()
-@requires `color-luminance`
-
-*/
-/* SG
 ##### `pick-best-color()`
 ###### function(`$base, $colors, $tolerance: 0`)
 Compares a set of colors against `$base` and returns the color with the most contrast. `$colors` should be a list.
@@ -270,22 +53,6 @@ div {
 ```
 @requires `color-contrast()`, `color-luminance()`
 @returns color
-*/
-/* SG
-##### `color-contrast()`
-###### function(`$color1, $color2`)
-Find contrast between two colors.
-[Adapted from color.js](https://github.com/LeaVerou/contrast-ratio/blob/gh-pages/color.js)
-
-@requires `color-luminance()`
-@returns number(0 - 1)
-*/
-/* SG
-##### `color-luminance()`
-###### function(`$color1`)
-Find the relative luminance of a color. Used by `color-contrast()`. [Adapted from color.js](https://github.com/LeaVerou/contrast-ratio/blob/gh-pages/color.js)
-@alias luma()
-@returns number(0 - 1)
 */
 /* SG
 # Colors/Debugging [[dev]]
@@ -303,7 +70,13 @@ Debugging tool that creates a pretty color palette (in columns) using psuedo sel
 # Colors/Manipulation [[dev]]
 
 ##### `generate-color-varations()`
-###### function( `$map: $colors, $functions: (tint, tint, tint, shade, shade, shade), $increments: (20%, 40%, 80%, 20%, 40%, 80%), $variations: (light, lighter, lightest, dark, darker, darkest), $blending-colors: null`)
+###### function(
+ `$map: $colors,
+ $functions: (tint, tint, tint, shade, shade, shade),
+ $increments: (20%, 40%, 80%, 20%, 40%, 80%),
+ $variations: (light, lighter, lightest, dark, darker, darkest),
+ $blending-colors: null`
+ )
 
 Takes base color values and generates a full color palette. Used by the `$$base-colors` map to create a project's palette, accessible via `colors()`.
 
@@ -314,15 +87,7 @@ Takes base color values and generates a full color palette. Used by the `$$base-
 * `$variations`: actual names for each color tone when `colors()` used.
 * `$blending-colors`: used when a function is a `blend`. Can be a list or a single color.
 
-@requires `combine-color-maps()`
-
-*/
-/* SG
-# Config/Propagation [[dev]]
-
-#### `@globalize-config()`
-Pulls together config variables and routes them into structures expected by the framework, then makes them global.
-For instance, the `$$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
+@requires `_combine-color-maps()`
 
 */
 /* SG
@@ -333,192 +98,41 @@ Each easing variable is a cubic-bezier value that specifies rate of change of an
 [Reference](https://github.com/matthewlein/Ceaser/blob/master/developer/)
 
 */
-/* SG
-# Typography/Font Face [[dev]]
-
-##### `@include-web-fonts()`
-###### mixin(`$font-map: $web-fonts`)
-A wrapper function for `@font-face()`. Takes a configuration map and passes the keys to `@font-face()`. Loops through each font-name's (root map keys) weight and style.
-
-Font file names must be the same as their CSS font-family values. Example: arial font, 400 weight would be arial-400.ttf and the CSS value would be font-family: 'arial'; font-weight: 400.
-
-@requires `@font-face()`
-
-*/
-/* SG
-# Grid System/Mixins [[dev]]
-
-##### `@grid-setup()`
-###### mixin(`$silent:` `$$grid-silent-classes`)
-Creates basic grid classes (listed below), called by `@grid-init()`.
-
+/*
 _Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`). Based on the `$$grid-silent-classes` setting._
 
-* ###### `%grid_reset`
+* `%grid_reset`
  Useful for resetting the grid's effects without making full grid items.
 
-* ###### `[% || .]grid`
+* `[% || .]grid`
  Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
 
-* ###### `[% || .]grid_item`
+* `[% || .]grid_item`
  Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
 
-* ###### `[% || .]grid_rev`
+* `[% || .]grid_rev`
  Makes grid columns start from the right.
 
-* ###### `[% || .]grid_right`
+* `[% || .]grid_right`
  Makes all grid columns align to the right.
 
-* ###### `[% || .]grid_center`
+* `[% || .]grid_center`
  Makes all grid columns align to the center.
 
-* ###### `[% || .]grid_middle`
+* `[% || .]grid_middle`
  Makes all grid columns vertical align to the middle.
 
-* ###### `[% || .]grid_bottom`
+* `[% || .]grid_bottom`
  Makes all grid columns vertical align to the bottom.
 
-* ###### `[% || .]grid_full`
+* `[% || .]grid_full`
  Eliminates padding between grid columns.
 
-* ###### `[% || .]grid_narrow`
+* `[% || .]grid_narrow`
  Reduces the padding between grid columns.
 
-* ###### `[% || .]grid_wide`
+* `[% || .]grid_wide`
  Increases the padding between grid columns.
-
-*/
-/* SG
-# Grid System/Variables [[dev]]
-
-##### `$$human-readable-numerators`
-###### List (string)
-First words used to represent numbers in a fraction; Corresponds to grid interval names (one, two, three, etc.).
-
-
-##### `$$human-readable-denominators`
-###### List (string)
-Second words used to represent numbers in a fraction; Corresponds to grid interval names (whole, half, third, etc.).
-*/
-/* SG
-# Grid System/Functions [[dev]]
-
-##### `grid-size()`
-###### function(`$size, $total:` `$$grid-columns`)
-Creates a percentage based on the `$size / $total`.
-@requires `$$grid-columns`
-
-*/
-/* SG
-# Grid System/Mixins [[dev]]
-
-##### `@grid-width()`
-###### mixin(`$columns, $total:` `$$grid-columns`)
-Creates a width property with a percentage based on the `$columns / $total`.
-@requires `grid-size()`, `$$grid-columns`
-@alias `@width()`
-
-*/
-/* SG
-
-
-##### `@width-setup()`
-###### mixin(`$namespace:"", $silent:` `$$grid-silent-classes`, $property:"width")
- Uses `$$human-readable-numerators` and `$$human-readable-denominators` to create percentages based on `$$grid-columns`. `$property` accepts any property, as well as lists of properties.
-
-@requires `grid-size()`, `$$human-readable-numerators`, `$$human-readable-denominators`
-
-*/
-/* SG
-# Grid System/Mixins [[dev]]
-
-##### `@grid-row($gutter, $letter-spacing)`
-###### mixin()
-Creates a grid container (row) based on your grid configuration.
-@requires `@type-space()`
-
-##### `@grid-item()`
-###### mixin(`$columns: $grid-columns`)
-Creates a grid item (column) based on your grid configuration set to a width based on the `$columns` passed in.
-@requires `@type-space()`, `@grid-width()`
-*/
-/* SG
-##### `@grid-init()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important:false`)
-Creates responsive grid classes by running through all the grid-setup mixins. Uses the media-queries defined in the `$breakpoint-has-` variables to create media-query-scoped classes.
-@requires `@grid-classes()`, `@width-classes()`, `@push-classes()`, `@pull-classes()`
-
-*/
-/* SG
-##### `@grid-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`)
-Runs `@grid-setup()`.
-@requires `@grid-setup()`
-
-##### `@width-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important: false`)
-Runs `@width-setup()`, looping across all breakpoints in `$$breakpoint-has-widths`. Creates classes with `width` property values (`flex-basis` and `max-width` for flex-based grids) based on the grid.
-@requires `@media-query()`, `@width-setup()`
-
-##### `@push-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important: false`)
-Runs `@width-setup()`, looping across all breakpoints in `$$breakpoint-has-push`. Creates classes with `push_` and `left` property values based on the grid.
-@requires `@media-query()`, `@width-setup()`
-
-##### `@pull-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important: false`)
-Runs `@pull-setup()`, looping across all breakpoints in `$$breakpoint-has-pull`. Creates classes with `pull_` and `right` property values based on the grid.
-@requires `@media-query()`, `@width-setup()`
-
-*/
-/* SG
-
-# Mixins/CSS Helpers [[dev]]
-
-##### `@border()`
-###### mixin(`$border`)
-Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
-
-```scss
-    //scss
-    .foo {
-        @include border(2px 3px solid dashed dotted blue currentColor yellow);
-    }
-
-    //css
-    .foo {
-        border-width: 2px 3px;
-        border-style: solid dashed dotted;
-        border-color: blue currentColor yellow;
-    }
-
-*/
-/* SG
-##### `@specificity()`
-###### mixin(`$specificity: 1`)
-Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
-```scss
-.class {
-    @include specificity(2) {
-        color: red;
-    }
-}
-
-//css
-.class.class {
-    color: red;
-}
-
-```
-[Reference](http://www.sitepoint.com/selector-specificity-css-preprocessors/)
-```
-
-*/
-/* SG
-##### `@opacity()`
-###### mixin(`$opacity`)
-Cross-browser (including IE8-) opacity.
-[Reference](https://gist.github.com/jgv/745754)
 
 */
 /* SG
@@ -600,63 +214,6 @@ Used exclusively by `@create-overrides()` to iterate through a map of classes, p
 ##### `@display-utilities()`
 ###### mixin(`$namespace:"", $silent:false, $important:true, $class-list:$display-classes`)
 Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-
-
-##### `@display-utilities-init()`
-###### mixin(`$breakpoints: $all-breakpoints, $namespace: '', $silent: true, $important: false`)
-The responsive component to `@display-utilities()`. Invoke `@display-utilites()` with that loops through a set of media-queries defined in `$$breakpoints`. This is most useful for creating responsive display classes.
-
-*/
-/* SG
-# Utilities/Spacing Utilities [[dev]]
-
-##### `@spacing-utilities()`
-###### mixin(`$namespace:''`, `$config`)
-Generates responsive spacing and padding classes. The `$namespace` argument is the media query's name, which will be appended to all generated classes. The `$config` argument is a map that allows JS-style arguments. Outputs class name as: `breakpoint_prefix_direction_amount`.
-
-**`$config` Keys:**
-* `silent:` boolean for outputting silent/non-silent classes.
-* `important:` whether to output !important after each declaration.
-* `directions:` names that get appended to class names.
-* `amounts:` how much to multiply spacing unit by `$$base-line-height`.
-* `names:` corresponding names for each `amounts` that gets appended to class names.
-* `prefixes:` first word in the class name. Must contain the words 'pad' and 'space'. Used by `layout-type()` to determine padding or margin.
-
-
-##### `@spacing-utilities-init()`
-###### mixin(`$breakpoints:` `$$all-breakpoints`, `$namespace:''`, `$config:(silent:true)`)
-The responsive component to `@spacing-utilities()`. Invoke `@spacing-utilites()` with that loops through a set of media-queries defined in `$$breakpoints`. This is most useful for creating responsive spacing classes.
-
-*/
-/* SG
-# Typography/Spacing [[dev]]
-
-##### `@type-space()`
-###### mixin(`$properties, $multipliers, $important: false`)
-Output REM values using the typographic grid. This is the prefered method of adding padding and margins because it enforces consistent spacing around all elements.
-
-**Arguments:**
-* `$properties`: Can be any `CSS` property that accepts a length value (e.g. `rem`). Also accepts multiple properties as a nested list (e.g. `(padding-left, padding-right)`).
-* `$multipliers`: Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`.
-* `$important`: Accepts `true` or `!important`.
-
-**Example**
-```scss
-// SCSS input
-.foo {
-    @include type-space(padding, 1 .25 .5 auto, '!important');
-}
-
-// CSS output
-.foo {
-    padding: 24px 8px 12px auto !important;
-    padding: 1.5rem .375rem .75rem auto !important;
-}
-```
-
-@requires `@px-to-rems()`, `str-contains()`
-@alias `@space()`
-
 */
 /* SG
 # Tools/Z-Index [[dev]]
@@ -669,36 +226,6 @@ Returns a numeric value (used for z-index) from a named layer, stored in `$$z-in
 
 The `$modifier` is useful if you'd like to closely layer z-indexes within the same module. It is rarely necessary, though since z-indexes stack.
 
-*/
-/* SG
-##### `$$type-base-unit`
-###### Number
-Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
-
-##### `$$type-base-ratio`
-###### Number
-Ratio used to calculate the difference between font sizes and spacing units.
-
-##### `$$type-headings`
-###### List (number)
-Used for defining automatic headings functions.
-
-##### `$$type-modular-scale`
-###### Number
-Abstracts the `$$scale-ratio` and makes sure it's a positive number.
-*/
-/* SG
-##### `$$all-breakpoints`
-###### List
-Stores all the names defined in `$$breakpoints` for use in abstract framework components so that if names are chagned, boilerplate media queries won't fail.
-
-##### `$$breakpoint-smallest`
-###### String
-Grabs the first `$$breakpoints` name.
-
-##### `$$breakpoint-largest`
-###### String
-Grabs the last `$$breakpoints` name.
 */
 @font-face {
   font-family: "Asap";

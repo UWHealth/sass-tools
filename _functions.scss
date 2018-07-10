@@ -1,6 +1,6 @@
 /// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
 /// @link https://github.com/kaelig/sass-safe-get-function
-
+/// @group utils
 @function safe-get-function($name) {
     @if function-exists('get-function') {
         @return get-function($name);
@@ -17,7 +17,7 @@ $_cached-values: ();
 /// _NOTE: This can actually **increase** processing time if used too often or on simple functions as the lookup process isn't free. Every cached value is unique._
 /// @param {string} $function-name
 /// @param {} $args... - Arguments to be passed to the function
-
+/// @group utils
 @function cache($function-name, $args...) {
     $cache-map: '#{$function-name}, #{$args}';
     $value: map-get($_cached-values, $cache-map);
@@ -31,56 +31,16 @@ $_cached-values: ();
     }
 }
 
-/* SG
-# Functions/Conversion [[dev]]
-
-##### `strip-units()`
-###### function(`$value`)
-Remove lengths (`px`, `em`, `rem`, etc.) from a value. Usually a variable. This is sometimes required because Sass cannot calculate incompatible units (`px * rem` for instance).
-[Reference](http://stackoverflow.com/questions/12328259/how-do-you-strip-the-unit-from-any-number-in-sass)
-
-##### `percentage-to-decimal()`
-###### function(`$percentage`)
-Changes percent value to decimal.
-@returns number
-
-##### `px-to-vw()`
-###### function(`$pixels`)
-Converts pixel dimensions to viewport width (vw) dimensions.
-@returns number (vw)
-
-##### `px-to-rems()`
-###### function(`$pixels, $base-font:` `$$base-font-size`)
-Function for calculating `rem` values. Used by `@px-to-rems()`. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
-@returns number (rems)
-@alias rems()
-
-##### `px-to-ems()`
-###### function(`$pixels, $context:` `$base-font-size`)
-Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
-@returns number(ems)
-@alias ems()
-
-##### `list-to-string()`
-###### function(`$list, $separator:','`)
-Converts a list to a string with an optional separator.
-@returns string
-@alias str-join()
-
-##### `str-to-number()`
-###### function(`$string, $unitless: false`)
-Converts a number-like string to a number. Since Sass accepts quoted and non-quoted values like `"10px"` and `10px`, but can only do math on the unquoted (number) value, it is sometimes necessary to convert/cast a string to a number.
-@returns number
-*/
-
 /// Remove lengths (`px`, `em`, `rem`, etc.) from a value. Usually a variable. This is sometimes required because Sass cannot calculate incompatible units (`px * rem` for instance).
 /// @param {Length} $value
+/// @group utils
 @function strip-units($value) {
     @return $value / ($value * 0 + 1);
 }
 
 /// Changes percent value to decimal.
 /// @param {Number} $percentage
+/// @group utils
 @function percentage-to-decimal($percentage) {
     @if unit($percentage) == '%' {
         $percentage: $percentage/100%;
@@ -91,16 +51,14 @@ Converts a number-like string to a number. Since Sass accepts quoted and non-quo
 /// Converts pixel dimensions to viewport width (vw) dimensions.
 /// @param {number} $pixels
 /// @returns {number}
+/// @group utils
 @function px-to-vw($pixels) {
     $vw-context: ($max-site-width * .01) * 1px;
     @return ($pixels / $vw-context) * 1vw;
 }
 
-/// Font-size used for document's base. Pixel to rem conversions will be based on this value (unless overridden).
-/// @group Config
-$base-font-size: 16px !default;
-
 /// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
+/// @group core
 /// @param {Number} $pixels
 @function px-to-rems($pixels, $base-size: $base-font-size) {
     @if $pixels == 'auto' {
@@ -127,6 +85,7 @@ $base-font-size: 16px !default;
 }
 
 /// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
+/// @group core
 /// @param {Number} $pixels
 /// @param {Number} $context [$base-font-size]
 @function px-to-ems($pixels, $context: $base-font-size) {
@@ -150,6 +109,7 @@ $base-font-size: 16px !default;
 /// @param {list} $list
 /// @param {string} $separator [',']
 /// @returns {string}
+/// @group utils
 @function list-to-string($list, $separator: ",") {
     $string: "";
 
@@ -166,6 +126,7 @@ $base-font-size: 16px !default;
 
 
 /// Converts a number-like string to a number. Since Sass accepts quoted and non-quoted values like `"10px"` and `10px`, but can only do math on the unquoted (number) value, it is sometimes necessary to convert/cast a string to a number.
+/// @group utils
 /// @param {string} $string
 /// @param {boolean} $unitless [false]
 /// @returns {number}
@@ -253,50 +214,8 @@ $base-font-size: 16px !default;
     @return ($total * $decimal)* $negative * $unit;
 }
 
-/* SG
-# Functions/Strings & Lists [[dev]]
-
-[Reference](https://github.com/devatrox/Sunglass)
-
-##### `contains()`
-###### function(`$data, $value`)
-Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean.
-@returns boolean
-@requires `str-contains()`, `list-contains()`
-
-##### `str-join()`
-###### function(`$list, $separator:','`)
-Converts a map or list to a string (`('this', 'and', 'this')` becomes `'this,and,this'`).
-@returns string
-
-##### `str-contains()`
-###### function(`$string, $value, $pos: 0`)
-Checks if a `$string` contains a `$value`. Optionally accepts a start positon.
-@returns boolean
-
-##### `str-append()`
-###### function(`$data, $separator:','`)
-Adds one string to another (e.g. `str-append('hello', 'world')` becomes `hello world`).
-@returns string
-
-##### `list-contains()`
-###### function(`$list, $value`)
-Checks whether a `$list` contains a `$value`.
-@returns boolean
-
-##### `list-print()`
-###### function(`$list, $depth: 1`)
-Used to turn a list into a flat string. For debug purposes.
-@returns string
-
-##### `to-list()`
-###### function(`$string, $keep: 'both'`)
-Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
-@returns list
-
-*/
-
 /// Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
+/// @group utils
 /// @param {any} $value
 /// @param {string} $keep - accepts `'keys'`, `'values'`, or `'both'` for map conversion.
 @function to-list($value, $keep: "both") {
@@ -327,6 +246,7 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
 
 
 /// Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean. Delegates methods to the appropriate function based on variable type.
+/// @group utils
 /// @param {map | list | string} $data - the data you're searching through.
 /// @param {} $value - the value you're searching for.
 @function contains($data, $value){
@@ -341,6 +261,7 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
 
 
 /// Converts a map or list to a string (`('this', 'and', 'this')` becomes `'this,and,this'`).
+/// @group utils
 /// @param {list | map} $list
 /// @param {string} $separator [","]
 @function str-join($list, $separator: ",") {
@@ -348,6 +269,7 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
 }
 
 /// Checks if a `$string` contains a `$value`. Optionally accepts a start (`$pos`) positon.
+/// @group utils
 /// @param {string} $string
 /// @param {string} $value
 /// @param {number} $pos [0]
@@ -364,6 +286,7 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
 }
 
 /// Adds one string to another (e.g. `str-append('hello', 'world')` becomes `hello world`).
+/// @group utils
 /// @param {string} $string
 /// @param {string} $insert
 @function str-append($string, $insert) {
@@ -372,7 +295,8 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
     @return str-insert($string, $insert, str-length($string) + 1);
 }
 
-/// Replaces a value in a string with another
+/// Replaces a value in a string with another.
+/// @group utils
 @function str-replace($string, $search, $replace: '') {
     $index: str-index($string, $search);
 
@@ -384,12 +308,18 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
 }
 
 
-/// Outputs true/false
+/// Check if a list contains a value
+/// @group utils
+/// @param $list
+/// @param $value
 @function list-contains($list, $value) {
     @return not not index($list, $value);
 }
 
 /// Reverse a List
+/// @group utils
+/// @param $list
+/// @param $recursive [false]
 @function list-reverse($list, $recursive: false) {
     $result: ();
 
@@ -406,6 +336,9 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
 }
 
 /// List print
+/// @group utils
+/// @param $list
+/// @param $depth [1]
 @function list-print($list, $depth: 1) {
     $output: '';
 
@@ -418,60 +351,9 @@ Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for
     @return $output;
 }
 
-/* SG
-# Functions/Maps [[dev]]
-
-@file globals/_gl-functions.scss
-
-[Reference](http://www.sitepoint.com/extra-map-functions-sass/)
-
-##### `map-deep-set()`
-###### function(`$map, $keys... [, $value]`)
-Add to a deeply nested map key. Accepts any number of keys, but the final value is the new key.
-@returns map
-
-##### `map-depth()`
-###### function(`$map`)
-Find depth of a `$map`.
-@returns number
-
-##### `map-has-keys()`
-###### `[map], [key(s) to be checked ...]`
-Determine whether a map contains certain keys.
-@returns boolean
-@alias map-contains-keys()
-
-##### `map-has-nested-keys()`
-###### function(`$map`, `$keys...`)
-Check for the value of a nested key.
-@returns boolean
-@alias map-contains-nested-keys()
-
-##### `map-get-nested()`
-###### function(`$map`, `$keys...`)
-Returns nested map values. A deep version of Sass' `map-get()`.
-@returns string, boolean, list, or map
-
-##### `map-extend()`
-###### function(`$map`, `$maps...`(`$deep:true`))
-Merges multiple maps. Similar to jQuery's .extend().
-@returns map
-
-##### `map-add-depth()`
-###### function(`$map`, `$new-key:'base'`)
-Adds one level to a map using the new key to a map. Used by `generate_color_varations()`. (e.g. `(key: value, key: value)` becomes `(key:(new-key: value), key:(new-key: value))` )
-@returns map
-
-##### `map-print()`
-###### function(`$map`, `$level:1`)
-Prints map into a string (in a JSON-esque format). Useful for debugging.
-@returns string
-@alias map-inspect()
-
-*/
-
 
 /// Add to a deeply nested map key. Accepts any number of keys, but the final value is the new key.
+/// @group utils
 /// @param {map} $map
 /// @param {string} $keys... - final argument is considered the value to the be set.
 @function map-deep-set($map, $keys... /*, $value */) {
@@ -495,6 +377,7 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 
 
 /// Finds a map's depth at its deepest point. Useful for debugging maps.
+/// @group utils
 /// @param {map} $map
 /// @returns {number}
 @function map-depth($map) {
@@ -510,6 +393,7 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 }
 
 /// Determine whether a map contains certain keys.
+/// @group utils
 /// @param {map} $map
 /// @param {string | list} $keys...
 /// @returns {boolean}
@@ -522,12 +406,15 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 
     @return true;
 }
+
 /// @alias map-has-keys
+/// @group utils
 @function map-contains-keys($map, $keys...) {
     @return map-has-keys($map, $keys);
 }
 
 /// Check for deep map keys
+/// @group utils
 /// @param {map} $map
 /// @param {string | list} $keys...
 @function map-has-nested-keys($map, $keys...) {
@@ -542,9 +429,11 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
     @return true;
 }
 /// @alias map-has-nested-keys
+/// @group utils
 @function map-contains-nested-keys($map, $keys...) {@return map-has-nested-keys($map, $keys);}
 
 /// Get map value at nested or 'deep' key, per $keys list
+/// @group utils
 /// @param {map} $map
 /// @param {string|list} $keys...
 @function map-get-nested($map, $keys...) {
@@ -559,6 +448,7 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 
 /// Merges multiple maps. Similar to jQuery's `extend`.
 /// Takes two maps and merges their differences.
+/// @group utils
 /// @param {map} $map
 /// @param {map|list} $maps... - final value can be `true` for "deep" merging
 @function map-extend($map, $maps... /*, $deep */) {
@@ -610,6 +500,9 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 // 6. Returns the new map.
 
 /// Adds one level to a map using the new key to a map. Used by `generate_color_varations()`. (e.g. `(key: value, key: value)` becomes `(key:(new-key: value), key:(new-key: value))` )
+/// @group utils
+/// @param {map} $map
+/// @param {string} $new-key ['base']
 @function map-add-depth($map, $new-key: 'base'){
     $formatted-key:();
     $new-map:'';
@@ -633,6 +526,8 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 
 
 /// Print maps into a string
+/// @group utils
+/// @param {map} $map
 /// Useful for debugging maps.
 /// @link https://github.com/lunelson/sass-maps-plus
 @function map-inspect($map, $level: 1) {
@@ -665,16 +560,19 @@ Prints map into a string (in a JSON-esque format). Useful for debugging.
 
     @return $output + $cr + $outdent + '}';
 }
-//@alias map-inspect
+
+/// @alias map-inspect
+/// @group utils
 @function map-print($map, $level: 1){
     @return map-inspect($map, $level);
 }
 
 /// Modular scale ratio
-/// @type {number}
+/// @group config
+/// @type number
 $scale-ratio: 1.125 !default;
 
-/// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$$scale-ratio` value)
+/// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$scale-ratio` value)
 /// @param {number} $scale
 @function modular-scale($scale, $ratio: $scale-ratio){
     $modular-scale: $ratio;
@@ -693,26 +591,17 @@ $scale-ratio: 1.125 !default;
     @return $pow * ($font-size) * 1px;
 }
 
-/* SG
-# Typography/Line-height [[dev]]
-
-##### `baseline()`
-###### function(`$font-size`, `$baseline`, `$multiple:1`)
-
-Aligns a font-size to a baseline (`$baseline`). Returns a unitless value relative to the font-size (equivilent to ems). An optional multiple can be used to make a variation on the given baseline (using decimals will divide the the baseline).
-@returns number (unitless)
-
-*/
 
 /// Document's base line-height setting. Used as a basis for spacing and automatic line-height calculation.
 /// @group Config
 $base-line-height: 24px !default;
 
+
 /// Aligns a font-size to a baseline (`$baseline`). Returns a unitless value relative to the font-size (equivilent to ems). An optional multiple can be used to make a variation on the given baseline (using decimals will divide the the baseline).
 /// @param {number} $font-size - Font size to calculate against.
 /// @param {number} $baseline [$base-line-height] - Pixel value of the base line-height.
-/// @param {number} $multiple
-/// @param {boolean} $floor - Calculate the lowest possible number? Rarely useful.
+/// @param {number} $multiple [1]
+/// @param {boolean} $floor [false] - Calculate the lowest possible number? Rarely useful.
 /// @returns {number}
 @function baseline(
     $font-size,
@@ -731,6 +620,7 @@ $base-line-height: 24px !default;
 /// Uses this formula: ` y = (sqrt((x^1)+x) - sqrt(x^1)) / .4142135623730951 `
 ///  ( [Visual](https://www.desmos.com/calculator/qswvc6q9kt) )
 ///
+/// @group utils
 /// @param {number} $x - Find the equivilent number on the curve.
 /// @param {number} $accel [1] - Accepts any number between -2 and 2.35. A negative will invert the curve. 1 is a smooth curve.
 @function baseline-curve($x, $accel: 1) {
@@ -746,21 +636,6 @@ $base-line-height: 24px !default;
     @return min(1, $curve);
 }
 
-
-/*SG
-
-##### `baseline-calc()`
-###### function(`$font-size: $base-font-size, $font-base: $base-font-size, $basline-slack: $font-looseness`)
-
-Creates unitless line-heights that align to the baseline grid with consideration to the aesthetics of a given font size. Essentially makes sure larger font-sizes have smaller line-heights, while smaller font-sizes have larger ones.
-Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
-Depends on `baseline()` for calculation and `baseline-curve()` to determine the deviance from the upper and lower constraints.
-
-@returns number (unitless)
-@requires `baseline()`, `baseline-curve()`
-
-*/
-
 /// A rough estimate of how loose line-heights should be calculated against their font-sizes.
 /// @group config
 $font-looseness: 15% !default;
@@ -775,15 +650,14 @@ $__font-warn: false;
 /// **TL;DR:** Automatically calculate the baseline of any particular font-size.
 ///
 /// Creates unitless line-heights that align to the baseline grid with consideration to the aesthetics of a given font size. Essentially makes sure larger font-sizes have smaller line-heights, while smaller font-sizes have larger ones.
-/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
+/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
 /// Depends on `baseline()` for calculation and `baseline-curve()` to determine the deviance from the upper and lower constraints.
-/// @param {number} $font-size [$base-font-size]
-/// @param {number} $font-base [$base-font-size] -
+/// @group utils
+/// @param {number} $font-size [$base-font-size] - font-size in need of a baseline
 /// @param {number} $baseline-slack [$font-looseness] - Percentage.
 /// @returns {number}
 @function baseline-calc(
     $font-size: $base-font-size,
-    $font-base: $base-font-size,
     $baseline-slack: $font-looseness
 ){
     $smallest-size: if(
@@ -963,6 +837,7 @@ $__font-warn: false;
 $debug-silent-classes: false !default;
 
 /// Add to silent classes registry
+/// @group utils
 @function silents-register($map, $key){
     @if $debug-silent-classes {
         @if map-get($silent-class-registry, $key) == null {
@@ -978,24 +853,27 @@ $debug-silent-classes: false !default;
 
 
 // Global math constants
-$pi:    3.1415926535897932384626433832795028841971693993751;
-$π:     $pi;
-$PI:    $pi;
-$e:     2.71828182845904523536028747135266249775724709369995;
-$E:     $e;
+/// @group Math
+$PI:    3.1415926535897932384626433832795028841971693993751;
+$π:     $PI;
+$pi:    $PI;
+/// @group Math
+$E:     2.71828182845904523536028747135266249775724709369995;
+$e:     $E;
+/// @group Math
 $LN2:   0.6931471805599453;
+/// @group Math
 $SQRT2: 1.4142135623730951;
 
 
-/* SG
 
-# Functions/Math [[dev]]
+// MATH FUNCTIONS
+//
+// Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
 
-Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
-
-*/
 
 /// A more robust exponent multiplication which allows for decimal-based exponents. This **fully** replaces Compass' pow() function (allows for float-based exponents).
+/// @group Math
 /// @param {number} $base
 /// @param {number} $exp
 /// @link https://gist.github.com/nathancrank/7539155
@@ -1025,19 +903,13 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
 /// @alias pow
 @function exponent($base, $exponent) { @return pow($base, $exponent); }
 
-
-
-// ##### `log()`
-// ###### function(`$x`)
-// Returns the natural logarithm of a number.
-//
-// ```scss
-// $value:   log(2)  // 0.69315
-// $value2:  log(10) // 2.30259
-// ```
-//
-// @returns number
-
+/// Returns the natural logarithm of a number.
+/// @param {number} $x
+/// @group Math
+/// @example
+/// $value:   log(2)  // 0.69315
+/// $value2:  log(10) // 2.30259
+/// @returns {number}
 @function log($x) {
     @if $x <= 0 {
         @return 0;
@@ -1059,15 +931,10 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $LN2 * $k + 2 * $s;
 }
 
-
-
-// ##### `frexp()`
-// ###### function(`$x`)
-// Returns a two-element list containing the normalized fraction and exponent of number.
-//
-// @returns list (fraction, exponent)
-
-
+/// Returns a two-element list containing the normalized fraction and exponent of number.
+/// @group Math
+/// @param $x
+/// @returns {list} (fraction, exponent)
 @function frexp($x) {
     $exp: 0;
     @if $x < 0 {
@@ -1087,15 +954,13 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $x, $exp;
 }
 
-// /* SG
-//
-// ##### `ldexp()`
-// ###### function(`$x, $exp`)
-//
-// Returns $x * 2^$exp
-//
-// */
 
+/// Returns `$x * 2^$exp`
+/// @param {number} $x
+/// @param {number} $exp
+/// @group Math
+/// @param $x
+/// @param $exp
 @function ldexp($x, $exp) {
     $b: if($exp >= 0, 2, 1 / 2);
     @if $exp < 0 {
@@ -1111,22 +976,13 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $x;
 }
 
-// /* SG
-//
-// ##### `exp()`
-// ###### function(`$x`)
-//
-// Returns E^x, where x is the argument, and E is Euler's constant, the base of the natural logarithms.
-//
-// ```scss
-// $value: exp(1)  // 2.71828
-// $value2: exp(-1) // 0.36788
-// ```
-//
-// @returns Number
-//
-// */
-
+/// Returns E^x, where x is the argument, and E is Euler's constant, the base of the natural logarithms.
+/// @param {number} $x
+/// @group Math
+/// @example
+/// $value: exp(1)  // 2.71828
+/// $value2: exp(-1) // 0.36788
+/// @returns {Number}
 @function exp($x) {
     $ret: 0;
     @for $n from 0 to 24 {
@@ -1135,21 +991,13 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $ret;
 }
 
-// /* SG
-//
-// ##### `fact()`
-// ###### function(`$x`)
-//
-// Returns the factorial of a non-negative integer.
-//
-// ```scss
-// $value:  fact(0) // 1
-// $value2: fact(8) // 40320
-// ```
-// @return Number
-//
-// */
-
+/// Returns the factorial of a non-negative integer.
+/// @param {number} $x
+/// @group Math
+/// @example
+/// $value:  fact(0) // 1
+/// $value2: fact(8) // 40320
+/// @return {Number}
 @function fact($x) {
     @if $x < 0 or  $x != floor($x) {
         @warn "Argument for `fact()` must be a positive integer.";
@@ -1166,18 +1014,13 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $ret;
 }
 
-// /* SG
-//
-// ##### `gcd()`
-// ###### function(`$number-1`, `$number-2`)
-//
-// Greatest Common Divisor calculation (useful for calculating grids and widths).
-// @returns number
-//
-// */
-
+/// Greatest Common Divisor calculation (useful for calculating grids and widths).
+/// @group Math
+/// @link http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
+/// @param {number} $number-1
+/// @param {number} $number-2
+/// @returns {number}
 @function gcd($number-1, $number-2) {
-  // From: http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
     @if $number-2 != 0 {
         @return gcd($number-2, ($number-1 % $number-2));
     }@else {
@@ -1185,17 +1028,11 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     }
 }
 
-// /* SG
-//
-// ##### `lcm()`
-// ###### function(`$a`, `$b`)
-//
-// Finds the least common multiple. Use with caution...if there is no LCM, then you compilation will error out.
-//
-// @returns number
-//
-// */
 
+/// Finds the least common multiple of two numbers. Use with caution...if there is no LCM, then you compilation will error out.
+/// @param {number} $a
+/// @param {number} $b
+/// @group Math
 @function lcm($a, $b) {
     $a: round($a);
     $b: round($b);
@@ -1205,18 +1042,13 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
 }
 
 
-// /* SG
-//
-// ##### `nth_root()`
-// ###### function(`$base`, `$n:2`, `$precision:12`)
-//
-// Advanced calculation for square roots, cube roots, etc. of a value.
-// [Reference](http://rosettacode.org/wiki/Nth_root#JavaScript)
-//
-// @returns number
-//
-// */
-
+/// Advanced calculation for square roots, cube roots, etc. of a value.
+/// [Reference](http://rosettacode.org/wiki/Nth_root#JavaScript)
+/// @group Math
+/// @param $base
+/// @param $n [2]
+/// @param $precision [12]
+/// @returns {number}
 @function nth_root($base, $n: 2, $precision: 12) {
     $prec: $precision;
     $x: 1;
@@ -1228,18 +1060,11 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $x;
 }
 
-// /* SG
-//
-// ##### `sqrt()`
-// ###### function(`$base`, `$precision:12`)
-//
-// Find the square root of a value.
-//
-// @returns number
-// @alias `sqroot()`
-//
-// */
 
+/// Find the square root of a value.
+/// @group Math
+/// @param {number} $base
+/// @param {number} $precision [12]
 @function sqrt($base, $precision: 12) {
     $guess: random(20);
     $root: $guess;
@@ -1250,6 +1075,9 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $root;
 }
 
+/// @alias sqrt
+/// @param $r
+/// @group Math
 @function sqroot($r) {
   $x0: 1; // initial value
   $solution: false;
@@ -1283,18 +1111,12 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
   }
 }
 
-//
-// /* SG
-//
-// ##### `sin()`
-// ###### function(`$angle`)
-//
-// Determines the Sine of an angle.
-// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
-//
-// @returns number
-// */
 
+/// Determines the Sine of an angle.
+/// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
+/// @group Math
+/// @param $angle
+/// @returns {number}
 @function sin($angle) {
     $sin: 0;
     $angle: rad($angle);
@@ -1305,23 +1127,20 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $sin;
 }
 
-//Hyperbolic sine
+/// Hyperbolic sine
+/// @param $number
+/// @group Math
 @function sinh($number) {
     $top: exponent($e, (2 * $number)) - 1;
     $bottom: 2 * exponent($e, $number);
     @return  $top / $bottom;
 }
 
-// /* SG
-//
-// ##### `cos()`
-// ###### function(`$angle`)
-//
-// Determines the Cosine of an angle.
-// @returns number
-//
-// */
 
+/// Determines the Cosine of an angle.
+/// @group Math
+/// @param $angle
+/// @returns {number}
 @function cos($angle) {
     $cos: 0;
     $angle: rad($angle);
@@ -1332,37 +1151,32 @@ Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/b
     @return $cos;
 }
 
-// /* SG
-// ##### `tan()`
-// ###### function(`$angle`)
-//
-// Determines the Tangent of an angle.
-// @returns number
-//
-// */
 
+/// Determines the Tangent of an angle.
+/// @group Math
+/// @param $angle
+/// @returns {number}
 @function tan($angle) {
     @return sin($angle) / cos($angle);
 }
 
-// /* SG
-//
-// ##### `golden()`
-// ###### function(`$base: 1`)
-//
-// Get the golden ratio from `$base`.
-// @returns number
-// @alias `$$golden_ratio`
-//
-// */
 
+/// Get the golden ratio from `$base`.
+/// @group Math
+/// @param {} $base [1]
+/// @returns {number}
 @function golden($base: 1) {
     @return (1/2 + sqrt(5) / 2) * $base;
 }
 
 $golden_ratio: golden();
 
+/// @group Math
+/// @alias golden
+$PHI: golden();
 
+/// @param $angle
+/// @group Math
 @function rad($angle) {
     $unit: unit($angle);
     $unitless: $angle / ($angle * 0 + 1);
@@ -1373,24 +1187,16 @@ $golden_ratio: golden();
     @return $unitless;
 }
 
-//Alias
+/// @alias rad
+/// @param $angle
+/// @group Math
 @function angle-to-rad($angle) {
     @return rad($angle);
 }
 
 
 // Math helpers
-// From https://github.com/inuitcss/tools.functions/blob/master/_tools.functions.scss
-//
-// Halve and double numbers, returning rounded integers. E.g.:
-//
-// .foo {
-//     padding: halve(3.2px);
-// }
-//
-// Outputs:
-// .foo{padding: 2px;}
-//
+
 @function quarter($number) {
     @return round($number / 4);
 }

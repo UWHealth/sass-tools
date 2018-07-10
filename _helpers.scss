@@ -1,27 +1,3 @@
-/* SG
-
-# Mixins/CSS Helpers [[dev]]
-
-##### `@border()`
-###### mixin(`$border`)
-Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
-
-```scss
-    //scss
-    .foo {
-        @include border(2px 3px solid dashed dotted blue currentColor yellow);
-    }
-
-    //css
-    .foo {
-        border-width: 2px 3px;
-        border-style: solid dashed dotted;
-        border-color: blue currentColor yellow;
-    }
-
-*/
-
-
 /// Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
 /// @param {list} $border
 ///
@@ -82,27 +58,6 @@ Allows creating many border properties at once. Works like the standard border s
 }
 
 
-/* SG
-##### `@specificity()`
-###### mixin(`$specificity: 1`)
-Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
-```scss
-.class {
-    @include specificity(2) {
-        color: red;
-    }
-}
-
-//css
-.class.class {
-    color: red;
-}
-
-```
-[Reference](http://www.sitepoint.com/selector-specificity-css-preprocessors/)
-```
-
-*/
 /// Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
 /// @param {number} $specificity [1]
 /// @example
@@ -132,15 +87,6 @@ Specificity increaser. Useful for increasing specificity of a selector instead o
         @content;
     }
 }
-
-
-/* SG
-##### `@opacity()`
-###### mixin(`$opacity`)
-Cross-browser (including IE8-) opacity.
-[Reference](https://gist.github.com/jgv/745754)
-
-*/
 
 /// Cross-browser (including IE8-) opacity.
 @mixin opacity($opacity) {
