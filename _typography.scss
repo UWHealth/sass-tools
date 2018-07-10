@@ -1,7 +1,10 @@
+/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
+/// @group config
 $rem-px-fallback: false !default;
 
 // REM generator
 /// Takes a pixel value and creates a property with a `rem` value. If `$rem-px-fallback` is `true`, a pixel fallback is also included.
+/// @group core
 /// @param {Property} $property - CSS property value to output
 /// @param {List | Pixel} $sizes - Pixel value(s) to be converted. A list results in a each value being processed. Can also be 'auto' or 'normal' (which avoid conversion).
 /// @param {Boolean} $important [false] - Whether to add `!important` to the end of the output.
@@ -57,6 +60,7 @@ $rem-px-fallback: false !default;
 /// * Pixel values will be converted to a unitless value.
 /// * Unitless numbers will be passed straight through.
 /// * `false` will result in no line-height declaration.
+/// @group core
 /// @param {Boolean} $important [false] - Whether to add `!important` after the font-size.
 /// @param {Pixel} $base-font [$base-font-size]
 /// @requires {function} baseline-calc
@@ -77,7 +81,7 @@ $rem-px-fallback: false !default;
 
     @if $line-height == true or $line-height == 'auto' {
 
-        $line-height: cache(baseline-calc, $font-size, $base-font);
+        $line-height: cache(baseline-calc, $font-size);
         line-height: $line-height;
 
     }
@@ -112,36 +116,6 @@ $rem-px-fallback: false !default;
 }
 
 
-/* SG
-# Typography/Spacing [[dev]]
-
-##### `@type-space()`
-###### mixin(`$properties, $multipliers, $important: false`)
-Output REM values using the typographic grid. This is the prefered method of adding padding and margins because it enforces consistent spacing around all elements.
-
-**Arguments:**
-* `$properties`: Can be any `CSS` property that accepts a length value (e.g. `rem`). Also accepts multiple properties as a nested list (e.g. `(padding-left, padding-right)`).
-* `$multipliers`: Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`.
-* `$important`: Accepts `true` or `!important`.
-
-**Example**
-```scss
-// SCSS input
-.foo {
-    @include type-space(padding, 1 .25 .5 auto, '!important');
-}
-
-// CSS output
-.foo {
-    padding: 24px 8px 12px auto !important;
-    padding: 1.5rem .375rem .75rem auto !important;
-}
-```
-
-@requires `@px-to-rems()`, `str-contains()`
-@alias `@space()`
-
-*/
 /// Output `rem` values using the typographic grid. This is the prefered method of adding padding and margins because it enforces consistent spacing around all elements.
 /// @param {Property} $property -
 /// Can be any `CSS` property that accepts a length value (e.g. `rem`). Also accepts multiple properties as a nested list (e.g. `(padding-left, padding-right)`).
@@ -159,9 +133,10 @@ Output REM values using the typographic grid. This is the prefered method of add
 ///     padding: 24px 8px 12px auto !important;
 ///     padding: 1.5rem .375rem .75rem auto !important;
 /// }
+/// @group core
 /// @requires $horizontal-space
 /// @requires $vertical-space
-/// @see {Function} type-space
+/// @see {function} type-space
 
 @mixin type-space(
     $properties,
@@ -219,6 +194,7 @@ Output REM values using the typographic grid. This is the prefered method of add
 }
 
 /// A functional version of the `type-space` mixin.
+/// @group core
 /// @param {List | Number} $multipliers -
 /// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
 
