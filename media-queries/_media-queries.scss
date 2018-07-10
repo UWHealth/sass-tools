@@ -26,17 +26,16 @@ Enclose a block of code with a media query as named in `$breakpoints`. To create
 
 */
 
-@import 'mq-variables';
+@import 'variables';
 
 /// Enclose a block of code with a media query as named in `$breakpoints`. To create more consolodated code, most (if not all) media queries should be called through this mixin. Multiple media-queries can be defined, separated by a comma. This will place your content into multiple separate media-queries at once (useful if you need the same css at different breakpoints).
-///
 /// **Alternative Uses:**
 /// * Passing multiple media queries separated by an `'and'` (quoted) to combine them, compiles to something like `@media screen and (min-width: 500px) and (max-width: 900px){}`.
 /// * Passing a value like `min-width 1200px` or `max-height 300px` allows for arbitrary breakpoints.
 /// * Passing `max 1200px 'and' smalls` will create a combined media-query with a predefined one from `$$breakpoints`.
 /// * Passing `height smalls` will replace `width` with `height` within the `smalls` breakpoint. Similarly, using `min smalls` would replace 'max' with 'min'.
-/// @param {} $mq...
-
+/// @group core
+/// @param {List} $mq... - Can be a reference to a `$breakpoints` key, a pixel value, or a media value.
 @mixin media-query($mq...) {
 
     //Stored for switching on and off
