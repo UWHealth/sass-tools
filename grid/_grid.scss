@@ -1,74 +1,62 @@
-/* SG
-# Grid System/Mixins [[dev]]
+//------------------------------------
+//      $GRID SYSTEM
+//------------------------------------
 
-##### `@grid-setup()`
-###### mixin(`$silent:` `$$grid-silent-classes`)
-Creates basic grid classes (listed below), called by `@grid-init()`.
-
+/*
 _Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`). Based on the `$$grid-silent-classes` setting._
 
-* ###### `%grid_reset`
+* `%grid_reset`
  Useful for resetting the grid's effects without making full grid items.
 
-* ###### `[% || .]grid`
+* `[% || .]grid`
  Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
 
-* ###### `[% || .]grid_item`
+* `[% || .]grid_item`
  Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
 
-* ###### `[% || .]grid_rev`
+* `[% || .]grid_rev`
  Makes grid columns start from the right.
 
-* ###### `[% || .]grid_right`
+* `[% || .]grid_right`
  Makes all grid columns align to the right.
 
-* ###### `[% || .]grid_center`
+* `[% || .]grid_center`
  Makes all grid columns align to the center.
 
-* ###### `[% || .]grid_middle`
+* `[% || .]grid_middle`
  Makes all grid columns vertical align to the middle.
 
-* ###### `[% || .]grid_bottom`
+* `[% || .]grid_bottom`
  Makes all grid columns vertical align to the bottom.
 
-* ###### `[% || .]grid_full`
+* `[% || .]grid_full`
  Eliminates padding between grid columns.
 
-* ###### `[% || .]grid_narrow`
+* `[% || .]grid_narrow`
  Reduces the padding between grid columns.
 
-* ###### `[% || .]grid_wide`
+* `[% || .]grid_wide`
  Increases the padding between grid columns.
 
 */
 
-$grid-columns:           12      !default;
-$grid-gutter:            32px    !default;
-$grid-bem-naming:        false   !default;
-$grid-silent-classes:	 false   !default;
-
-$grid-flex:              true    !default;
-$grid-floats:            false   !default;
-$grid-inline-block:      true    !default;
-$grid-letter-space-fix:  -0.45em !default;
-$grid-markup-fix:        false   !default;
-
-$grid-push:              true    !default;
-$grid-pull:              true    !default;
-$grid-push-namespace:    if($grid-bem-naming,
-    'push--', 'push_')           !default;
-$grid-pull-namespace:    if($grid-bem-naming,
-    'pull--', 'pull_')           !default;
-
+@import 'variables';
 @import 'widths';
 @import '../overrides/clearfix';
 
+/// Generates basic grid classes based on passed in options.
+/// @group grid
+/// @param {boolean} $silent  [$grid-silent-classes] - Make all classes silent?
+/// @param {number}  $gutter  [$grid-gutter] - Gutter size between grid items.
+/// @param {boolean} $flex    [$grid-flex] - Use flexbox?
+/// @param {boolean} $inline-block  [$grid-inline-block] - Use inline-block?
+/// @param {boolean} $floats  [$grid-floats] - Use floats?
+/// @param {boolean} $bem     [$grid-bem-naming] - Use BEM naming? `false` will result in snake-case names.
 @mixin grid-setup(
     $silent: $grid-silent-classes,
-    $columns: $grid-columns,
     $gutter: $grid-gutter,
-    $inline-block: $grid-inline-block,
     $flex: $grid-flex,
+    $inline-block: $grid-inline-block,
     $floats: $grid-floats,
     $bem: $grid-bem-naming
     ) {
@@ -84,12 +72,14 @@ $grid-pull-namespace:    if($grid-bem-naming,
 
     $class-type: if($silent, "%", ".");
 
-    %grid_reset {
+    %grid_reset,
+    %grid--reset {
         letter-spacing: normal;
         word-spacing: normal;
     }
 
-    %grid-clearfix {
+    %grid_clearfix,
+    %grid--clearfix {
         @include clearfix;
     }
 
@@ -102,13 +92,13 @@ $grid-pull-namespace:    if($grid-bem-naming,
     }
 
     #{$class-type}grid#{$child}item {
-        @include grid-item($columns);
+        @include grid-item(12, 12);
     }
 
     // Special class for grid items that need to behave like both grids and grid__items.
     #{$class-type}grid#{$child}item#{$mod}reset,
     #{$class-type}grid#{$mod}reset#{$child}item {
-        @include grid-item($columns);
+        @include grid-item(12, 12);
         @extend #{$class-type}grid;
     }
 
@@ -119,7 +109,7 @@ $grid-pull-namespace:    if($grid-bem-naming,
     #{$class-type}grid#{$mod}rev,
     #{$class-type}grid#{$mod}reverse {
         @if $floats {
-            @extend %grid-clearfix;
+            @extend %grid--clearfix;
 
             > #{$class-type}grid#{$child}item{
                 float: right;
@@ -265,21 +255,8 @@ $grid-pull-namespace:    if($grid-bem-naming,
     }
 }
 
-
-/* SG
-# Grid System/Mixins [[dev]]
-
-##### `@grid-row($gutter, $letter-spacing)`
-###### mixin()
-Creates a grid container (row) based on your grid configuration.
-@requires `@type-space()`
-
-##### `@grid-item()`
-###### mixin(`$columns: $grid-columns`)
-Creates a grid item (column) based on your grid configuration set to a width based on the `$columns` passed in.
-@requires `@type-space()`, `@grid-width()`
-*/
-
+/// Creates a grid container (row) based on your grid configuration.
+/// @group grid
 @mixin grid-row($gutter: $grid-gutter, $letter-spacing: $grid-letter-space-fix) {
     // 1. Allow the grid system to be used on lists.
     // 2. Remove any margins and paddings that might affect the grid system.
@@ -311,6 +288,11 @@ Creates a grid item (column) based on your grid configuration set to a width bas
 }
 
 
+/// Creates a grid item (column) based on your grid configuration set to a width based on the `$columns` passed in.
+/// @group grid
+/// @param {number} $columns [$grid-columns] - Number of columns the item should span.
+/// @param {number} $total-columns [$grid-columns] - Number of columns in total grid space. Only necessary to change if you are nesting grids within grids.
+/// @see grid-width
 @mixin grid-item(
     $columns: $grid-columns,
     $total-columns: $grid-columns,
@@ -358,18 +340,15 @@ Creates a grid item (column) based on your grid configuration set to a width bas
 }
 
 
-/* SG
-##### `@grid-init()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important:false`)
-Creates responsive grid classes by running through all the grid-setup mixins. Uses the media-queries defined in the `$breakpoint-has-` variables to create media-query-scoped classes.
-@requires `@grid-classes()`, `@width-classes()`, `@push-classes()`, `@pull-classes()`
 
-*/
-
+/// Creates responsive grid classes by running through all the grid-setup mixins. Uses the media-queries defined in the `$breakpoint-has-` variables to create media-query-scoped classes.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
 @mixin grid-init($silent: $grid-silent-classes, $important: false) {
 
     @if ($grid-inline-block != true and $grid-floats != true and $grid-flex != true) {
-        @warn 'No grid type selected. Please make sure to set grid-inline-block, -floats, or -flex to true.';
+        @warn 'No grid type selected. Please make sure to set $grid-inline-block, -floats, or -flex to true.';
     }
 
     @include grid-classes($silent);
@@ -385,39 +364,16 @@ Creates responsive grid classes by running through all the grid-setup mixins. Us
     }
 }
 
-
-/* SG
-##### `@grid-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`)
-Runs `@grid-setup()`.
-@requires `@grid-setup()`
-
-##### `@width-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important: false`)
-Runs `@width-setup()`, looping across all breakpoints in `$$breakpoint-has-widths`. Creates classes with `width` property values (`flex-basis` and `max-width` for flex-based grids) based on the grid.
-@requires `@media-query()`, `@width-setup()`
-
-##### `@push-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important: false`)
-Runs `@width-setup()`, looping across all breakpoints in `$$breakpoint-has-push`. Creates classes with `push_` and `left` property values based on the grid.
-@requires `@media-query()`, `@width-setup()`
-
-##### `@pull-classes()`
-###### mixin(`$silent:` `$$grid-silent-classes`, `$important: false`)
-Runs `@pull-setup()`, looping across all breakpoints in `$$breakpoint-has-pull`. Creates classes with `pull_` and `right` property values based on the grid.
-@requires `@media-query()`, `@width-setup()`
-
-*/
-
-$breakpoint-namespace-character: '\\@' !default;
-$breakpoint-has-widths: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
-$breakpoint-has-push:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
-$breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
-
+/// @alias grid-setup
+/// @group grid
 @mixin grid-classes($silent: $grid-silent-classes) {
     @include grid-setup($silent);
 }
 
+/// Creates responsive width classes (using `width-setup` mixin). Loops across all breakpoints in `$breakpoint-has-widths`. Creates classes with `width` property values (`flex-basis` and `max-width` for flex-based grids) based on the grid.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
 @mixin width-classes($silent: $grid-silent-classes, $important: false) {
     //Include flex-basis (and max-width) for flex-box grids
 
@@ -438,6 +394,10 @@ $breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
     }
 }
 
+/// Creates responsive grid-push classes. Loops across all breakpoints in breakpoints in `$breakpoint-has-push`. Creates classes with `left` property values based on the grid.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
 @mixin push-classes($silent: $grid-silent-classes, $important: false) {
     @include width-setup($grid-push-namespace, $silent, "left", $important);
 
@@ -453,6 +413,10 @@ $breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
     }
 }
 
+/// Creates responsive grid-pull classes. Loops across all breakpoints in `$breakpoint-has-pull`. Creates classes with `right` property values based on the grid.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
 @mixin pull-classes($silent: $grid-silent-classes, $important: false) {
 
     @include width-setup($grid-pull-namespace, $silent, "right", $important);
