@@ -47,12 +47,11 @@ Used exclusively by `@create-overrides()` to iterate through a map of classes, p
 
 */
 
-$breakpoint-namespace-character: '\\@' !default;
-
 @import 'display';
 @import 'spacing';
 @import 'clearfix';
 
+///Takes a map of class names and style properties and outputs utility (override) classes over a specified number of breakpoints. Useful for creating a number of single-use classes over multiple breakpoints. Always makes property declarations `!important`.
 @mixin create-overrides($map, $breakpoints, $namespace: "", $separator: $breakpoint-namespace-character) {
 
     //create non-responsive classes first

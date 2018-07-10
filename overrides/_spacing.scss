@@ -20,7 +20,7 @@ $horizontal-space: $base-line-height !default;
 /// * `names:` corresponding names for each `amounts` that gets appended to class names.
 /// * `prefixes:` first word in the class name. Must contain the words 'pad' and 'space'. Used by `layout-type()` to determine padding or margin.
 /// @param {string} $namespace [""] - a string to prepend to all spacing classes. Usually used for the media query's name that is calling this mixin.
-/// @param {map} $config []
+/// @param {map} $config [()]
 
 @mixin spacing-utilities ($namespace: "", $config: ()){
 
@@ -120,12 +120,11 @@ $horizontal-space: $base-line-height !default;
 }
 
 
-/// ###### mixin(`$breakpoints:` `$$all-breakpoints`, `$namespace:''`, `$config:(silent:true)`)
+
 /// The responsive component to `spacing-utilities`. Invoke `spacing-utilites` with that loops through a set of media-queries defined in `$breakpoints`. This is most useful for creating responsive spacing classes.
 /// @param {map} $breakpoints [$all-breakpoints] - breakpoints to loop over.
 /// @param {string} $namespace [""] - string to prepend to all classes.
 /// @param {map} $config [(silent: false)] - Passed to `spacing-utilities` mixin.
-
 @mixin spacing-utilities-init(
     $breakpoints: $all-breakpoints,
     $namespace: '',
