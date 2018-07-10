@@ -1,0 +1,97 @@
+/// Takes a pixel value and creates a property with a `rem` value. If `$rem-px-fallback` is `true`, a pixel fallback is also included.
+/// @group core
+/// @param {Property} $property - CSS property value to output
+/// @param {List | Pixel} $sizes - Pixel value(s) to be converted. A list results in a each value being processed. Can also be 'auto' or 'normal' (which avoid conversion).
+/// @param {Boolean} $important [false] - Whether to add `!important` to the end of the output.
+/// @param {Pixel} $base-font [$base-font-size] - The base value at which the pixels should be calculated against. Usually not necessary to change.
+
+@mixin px-to-rems($property, $sizes, $important: false, $base-font: $base-font-size) {
+    $important-val: if($important, ' !important', '');
+    $rem-sizes: ();
+    $px-sizes: ();
+    $is-zero: true;
+
+    //Loop through sizes, combining them into single lists
+    @each $size in $sizes {
+        @if $size == '' or $size == null {
+            $size: null;
+            $px-sizes: join($px-sizes, $size, space);
+        }
+        @else if $size == 'auto' or $size == 'normal' {
+            $px-sizes: join($px-sizes, $size, space);
+        }
+        @else {
+            @if $size == 0px {
+                $size: 0; //optimization
+            }
+            @else {
+                $is-zero: false;
+            }
+
+            $px-sizes: join($px-sizes, $size, space);
+            $size: if($size, px-to-rems($size, $base-font), '');
+        }
+
+        $rem-sizes: join($rem-sizes, $size, space);
+    }
+
+    @if $is-zero == false and $rem-px-fallback {
+        #{$property}: #{$px-sizes}#{$important-val};
+    }
+
+    #{$property}: #{$rem-sizes}#{$important-val};
+
+}
+
+/// @alias px-to-rems
+@mixin rems($property, $sizes, $important: false, $base-font: $base-font-size) {
+    @include px-to-rems($property, $sizes, $important, $base-font);
+}
+
+/// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
+/// @group core
+/// @param {Number} $pixels
+@function px-to-rems($pixels, $base-size: $base-font-size) {
+    @if $pixels == 'auto' {
+        @return $pixels;
+    }
+
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include units
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $base-size) * 1rem;
+
+    @return $pixels;
+
+}
+/// @alias px-to-rems
+@function rems($pixels, $base-size: $base-font-size){
+    @return px-to-rems($pixels, $base-size);
+}
+
+/// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
+/// @group core
+/// @param {Number} $pixels
+/// @param {Number} $context [$base-font-size]
+@function px-to-ems($pixels, $context: $base-font-size) {
+    @if (unitless($pixels)){
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include rems
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $context) * 1em;
+
+    @return $pixels;
+}
+/// @alias px-to-ems
+@function ems($pixels, $context: $base-font-size) {@return px-to-ems($pixels, $context);}

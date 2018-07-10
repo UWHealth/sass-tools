@@ -1,0 +1,102 @@
+/// Output `rem` values using the typographic grid. This is the prefered method of adding padding and margins because it enforces consistent spacing around all elements.
+/// @param {Property} $property -
+/// Can be any `CSS` property that accepts a length value (e.g. `rem`). Also accepts multiple properties as a nested list (e.g. `(padding-left, padding-right)`).
+/// @param {List | Number} $multipliers -
+/// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
+/// @param {Boolean | String} $important [false] - `'!important'` is allowed as well as `true` or `false`.
+/// @example
+/// // SCSS input
+/// .foo {
+///     @include type-space(padding, 1 .25 .5 auto, '!important');
+/// }
+///
+/// // CSS output
+/// .foo {
+///     padding: 24px 8px 12px auto !important;
+///     padding: 1.5rem .375rem .75rem auto !important;
+/// }
+/// @group core
+/// @requires $horizontal-space
+/// @requires $vertical-space
+/// @see {function} type-space
+
+@mixin type-space(
+    $properties,
+    $multipliers,
+    $important: false,
+    $unit: 'auto'
+) {
+    $multiplier: nth($multipliers, 1);
+    $m-length: length($multipliers);
+    $important: if($important, true, false); //Allow for strings, convert to boolean
+
+    @each $property in $properties {
+        $values: null;
+        $multiple-index: 1;
+
+        @each $multiple in $multipliers {
+
+            @if $multiple == 'auto' {
+                $values: append($values, 'auto');
+                $multiple-index: $multiple-index + 1;
+            }
+            @else {
+                $value: $unit;
+
+                @if $unit == 'auto' {
+                    $value: $vertical-space;
+
+                    //If value is the second or fourth value in a list,
+                    // or is a left, right, or width value,
+                    // multiply by the $horizontal-space
+                    @if ($multiple-index % 2 == 0)
+                    or (
+                    str-contains($property, 'right')
+                    or str-contains($property, 'left')
+                    or str-contains($property, 'width')
+                    ) {
+                        $value: $horizontal-space;
+                    }
+                }
+
+                $value: $value * $multiple;
+                $values: append($values, $value);
+                $multiple-index: $multiple-index + 1;
+            }
+        }
+
+        @include px-to-rems($property, $values, $important);
+
+    }
+}
+
+/// @alias type-space
+@mixin space($properties, $multipliers, $important: false, $unit: $vertical-space) {
+    @include type-space($properties, $multipliers, $important, $unit);
+}
+
+
+/// A functional version of the `type-space` mixin.
+/// @group core
+/// @param {List | Number} $multipliers -
+/// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
+@function type-space($multipliers) {
+    $base: $horizontal-space;
+    $values: ();
+    $multiple-index: 1;
+
+    @each $multiple in $multipliers {
+        // determine if horizontal or vertical
+        $base: if($multiple-index % 2 == 0, $horizontal-space, $vertical-space);
+        // Multiply space-type by multiple
+        $pixel: if($multiple == 'auto', $multiple, $base * $multiple);
+        // Convert to rems
+        $multiple: px-to-rems($pixel);
+        // Move value into list
+        $values: join($values, $multiple, space);
+        // Increase index
+        $multiple-index: $multiple-index + 1;
+    }
+
+    @return $values;
+}

@@ -8,16 +8,13 @@
 // Global functions and variables
 @import 'functions';
 @import 'colors/colors';
-
-// Framework variables
-@import 'variables';
-
-// Utility mixins
 @import 'easings';
-@import 'fontface';
 @import 'grid/grid';
 @import 'helpers';
 @import 'media-queries/media-queries';
 @import 'overrides/overrides';
-@import 'typography';
+@import 'typography/typography';
 @import 'zindex';
+
+// Initialization & Globalization
+@import 'init';

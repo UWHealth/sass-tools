@@ -1,0 +1,92 @@
+/// Font size all other values will use for calculation. Will be converted to `rems`.
+/// @group config
+$base-font-size:        16px !default;
+/// Line-height for base font-size. Essentially determines the baseline grid for alignment.
+/// @see {function} type-space
+/// @group config
+$base-line-height:      24px !default;
+
+/// A rough estimate of how loose line-heights should be calculated against their font-sizes (when automatically generated).
+/// @group config
+$font-looseness: 15% !default;
+
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h1-size:          modular-scale(7) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h2-size:          modular-scale(5) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h3-size:          modular-scale(4) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h4-size:          modular-scale(3) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h5-size:          modular-scale(2) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h6-size:			modular-scale(1) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-p-size:           ($base-font-size, $base-line-height) !global;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-small-size:		modular-scale(-1) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$auto-scale-type:       false !default;
+
+/// Modular scale ratio
+/// @group config
+/// @type number
+$scale-ratio: 1.125 !default;
+
+/// Index of all colors used in the project. This is the one place colors should be used from. Accessing them should be done via the colors function.
+/// @see {function} colors
+/// @group config
+$base-colors: (
+    'type': (
+        'base': #0a1c2b //Required
+    ),
+    'links':    #0d497b, //Required
+
+    'bg':       #f6f8fb, //Required
+) !default;
+
+/// Font-stack for using the user's operating system's native font.
+$system-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', sans-serif;
+
+/// Reference for the project's main font-stack.
+$primary-font-stack: $system-font-stack !default;
+
+/// Reference for the project's monospaced font-stack.
+$monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas, 'DejaVu Sans Mono', Menlo, monospace !default;
+
+/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
+/// @group config
+$rem-px-fallback: false !default;
+
+/// Description of weights, styles and formats for the project's web fonts. The root key value determines the name, while each inner key determines the weights, styles, and formats.
+/// @type map
+/// @prop font-name - name of the font family
+/// @prop {list|number} font-name.weights - font-weights to include
+/// @prop {list|number} font-name.italics - include italics for weights
+/// @prop {list|string} font-name.formats - file formats to include
+/// @group config
+$web-fonts: (
+    'system': (
+        'weights': (400, 700),
+        'italics': (400, 700),
+        'formats': ('woff')
+    )
+) !default;
+
+/// Relative path to fonts from CSS file
+/// @type String
+/// @group config
+$font-file-location: '' !default;
+
+$_type-modular-scale: $scale-ratio;
+$_headings-use: 0;

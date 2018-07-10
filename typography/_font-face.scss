@@ -2,29 +2,10 @@
 //      $FONT FACE TOOL
 //------------------------------------
 
-/// Description of weights, styles and formats for the project's web fonts. The root key value determines the name, while each inner key determines the weights, styles, and formats.
-/// @type map
-/// @prop font-name - name of the font family
-/// @prop {list|number} font-name.weights - font-weights to include
-/// @prop {list|number} font-name.italics - include italics for weights
-/// @prop {list|string} font-name.formats - file formats to include
-/// @group config
-$web-fonts: (
-    'system': (
-        'weights': (400, 700),
-        'italics': (400, 700),
-        'formats': ('woff')
-    )
-) !default;
-
-/// Relative path to fonts from CSS file
-/// @type String
-/// @group config
-$font-file-location: '' !default;
-
 /// A wrapper function for `@font-face()`. Takes a configuration map and passes the keys to `@font-face()`. Loops through each font-name's (root map keys) weight and style.
 ///
 /// Font file names must be the same as their CSS font-family values. Example: arial font, 400 weight would be arial-400.ttf and the CSS value would be font-family: 'arial'; font-weight: 400.
+/// @group core
 /// @param {map} $font-map [$web-fonts]
 /// @see $web-fonts
 @mixin web-fonts($font-map: $web-fonts) {
