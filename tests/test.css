@@ -1,232 +1,3 @@
-/* SG
-
-# Colors/Blending Modes [[dev]]
-
-@file tools/_t-blend-modes.scss
-
-@priority 1
-
-[Taken from Sass Blend Modes](https://github.com/heygrady/scss-blend-modes/blob/master/stylesheets/_blend-modes.scss)
-
-##### `blend-normal()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-multiply()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-lighten()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-darken()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-lineardodge()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-linearburn()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-difference`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-screen()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-exclusion()`
-###### function(`$forground, $background, $amount:0`)
-
-##### `blend-multiply()`
-###### function(`$forground, $background, $amount:0`)
-
-*/
-/* SG
-##### `pick-best-color()`
-###### function(`$base, $colors, $tolerance: 0`)
-Compares a set of colors against `$base` and returns the color with the most contrast. `$colors` should be a list.
-[Taken from here](https://gist.github.com/voxpelli/6304812)
-
-```scss
-div {
-    color: pick_best_color(#f8cd12, (#a0a0c0, #fff, #2c2c2c));
-}
-// The function would test the colors and find that #2c2c2c is the best.
-```
-@requires `color-contrast()`, `color-luminance()`
-@returns color
-*/
-/* SG
-# Colors/Debugging [[dev]]
-
-@file tools/_t-color-functions.scss
-
-##### `@color-palette-output()`
-###### mixin(`$selector`, `$color-map:` `$$base-colors`)
-Debugging tool that creates a pretty color palette (in columns) using psuedo selectors (nth-child required). Used for "color blocks" output, in style guide.
-
-@requires `map-add-depth()`, `black-or-white()`
-
-*/
-/* SG
-# Colors/Manipulation [[dev]]
-
-##### `generate-color-varations()`
-###### function(
- `$map: $colors,
- $functions: (tint, tint, tint, shade, shade, shade),
- $increments: (20%, 40%, 80%, 20%, 40%, 80%),
- $variations: (light, lighter, lightest, dark, darker, darkest),
- $blending-colors: null`
- )
-
-Takes base color values and generates a full color palette. Used by the `$$base-colors` map to create a project's palette, accessible via `colors()`.
-
-**Arguments:**
-* `$map`: Color map you want to create variations of. Defaults to `$$base-colors`.
-* `$functions`: color functions used to generate variations (e.g. lighten or darken). Can use any `blend` function, provided `$blending-colors` are provided.
-* `$increments`: percentage amount to apply `$function` to each `$variations`.
-* `$variations`: actual names for each color tone when `colors()` used.
-* `$blending-colors`: used when a function is a `blend`. Can be a list or a single color.
-
-@requires `_combine-color-maps()`
-
-*/
-/* SG
-# Variables/Easing [[dev]]
-
-Each easing variable is a cubic-bezier value that specifies rate of change of an animation. [See easings for more](http://www.easings.net).
-
-[Reference](https://github.com/matthewlein/Ceaser/blob/master/developer/)
-
-*/
-/*
-_Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`). Based on the `$$grid-silent-classes` setting._
-
-* `%grid_reset`
- Useful for resetting the grid's effects without making full grid items.
-
-* `[% || .]grid`
- Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
-
-* `[% || .]grid_item`
- Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
-
-* `[% || .]grid_rev`
- Makes grid columns start from the right.
-
-* `[% || .]grid_right`
- Makes all grid columns align to the right.
-
-* `[% || .]grid_center`
- Makes all grid columns align to the center.
-
-* `[% || .]grid_middle`
- Makes all grid columns vertical align to the middle.
-
-* `[% || .]grid_bottom`
- Makes all grid columns vertical align to the bottom.
-
-* `[% || .]grid_full`
- Eliminates padding between grid columns.
-
-* `[% || .]grid_narrow`
- Reduces the padding between grid columns.
-
-* `[% || .]grid_wide`
- Increases the padding between grid columns.
-
-*/
-/* SG
-# Mixins/Media Queries [[dev]]
-
-@file globals/tools/_t-media-queries.scss
-
-##### `@media-query()`
-###### mixin(`$media-queries...`)
-Enclose a block of code with a media query as named in `$breakpoints`. To create more consolodated code, most (if not all) media queries should be called through this mixin. Multiple media-queries can be defined, separated by a comma. This will place your content into multiple separate media-queries at once (useful if you need the same css at different breakpoints).
-
-**Alternative Uses:**
-
-* Passing multiple media queries separated by an `'and'` (quoted) to combine them, compiles to something like `@media screen and (min-width: 500px) and (max-width: 900px){}`.
-
-* Passing a value like `min-width 1200px` or `max-height 300px` allows for arbitrary breakpoints.
-
-* Passing `max 1200px 'and' smalls` will create a combined media-query with a predefined one from `$$breakpoints`.
-
-* Passing `height smalls` will replace `width` with `height` within the `smalls` breakpoint. Similarly, using `min smalls` would replace 'max' with 'min'.
-
-@requires `_mq-arglist-to-map()`, `_mq-parse-query-args()` `$$breakpoints`
-@alias @mq(), @breakpoint(), @bp()
-
-*/
-/* SG
-# Mixins/Overrides [[dev]]
-
-##### `@create-overrides()`
-###### mixin(`$map, $breakpoints, $namespace: ""`)
-Takes a map of class names and style properties and outputs utility (override) classes over a specified number of breakpoints. Useful for creating a number of single-use classes over multiple breakpoints. Always makes property declarations `!important`.
-
-Example:
-```scss
-//Input
-@include creat-overrides(
-    (
-        "class-name": (
-            "property": "value",
-        ),
-        "float-right, align_right": (
-            "float": "right"
-        )
-    ),
-    ('smalls', 'bigs')
-);
-
-//CSS-output
-.float-left {
-    float: left !important;
-}
-.float-right,
-.align_right {
-    float: right !important;
-}
-@media (max-width: 600px) {
-    .float-left {
-        float: left !important;
-    }
-    .float-right,
-    .align_right {
-        float: right !important;
-    }
-}
-@media (min-width: 601px) {
-    ...
-}
-```
-##### `@_override-output()`
-###### mixin(`$map, $namespace: ""`)
-Used exclusively by `@create-overrides()` to iterate through a map of classes, properties, and values to create responsive classes.
-
-*/
-/* SG
-# Tools/Display Utilities [[dev]]
-
-@file globals/tools/_t-display.scss
-
-##### `@display-utilities()`
-###### mixin(`$namespace:"", $silent:false, $important:true, $class-list:$display-classes`)
-Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-*/
-/* SG
-# Tools/Z-Index [[dev]]
-
-@file globals/tools/_t-zindex.scss
-
-##### `z()`
-###### function(`$layer`, `$modifier: false`)
-Returns a numeric value (used for z-index) from a named layer, stored in `$$z-index`. Changing the modifier to anything other than `false` will add 1 plus however many times the value has been called. So, if you've called `z(head, true)` 5 times, and `head`'s default value is 100, you would get a value of 105.
-
-The `$modifier` is useful if you'd like to closely layer z-indexes within the same module. It is rarely necessary, though since z-indexes stack.
-
-*/
 @font-face {
   font-family: "Asap";
   src: url("fonts//Asap-400.woff") format("woff");
@@ -238,61 +9,8 @@ The `$modifier` is useful if you'd like to closely layer z-indexes within the sa
   src: url("fonts//Asap-false-italic.woff") format("woff");
   font-style: italic; }
 
-html {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", sans-serif;
-  background-color: #e4eaf3; }
-
-body {
-  min-height: 100vh; }
-
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  font-size: inherit;
-  line-height: inherit;
-  box-sizing: border-box; }
-
-.wrap {
-  max-width: 1360px;
-  width: 95%;
-  margin: 0 auto;
-  background-color: #f6f8fb;
-  padding: 1.5rem 3rem; }
-
-h1 {
-  font-size: 68.7355px;
-  line-height: 1.22208; }
-
-h2 {
-  font-size: 3.36939rem;
-  line-height: 1.33555; }
-
-h3 {
-  font-size: 2.64266rem;
-  line-height: 1.13522; }
-
-h4 {
-  font-size: 2.07267rem;
-  line-height: 1.44741; }
-
-h5 {
-  font-size: 1.62562rem;
-  line-height: 1.38408; }
-
-h6 {
-  font-size: 1.275rem;
-  line-height: 1.17647; }
-
-.web-font {
-  font-family: 'Asap'; }
-
-.grid_item {
-  outline: 1px solid black; }
-
-.grid, .grid_item_reset,
-.grid_reset_item {
+.grid, .grid__item--reset,
+.grid--reset__item {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -300,11 +18,11 @@ h6 {
   letter-spacing: -0.45em;
   display: flex;
   flex-wrap: wrap; }
-  .grid .opera:-o-prefocus, .grid_item_reset .opera:-o-prefocus, .grid_reset_item .opera:-o-prefocus, .grid, .grid_item_reset,
-  .grid_reset_item {
+  .grid .opera:-o-prefocus, .grid__item--reset .opera:-o-prefocus, .grid--reset__item .opera:-o-prefocus, .grid, .grid__item--reset,
+  .grid--reset__item {
     word-spacing: -0.45em; }
 
-.grid_item {
+.grid__item {
   padding-left: 2rem;
   width: 100%;
   min-height: 1px;
@@ -317,8 +35,8 @@ h6 {
   flex-basis: 100%;
   max-width: 100%; }
 
-.grid_item_reset,
-.grid_reset_item {
+.grid__item--reset,
+.grid--reset__item {
   padding-left: 2rem;
   width: 100%;
   min-height: 1px;
@@ -331,4974 +49,4974 @@ h6 {
   flex-basis: 100%;
   max-width: 100%; }
 
-.grid_rev,
-.grid_reverse {
+.grid--rev,
+.grid--reverse {
   direction: rtl;
   text-align: left; }
-  .grid_rev > .grid_item,
-  .grid_reverse > .grid_item {
+  .grid--rev > .grid__item,
+  .grid--reverse > .grid__item {
     direction: ltr;
     text-align: left; }
 
-.grid_right {
+.grid--right {
   text-align: right;
   justify-content: flex-end; }
-  .grid_right > .grid_item {
+  .grid--right > .grid__item {
     text-align: left; }
 
-.grid_center {
+.grid--center {
   justify-content: center;
   text-align: center; }
-  .grid_center > .grid_item {
+  .grid--center > .grid__item {
     text-align: left; }
 
-.grid_middle > .grid_item {
+.grid--middle > .grid__item {
   align-self: center;
   vertical-align: middle; }
 
-.grid_bottom > .grid_item {
+.grid--bottom > .grid__item {
   align-self: flex-end;
   vertical-align: bottom; }
 
-.grid_full {
+.grid--full {
   margin-left: 0; }
-  .grid_full > .grid_item {
+  .grid--full > .grid__item {
     padding-left: 0; }
 
-.grid_narrow {
+.grid--narrow {
   margin-left: -1rem; }
-  .grid_narrow > .grid_item {
+  .grid--narrow > .grid__item {
     padding-left: 1rem; }
 
-.grid_wide {
+.grid--wide {
   margin-left: -4rem; }
-  .grid_wide > .grid_item {
+  .grid--wide > .grid__item {
     padding-left: 4rem; }
 
-.grid_auto {
+.grid--auto {
   text-align: justify; }
-  .grid_auto:after {
+  .grid--auto:after {
     content: " ";
     display: inline-block;
     width: 100%;
     height: 1px; }
-  .grid_auto > .grid_item,
-  .grid_auto .grid_item_auto {
+  .grid--auto > .grid__item,
+  .grid--auto .grid__item--auto {
     width: auto;
     text-align: left;
     flex-grow: 1;
     flex-basis: auto; }
 
-.one_whole {
+.one-whole {
   width: 100% ;
   max-width: 100% ;
   flex-basis: 100% ; }
 
-.one_twelfth {
+.one-twelfth {
   width: 8.33333% ;
   max-width: 8.33333% ;
   flex-basis: 8.33333% ; }
 
-.two_twelfths {
+.two-twelfths {
   width: 16.66667% ;
   max-width: 16.66667% ;
   flex-basis: 16.66667% ; }
 
-.three_twelfths {
+.three-twelfths {
   width: 25% ;
   max-width: 25% ;
   flex-basis: 25% ; }
 
-.four_twelfths {
+.four-twelfths {
   width: 33.33333% ;
   max-width: 33.33333% ;
   flex-basis: 33.33333% ; }
 
-.five_twelfths {
+.five-twelfths {
   width: 41.66667% ;
   max-width: 41.66667% ;
   flex-basis: 41.66667% ; }
 
-.six_twelfths {
+.six-twelfths {
   width: 50% ;
   max-width: 50% ;
   flex-basis: 50% ; }
 
-.seven_twelfths {
+.seven-twelfths {
   width: 58.33333% ;
   max-width: 58.33333% ;
   flex-basis: 58.33333% ; }
 
-.eight_twelfths {
+.eight-twelfths {
   width: 66.66667% ;
   max-width: 66.66667% ;
   flex-basis: 66.66667% ; }
 
-.nine_twelfths {
+.nine-twelfths {
   width: 75% ;
   max-width: 75% ;
   flex-basis: 75% ; }
 
-.ten_twelfths {
+.ten-twelfths {
   width: 83.33333% ;
   max-width: 83.33333% ;
   flex-basis: 83.33333% ; }
 
-.eleven_twelfths {
+.eleven-twelfths {
   width: 91.66667% ;
   max-width: 91.66667% ;
   flex-basis: 91.66667% ; }
 
-.one_eleventh {
+.one-eleventh {
   width: 9.09091% ;
   max-width: 9.09091% ;
   flex-basis: 9.09091% ; }
 
-.two_elevenths {
+.two-elevenths {
   width: 18.18182% ;
   max-width: 18.18182% ;
   flex-basis: 18.18182% ; }
 
-.three_elevenths {
+.three-elevenths {
   width: 27.27273% ;
   max-width: 27.27273% ;
   flex-basis: 27.27273% ; }
 
-.four_elevenths {
+.four-elevenths {
   width: 36.36364% ;
   max-width: 36.36364% ;
   flex-basis: 36.36364% ; }
 
-.five_elevenths {
+.five-elevenths {
   width: 45.45455% ;
   max-width: 45.45455% ;
   flex-basis: 45.45455% ; }
 
-.six_elevenths {
+.six-elevenths {
   width: 54.54545% ;
   max-width: 54.54545% ;
   flex-basis: 54.54545% ; }
 
-.seven_elevenths {
+.seven-elevenths {
   width: 63.63636% ;
   max-width: 63.63636% ;
   flex-basis: 63.63636% ; }
 
-.eight_elevenths {
+.eight-elevenths {
   width: 72.72727% ;
   max-width: 72.72727% ;
   flex-basis: 72.72727% ; }
 
-.nine_elevenths {
+.nine-elevenths {
   width: 81.81818% ;
   max-width: 81.81818% ;
   flex-basis: 81.81818% ; }
 
-.ten_elevenths {
+.ten-elevenths {
   width: 90.90909% ;
   max-width: 90.90909% ;
   flex-basis: 90.90909% ; }
 
-.one_tenth {
+.one-tenth {
   width: 10% ;
   max-width: 10% ;
   flex-basis: 10% ; }
 
-.two_tenths {
+.two-tenths {
   width: 20% ;
   max-width: 20% ;
   flex-basis: 20% ; }
 
-.three_tenths {
+.three-tenths {
   width: 30% ;
   max-width: 30% ;
   flex-basis: 30% ; }
 
-.four_tenths {
+.four-tenths {
   width: 40% ;
   max-width: 40% ;
   flex-basis: 40% ; }
 
-.five_tenths {
+.five-tenths {
   width: 50% ;
   max-width: 50% ;
   flex-basis: 50% ; }
 
-.six_tenths {
+.six-tenths {
   width: 60% ;
   max-width: 60% ;
   flex-basis: 60% ; }
 
-.seven_tenths {
+.seven-tenths {
   width: 70% ;
   max-width: 70% ;
   flex-basis: 70% ; }
 
-.eight_tenths {
+.eight-tenths {
   width: 80% ;
   max-width: 80% ;
   flex-basis: 80% ; }
 
-.nine_tenths {
+.nine-tenths {
   width: 90% ;
   max-width: 90% ;
   flex-basis: 90% ; }
 
-.one_ninth {
+.one-ninth {
   width: 11.11111% ;
   max-width: 11.11111% ;
   flex-basis: 11.11111% ; }
 
-.two_ninths {
+.two-ninths {
   width: 22.22222% ;
   max-width: 22.22222% ;
   flex-basis: 22.22222% ; }
 
-.three_ninths {
+.three-ninths {
   width: 33.33333% ;
   max-width: 33.33333% ;
   flex-basis: 33.33333% ; }
 
-.four_ninths {
+.four-ninths {
   width: 44.44444% ;
   max-width: 44.44444% ;
   flex-basis: 44.44444% ; }
 
-.five_ninths {
+.five-ninths {
   width: 55.55556% ;
   max-width: 55.55556% ;
   flex-basis: 55.55556% ; }
 
-.six_ninths {
+.six-ninths {
   width: 66.66667% ;
   max-width: 66.66667% ;
   flex-basis: 66.66667% ; }
 
-.seven_ninths {
+.seven-ninths {
   width: 77.77778% ;
   max-width: 77.77778% ;
   flex-basis: 77.77778% ; }
 
-.eight_ninths {
+.eight-ninths {
   width: 88.88889% ;
   max-width: 88.88889% ;
   flex-basis: 88.88889% ; }
 
-.one_eighth {
+.one-eighth {
   width: 12.5% ;
   max-width: 12.5% ;
   flex-basis: 12.5% ; }
 
-.two_eighths {
+.two-eighths {
   width: 25% ;
   max-width: 25% ;
   flex-basis: 25% ; }
 
-.three_eighths {
+.three-eighths {
   width: 37.5% ;
   max-width: 37.5% ;
   flex-basis: 37.5% ; }
 
-.four_eighths {
+.four-eighths {
   width: 50% ;
   max-width: 50% ;
   flex-basis: 50% ; }
 
-.five_eighths {
+.five-eighths {
   width: 62.5% ;
   max-width: 62.5% ;
   flex-basis: 62.5% ; }
 
-.six_eighths {
+.six-eighths {
   width: 75% ;
   max-width: 75% ;
   flex-basis: 75% ; }
 
-.seven_eighths {
+.seven-eighths {
   width: 87.5% ;
   max-width: 87.5% ;
   flex-basis: 87.5% ; }
 
-.one_seventh {
+.one-seventh {
   width: 14.28571% ;
   max-width: 14.28571% ;
   flex-basis: 14.28571% ; }
 
-.two_sevenths {
+.two-sevenths {
   width: 28.57143% ;
   max-width: 28.57143% ;
   flex-basis: 28.57143% ; }
 
-.three_sevenths {
+.three-sevenths {
   width: 42.85714% ;
   max-width: 42.85714% ;
   flex-basis: 42.85714% ; }
 
-.four_sevenths {
+.four-sevenths {
   width: 57.14286% ;
   max-width: 57.14286% ;
   flex-basis: 57.14286% ; }
 
-.five_sevenths {
+.five-sevenths {
   width: 71.42857% ;
   max-width: 71.42857% ;
   flex-basis: 71.42857% ; }
 
-.six_sevenths {
+.six-sevenths {
   width: 85.71429% ;
   max-width: 85.71429% ;
   flex-basis: 85.71429% ; }
 
-.one_sixth {
+.one-sixth {
   width: 16.66667% ;
   max-width: 16.66667% ;
   flex-basis: 16.66667% ; }
 
-.two_sixths {
+.two-sixths {
   width: 33.33333% ;
   max-width: 33.33333% ;
   flex-basis: 33.33333% ; }
 
-.three_sixths {
+.three-sixths {
   width: 50% ;
   max-width: 50% ;
   flex-basis: 50% ; }
 
-.four_sixths {
+.four-sixths {
   width: 66.66667% ;
   max-width: 66.66667% ;
   flex-basis: 66.66667% ; }
 
-.five_sixths {
+.five-sixths {
   width: 83.33333% ;
   max-width: 83.33333% ;
   flex-basis: 83.33333% ; }
 
-.one_fifth {
+.one-fifth {
   width: 20% ;
   max-width: 20% ;
   flex-basis: 20% ; }
 
-.two_fifths {
+.two-fifths {
   width: 40% ;
   max-width: 40% ;
   flex-basis: 40% ; }
 
-.three_fifths {
+.three-fifths {
   width: 60% ;
   max-width: 60% ;
   flex-basis: 60% ; }
 
-.four_fifths {
+.four-fifths {
   width: 80% ;
   max-width: 80% ;
   flex-basis: 80% ; }
 
-.one_quarter, .one_fourth {
+.one-quarter, .one-fourth {
   width: 25% ;
   max-width: 25% ;
   flex-basis: 25% ; }
 
-.two_quarters, .two_fourths {
+.two-quarters, .two-fourths {
   width: 50% ;
   max-width: 50% ;
   flex-basis: 50% ; }
 
-.three_quarters, .three_fourths {
+.three-quarters, .three-fourths {
   width: 75% ;
   max-width: 75% ;
   flex-basis: 75% ; }
 
-.one_third {
+.one-third {
   width: 33.33333% ;
   max-width: 33.33333% ;
   flex-basis: 33.33333% ; }
 
-.two_thirds {
+.two-thirds {
   width: 66.66667% ;
   max-width: 66.66667% ;
   flex-basis: 66.66667% ; }
 
-.one_half {
+.one-half {
   width: 50% ;
   max-width: 50% ;
   flex-basis: 50% ; }
 
 @media only screen and (max-width: 56.875em) {
-  .smalls\@one_whole {
+  .smalls\@one-whole {
     width: 100% ;
     max-width: 100% ;
     flex-basis: 100% ; }
-  .smalls\@one_twelfth {
+  .smalls\@one-twelfth {
     width: 8.33333% ;
     max-width: 8.33333% ;
     flex-basis: 8.33333% ; }
-  .smalls\@two_twelfths {
+  .smalls\@two-twelfths {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .smalls\@three_twelfths {
+  .smalls\@three-twelfths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .smalls\@four_twelfths {
+  .smalls\@four-twelfths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smalls\@five_twelfths {
+  .smalls\@five-twelfths {
     width: 41.66667% ;
     max-width: 41.66667% ;
     flex-basis: 41.66667% ; }
-  .smalls\@six_twelfths {
+  .smalls\@six-twelfths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smalls\@seven_twelfths {
+  .smalls\@seven-twelfths {
     width: 58.33333% ;
     max-width: 58.33333% ;
     flex-basis: 58.33333% ; }
-  .smalls\@eight_twelfths {
+  .smalls\@eight-twelfths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smalls\@nine_twelfths {
+  .smalls\@nine-twelfths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .smalls\@ten_twelfths {
+  .smalls\@ten-twelfths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .smalls\@eleven_twelfths {
+  .smalls\@eleven-twelfths {
     width: 91.66667% ;
     max-width: 91.66667% ;
     flex-basis: 91.66667% ; }
-  .smalls\@one_eleventh {
+  .smalls\@one-eleventh {
     width: 9.09091% ;
     max-width: 9.09091% ;
     flex-basis: 9.09091% ; }
-  .smalls\@two_elevenths {
+  .smalls\@two-elevenths {
     width: 18.18182% ;
     max-width: 18.18182% ;
     flex-basis: 18.18182% ; }
-  .smalls\@three_elevenths {
+  .smalls\@three-elevenths {
     width: 27.27273% ;
     max-width: 27.27273% ;
     flex-basis: 27.27273% ; }
-  .smalls\@four_elevenths {
+  .smalls\@four-elevenths {
     width: 36.36364% ;
     max-width: 36.36364% ;
     flex-basis: 36.36364% ; }
-  .smalls\@five_elevenths {
+  .smalls\@five-elevenths {
     width: 45.45455% ;
     max-width: 45.45455% ;
     flex-basis: 45.45455% ; }
-  .smalls\@six_elevenths {
+  .smalls\@six-elevenths {
     width: 54.54545% ;
     max-width: 54.54545% ;
     flex-basis: 54.54545% ; }
-  .smalls\@seven_elevenths {
+  .smalls\@seven-elevenths {
     width: 63.63636% ;
     max-width: 63.63636% ;
     flex-basis: 63.63636% ; }
-  .smalls\@eight_elevenths {
+  .smalls\@eight-elevenths {
     width: 72.72727% ;
     max-width: 72.72727% ;
     flex-basis: 72.72727% ; }
-  .smalls\@nine_elevenths {
+  .smalls\@nine-elevenths {
     width: 81.81818% ;
     max-width: 81.81818% ;
     flex-basis: 81.81818% ; }
-  .smalls\@ten_elevenths {
+  .smalls\@ten-elevenths {
     width: 90.90909% ;
     max-width: 90.90909% ;
     flex-basis: 90.90909% ; }
-  .smalls\@one_tenth {
+  .smalls\@one-tenth {
     width: 10% ;
     max-width: 10% ;
     flex-basis: 10% ; }
-  .smalls\@two_tenths {
+  .smalls\@two-tenths {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .smalls\@three_tenths {
+  .smalls\@three-tenths {
     width: 30% ;
     max-width: 30% ;
     flex-basis: 30% ; }
-  .smalls\@four_tenths {
+  .smalls\@four-tenths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .smalls\@five_tenths {
+  .smalls\@five-tenths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smalls\@six_tenths {
+  .smalls\@six-tenths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .smalls\@seven_tenths {
+  .smalls\@seven-tenths {
     width: 70% ;
     max-width: 70% ;
     flex-basis: 70% ; }
-  .smalls\@eight_tenths {
+  .smalls\@eight-tenths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .smalls\@nine_tenths {
+  .smalls\@nine-tenths {
     width: 90% ;
     max-width: 90% ;
     flex-basis: 90% ; }
-  .smalls\@one_ninth {
+  .smalls\@one-ninth {
     width: 11.11111% ;
     max-width: 11.11111% ;
     flex-basis: 11.11111% ; }
-  .smalls\@two_ninths {
+  .smalls\@two-ninths {
     width: 22.22222% ;
     max-width: 22.22222% ;
     flex-basis: 22.22222% ; }
-  .smalls\@three_ninths {
+  .smalls\@three-ninths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smalls\@four_ninths {
+  .smalls\@four-ninths {
     width: 44.44444% ;
     max-width: 44.44444% ;
     flex-basis: 44.44444% ; }
-  .smalls\@five_ninths {
+  .smalls\@five-ninths {
     width: 55.55556% ;
     max-width: 55.55556% ;
     flex-basis: 55.55556% ; }
-  .smalls\@six_ninths {
+  .smalls\@six-ninths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smalls\@seven_ninths {
+  .smalls\@seven-ninths {
     width: 77.77778% ;
     max-width: 77.77778% ;
     flex-basis: 77.77778% ; }
-  .smalls\@eight_ninths {
+  .smalls\@eight-ninths {
     width: 88.88889% ;
     max-width: 88.88889% ;
     flex-basis: 88.88889% ; }
-  .smalls\@one_eighth {
+  .smalls\@one-eighth {
     width: 12.5% ;
     max-width: 12.5% ;
     flex-basis: 12.5% ; }
-  .smalls\@two_eighths {
+  .smalls\@two-eighths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .smalls\@three_eighths {
+  .smalls\@three-eighths {
     width: 37.5% ;
     max-width: 37.5% ;
     flex-basis: 37.5% ; }
-  .smalls\@four_eighths {
+  .smalls\@four-eighths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smalls\@five_eighths {
+  .smalls\@five-eighths {
     width: 62.5% ;
     max-width: 62.5% ;
     flex-basis: 62.5% ; }
-  .smalls\@six_eighths {
+  .smalls\@six-eighths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .smalls\@seven_eighths {
+  .smalls\@seven-eighths {
     width: 87.5% ;
     max-width: 87.5% ;
     flex-basis: 87.5% ; }
-  .smalls\@one_seventh {
+  .smalls\@one-seventh {
     width: 14.28571% ;
     max-width: 14.28571% ;
     flex-basis: 14.28571% ; }
-  .smalls\@two_sevenths {
+  .smalls\@two-sevenths {
     width: 28.57143% ;
     max-width: 28.57143% ;
     flex-basis: 28.57143% ; }
-  .smalls\@three_sevenths {
+  .smalls\@three-sevenths {
     width: 42.85714% ;
     max-width: 42.85714% ;
     flex-basis: 42.85714% ; }
-  .smalls\@four_sevenths {
+  .smalls\@four-sevenths {
     width: 57.14286% ;
     max-width: 57.14286% ;
     flex-basis: 57.14286% ; }
-  .smalls\@five_sevenths {
+  .smalls\@five-sevenths {
     width: 71.42857% ;
     max-width: 71.42857% ;
     flex-basis: 71.42857% ; }
-  .smalls\@six_sevenths {
+  .smalls\@six-sevenths {
     width: 85.71429% ;
     max-width: 85.71429% ;
     flex-basis: 85.71429% ; }
-  .smalls\@one_sixth {
+  .smalls\@one-sixth {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .smalls\@two_sixths {
+  .smalls\@two-sixths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smalls\@three_sixths {
+  .smalls\@three-sixths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smalls\@four_sixths {
+  .smalls\@four-sixths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smalls\@five_sixths {
+  .smalls\@five-sixths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .smalls\@one_fifth {
+  .smalls\@one-fifth {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .smalls\@two_fifths {
+  .smalls\@two-fifths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .smalls\@three_fifths {
+  .smalls\@three-fifths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .smalls\@four_fifths {
+  .smalls\@four-fifths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .smalls\@one_quarter, .smalls\@one_fourth {
+  .smalls\@one-quarter, .smalls\@one-fourth {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .smalls\@two_quarters, .smalls\@two_fourths {
+  .smalls\@two-quarters, .smalls\@two-fourths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smalls\@three_quarters, .smalls\@three_fourths {
+  .smalls\@three-quarters, .smalls\@three-fourths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .smalls\@one_third {
+  .smalls\@one-third {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smalls\@two_thirds {
+  .smalls\@two-thirds {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smalls\@one_half {
+  .smalls\@one-half {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; } }
 
 @media only screen and (max-width: 43.125em) {
-  .small\@one_whole {
+  .small\@one-whole {
     width: 100% ;
     max-width: 100% ;
     flex-basis: 100% ; }
-  .small\@one_twelfth {
+  .small\@one-twelfth {
     width: 8.33333% ;
     max-width: 8.33333% ;
     flex-basis: 8.33333% ; }
-  .small\@two_twelfths {
+  .small\@two-twelfths {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .small\@three_twelfths {
+  .small\@three-twelfths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .small\@four_twelfths {
+  .small\@four-twelfths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .small\@five_twelfths {
+  .small\@five-twelfths {
     width: 41.66667% ;
     max-width: 41.66667% ;
     flex-basis: 41.66667% ; }
-  .small\@six_twelfths {
+  .small\@six-twelfths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .small\@seven_twelfths {
+  .small\@seven-twelfths {
     width: 58.33333% ;
     max-width: 58.33333% ;
     flex-basis: 58.33333% ; }
-  .small\@eight_twelfths {
+  .small\@eight-twelfths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .small\@nine_twelfths {
+  .small\@nine-twelfths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .small\@ten_twelfths {
+  .small\@ten-twelfths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .small\@eleven_twelfths {
+  .small\@eleven-twelfths {
     width: 91.66667% ;
     max-width: 91.66667% ;
     flex-basis: 91.66667% ; }
-  .small\@one_eleventh {
+  .small\@one-eleventh {
     width: 9.09091% ;
     max-width: 9.09091% ;
     flex-basis: 9.09091% ; }
-  .small\@two_elevenths {
+  .small\@two-elevenths {
     width: 18.18182% ;
     max-width: 18.18182% ;
     flex-basis: 18.18182% ; }
-  .small\@three_elevenths {
+  .small\@three-elevenths {
     width: 27.27273% ;
     max-width: 27.27273% ;
     flex-basis: 27.27273% ; }
-  .small\@four_elevenths {
+  .small\@four-elevenths {
     width: 36.36364% ;
     max-width: 36.36364% ;
     flex-basis: 36.36364% ; }
-  .small\@five_elevenths {
+  .small\@five-elevenths {
     width: 45.45455% ;
     max-width: 45.45455% ;
     flex-basis: 45.45455% ; }
-  .small\@six_elevenths {
+  .small\@six-elevenths {
     width: 54.54545% ;
     max-width: 54.54545% ;
     flex-basis: 54.54545% ; }
-  .small\@seven_elevenths {
+  .small\@seven-elevenths {
     width: 63.63636% ;
     max-width: 63.63636% ;
     flex-basis: 63.63636% ; }
-  .small\@eight_elevenths {
+  .small\@eight-elevenths {
     width: 72.72727% ;
     max-width: 72.72727% ;
     flex-basis: 72.72727% ; }
-  .small\@nine_elevenths {
+  .small\@nine-elevenths {
     width: 81.81818% ;
     max-width: 81.81818% ;
     flex-basis: 81.81818% ; }
-  .small\@ten_elevenths {
+  .small\@ten-elevenths {
     width: 90.90909% ;
     max-width: 90.90909% ;
     flex-basis: 90.90909% ; }
-  .small\@one_tenth {
+  .small\@one-tenth {
     width: 10% ;
     max-width: 10% ;
     flex-basis: 10% ; }
-  .small\@two_tenths {
+  .small\@two-tenths {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .small\@three_tenths {
+  .small\@three-tenths {
     width: 30% ;
     max-width: 30% ;
     flex-basis: 30% ; }
-  .small\@four_tenths {
+  .small\@four-tenths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .small\@five_tenths {
+  .small\@five-tenths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .small\@six_tenths {
+  .small\@six-tenths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .small\@seven_tenths {
+  .small\@seven-tenths {
     width: 70% ;
     max-width: 70% ;
     flex-basis: 70% ; }
-  .small\@eight_tenths {
+  .small\@eight-tenths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .small\@nine_tenths {
+  .small\@nine-tenths {
     width: 90% ;
     max-width: 90% ;
     flex-basis: 90% ; }
-  .small\@one_ninth {
+  .small\@one-ninth {
     width: 11.11111% ;
     max-width: 11.11111% ;
     flex-basis: 11.11111% ; }
-  .small\@two_ninths {
+  .small\@two-ninths {
     width: 22.22222% ;
     max-width: 22.22222% ;
     flex-basis: 22.22222% ; }
-  .small\@three_ninths {
+  .small\@three-ninths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .small\@four_ninths {
+  .small\@four-ninths {
     width: 44.44444% ;
     max-width: 44.44444% ;
     flex-basis: 44.44444% ; }
-  .small\@five_ninths {
+  .small\@five-ninths {
     width: 55.55556% ;
     max-width: 55.55556% ;
     flex-basis: 55.55556% ; }
-  .small\@six_ninths {
+  .small\@six-ninths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .small\@seven_ninths {
+  .small\@seven-ninths {
     width: 77.77778% ;
     max-width: 77.77778% ;
     flex-basis: 77.77778% ; }
-  .small\@eight_ninths {
+  .small\@eight-ninths {
     width: 88.88889% ;
     max-width: 88.88889% ;
     flex-basis: 88.88889% ; }
-  .small\@one_eighth {
+  .small\@one-eighth {
     width: 12.5% ;
     max-width: 12.5% ;
     flex-basis: 12.5% ; }
-  .small\@two_eighths {
+  .small\@two-eighths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .small\@three_eighths {
+  .small\@three-eighths {
     width: 37.5% ;
     max-width: 37.5% ;
     flex-basis: 37.5% ; }
-  .small\@four_eighths {
+  .small\@four-eighths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .small\@five_eighths {
+  .small\@five-eighths {
     width: 62.5% ;
     max-width: 62.5% ;
     flex-basis: 62.5% ; }
-  .small\@six_eighths {
+  .small\@six-eighths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .small\@seven_eighths {
+  .small\@seven-eighths {
     width: 87.5% ;
     max-width: 87.5% ;
     flex-basis: 87.5% ; }
-  .small\@one_seventh {
+  .small\@one-seventh {
     width: 14.28571% ;
     max-width: 14.28571% ;
     flex-basis: 14.28571% ; }
-  .small\@two_sevenths {
+  .small\@two-sevenths {
     width: 28.57143% ;
     max-width: 28.57143% ;
     flex-basis: 28.57143% ; }
-  .small\@three_sevenths {
+  .small\@three-sevenths {
     width: 42.85714% ;
     max-width: 42.85714% ;
     flex-basis: 42.85714% ; }
-  .small\@four_sevenths {
+  .small\@four-sevenths {
     width: 57.14286% ;
     max-width: 57.14286% ;
     flex-basis: 57.14286% ; }
-  .small\@five_sevenths {
+  .small\@five-sevenths {
     width: 71.42857% ;
     max-width: 71.42857% ;
     flex-basis: 71.42857% ; }
-  .small\@six_sevenths {
+  .small\@six-sevenths {
     width: 85.71429% ;
     max-width: 85.71429% ;
     flex-basis: 85.71429% ; }
-  .small\@one_sixth {
+  .small\@one-sixth {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .small\@two_sixths {
+  .small\@two-sixths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .small\@three_sixths {
+  .small\@three-sixths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .small\@four_sixths {
+  .small\@four-sixths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .small\@five_sixths {
+  .small\@five-sixths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .small\@one_fifth {
+  .small\@one-fifth {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .small\@two_fifths {
+  .small\@two-fifths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .small\@three_fifths {
+  .small\@three-fifths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .small\@four_fifths {
+  .small\@four-fifths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .small\@one_quarter, .small\@one_fourth {
+  .small\@one-quarter, .small\@one-fourth {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .small\@two_quarters, .small\@two_fourths {
+  .small\@two-quarters, .small\@two-fourths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .small\@three_quarters, .small\@three_fourths {
+  .small\@three-quarters, .small\@three-fourths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .small\@one_third {
+  .small\@one-third {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .small\@two_thirds {
+  .small\@two-thirds {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .small\@one_half {
+  .small\@one-half {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; } }
 
 @media only screen and (min-width: 43.1875em) and (max-width: 56.875em) {
-  .smallish\@one_whole {
+  .smallish\@one-whole {
     width: 100% ;
     max-width: 100% ;
     flex-basis: 100% ; }
-  .smallish\@one_twelfth {
+  .smallish\@one-twelfth {
     width: 8.33333% ;
     max-width: 8.33333% ;
     flex-basis: 8.33333% ; }
-  .smallish\@two_twelfths {
+  .smallish\@two-twelfths {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .smallish\@three_twelfths {
+  .smallish\@three-twelfths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .smallish\@four_twelfths {
+  .smallish\@four-twelfths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smallish\@five_twelfths {
+  .smallish\@five-twelfths {
     width: 41.66667% ;
     max-width: 41.66667% ;
     flex-basis: 41.66667% ; }
-  .smallish\@six_twelfths {
+  .smallish\@six-twelfths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smallish\@seven_twelfths {
+  .smallish\@seven-twelfths {
     width: 58.33333% ;
     max-width: 58.33333% ;
     flex-basis: 58.33333% ; }
-  .smallish\@eight_twelfths {
+  .smallish\@eight-twelfths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smallish\@nine_twelfths {
+  .smallish\@nine-twelfths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .smallish\@ten_twelfths {
+  .smallish\@ten-twelfths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .smallish\@eleven_twelfths {
+  .smallish\@eleven-twelfths {
     width: 91.66667% ;
     max-width: 91.66667% ;
     flex-basis: 91.66667% ; }
-  .smallish\@one_eleventh {
+  .smallish\@one-eleventh {
     width: 9.09091% ;
     max-width: 9.09091% ;
     flex-basis: 9.09091% ; }
-  .smallish\@two_elevenths {
+  .smallish\@two-elevenths {
     width: 18.18182% ;
     max-width: 18.18182% ;
     flex-basis: 18.18182% ; }
-  .smallish\@three_elevenths {
+  .smallish\@three-elevenths {
     width: 27.27273% ;
     max-width: 27.27273% ;
     flex-basis: 27.27273% ; }
-  .smallish\@four_elevenths {
+  .smallish\@four-elevenths {
     width: 36.36364% ;
     max-width: 36.36364% ;
     flex-basis: 36.36364% ; }
-  .smallish\@five_elevenths {
+  .smallish\@five-elevenths {
     width: 45.45455% ;
     max-width: 45.45455% ;
     flex-basis: 45.45455% ; }
-  .smallish\@six_elevenths {
+  .smallish\@six-elevenths {
     width: 54.54545% ;
     max-width: 54.54545% ;
     flex-basis: 54.54545% ; }
-  .smallish\@seven_elevenths {
+  .smallish\@seven-elevenths {
     width: 63.63636% ;
     max-width: 63.63636% ;
     flex-basis: 63.63636% ; }
-  .smallish\@eight_elevenths {
+  .smallish\@eight-elevenths {
     width: 72.72727% ;
     max-width: 72.72727% ;
     flex-basis: 72.72727% ; }
-  .smallish\@nine_elevenths {
+  .smallish\@nine-elevenths {
     width: 81.81818% ;
     max-width: 81.81818% ;
     flex-basis: 81.81818% ; }
-  .smallish\@ten_elevenths {
+  .smallish\@ten-elevenths {
     width: 90.90909% ;
     max-width: 90.90909% ;
     flex-basis: 90.90909% ; }
-  .smallish\@one_tenth {
+  .smallish\@one-tenth {
     width: 10% ;
     max-width: 10% ;
     flex-basis: 10% ; }
-  .smallish\@two_tenths {
+  .smallish\@two-tenths {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .smallish\@three_tenths {
+  .smallish\@three-tenths {
     width: 30% ;
     max-width: 30% ;
     flex-basis: 30% ; }
-  .smallish\@four_tenths {
+  .smallish\@four-tenths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .smallish\@five_tenths {
+  .smallish\@five-tenths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smallish\@six_tenths {
+  .smallish\@six-tenths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .smallish\@seven_tenths {
+  .smallish\@seven-tenths {
     width: 70% ;
     max-width: 70% ;
     flex-basis: 70% ; }
-  .smallish\@eight_tenths {
+  .smallish\@eight-tenths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .smallish\@nine_tenths {
+  .smallish\@nine-tenths {
     width: 90% ;
     max-width: 90% ;
     flex-basis: 90% ; }
-  .smallish\@one_ninth {
+  .smallish\@one-ninth {
     width: 11.11111% ;
     max-width: 11.11111% ;
     flex-basis: 11.11111% ; }
-  .smallish\@two_ninths {
+  .smallish\@two-ninths {
     width: 22.22222% ;
     max-width: 22.22222% ;
     flex-basis: 22.22222% ; }
-  .smallish\@three_ninths {
+  .smallish\@three-ninths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smallish\@four_ninths {
+  .smallish\@four-ninths {
     width: 44.44444% ;
     max-width: 44.44444% ;
     flex-basis: 44.44444% ; }
-  .smallish\@five_ninths {
+  .smallish\@five-ninths {
     width: 55.55556% ;
     max-width: 55.55556% ;
     flex-basis: 55.55556% ; }
-  .smallish\@six_ninths {
+  .smallish\@six-ninths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smallish\@seven_ninths {
+  .smallish\@seven-ninths {
     width: 77.77778% ;
     max-width: 77.77778% ;
     flex-basis: 77.77778% ; }
-  .smallish\@eight_ninths {
+  .smallish\@eight-ninths {
     width: 88.88889% ;
     max-width: 88.88889% ;
     flex-basis: 88.88889% ; }
-  .smallish\@one_eighth {
+  .smallish\@one-eighth {
     width: 12.5% ;
     max-width: 12.5% ;
     flex-basis: 12.5% ; }
-  .smallish\@two_eighths {
+  .smallish\@two-eighths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .smallish\@three_eighths {
+  .smallish\@three-eighths {
     width: 37.5% ;
     max-width: 37.5% ;
     flex-basis: 37.5% ; }
-  .smallish\@four_eighths {
+  .smallish\@four-eighths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smallish\@five_eighths {
+  .smallish\@five-eighths {
     width: 62.5% ;
     max-width: 62.5% ;
     flex-basis: 62.5% ; }
-  .smallish\@six_eighths {
+  .smallish\@six-eighths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .smallish\@seven_eighths {
+  .smallish\@seven-eighths {
     width: 87.5% ;
     max-width: 87.5% ;
     flex-basis: 87.5% ; }
-  .smallish\@one_seventh {
+  .smallish\@one-seventh {
     width: 14.28571% ;
     max-width: 14.28571% ;
     flex-basis: 14.28571% ; }
-  .smallish\@two_sevenths {
+  .smallish\@two-sevenths {
     width: 28.57143% ;
     max-width: 28.57143% ;
     flex-basis: 28.57143% ; }
-  .smallish\@three_sevenths {
+  .smallish\@three-sevenths {
     width: 42.85714% ;
     max-width: 42.85714% ;
     flex-basis: 42.85714% ; }
-  .smallish\@four_sevenths {
+  .smallish\@four-sevenths {
     width: 57.14286% ;
     max-width: 57.14286% ;
     flex-basis: 57.14286% ; }
-  .smallish\@five_sevenths {
+  .smallish\@five-sevenths {
     width: 71.42857% ;
     max-width: 71.42857% ;
     flex-basis: 71.42857% ; }
-  .smallish\@six_sevenths {
+  .smallish\@six-sevenths {
     width: 85.71429% ;
     max-width: 85.71429% ;
     flex-basis: 85.71429% ; }
-  .smallish\@one_sixth {
+  .smallish\@one-sixth {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .smallish\@two_sixths {
+  .smallish\@two-sixths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smallish\@three_sixths {
+  .smallish\@three-sixths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smallish\@four_sixths {
+  .smallish\@four-sixths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smallish\@five_sixths {
+  .smallish\@five-sixths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .smallish\@one_fifth {
+  .smallish\@one-fifth {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .smallish\@two_fifths {
+  .smallish\@two-fifths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .smallish\@three_fifths {
+  .smallish\@three-fifths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .smallish\@four_fifths {
+  .smallish\@four-fifths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .smallish\@one_quarter, .smallish\@one_fourth {
+  .smallish\@one-quarter, .smallish\@one-fourth {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .smallish\@two_quarters, .smallish\@two_fourths {
+  .smallish\@two-quarters, .smallish\@two-fourths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .smallish\@three_quarters, .smallish\@three_fourths {
+  .smallish\@three-quarters, .smallish\@three-fourths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .smallish\@one_third {
+  .smallish\@one-third {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .smallish\@two_thirds {
+  .smallish\@two-thirds {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .smallish\@one_half {
+  .smallish\@one-half {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; } }
 
 @media only screen and (min-width: 56.9375em) {
-  .bigs\@one_whole {
+  .bigs\@one-whole {
     width: 100% ;
     max-width: 100% ;
     flex-basis: 100% ; }
-  .bigs\@one_twelfth {
+  .bigs\@one-twelfth {
     width: 8.33333% ;
     max-width: 8.33333% ;
     flex-basis: 8.33333% ; }
-  .bigs\@two_twelfths {
+  .bigs\@two-twelfths {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .bigs\@three_twelfths {
+  .bigs\@three-twelfths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .bigs\@four_twelfths {
+  .bigs\@four-twelfths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .bigs\@five_twelfths {
+  .bigs\@five-twelfths {
     width: 41.66667% ;
     max-width: 41.66667% ;
     flex-basis: 41.66667% ; }
-  .bigs\@six_twelfths {
+  .bigs\@six-twelfths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .bigs\@seven_twelfths {
+  .bigs\@seven-twelfths {
     width: 58.33333% ;
     max-width: 58.33333% ;
     flex-basis: 58.33333% ; }
-  .bigs\@eight_twelfths {
+  .bigs\@eight-twelfths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .bigs\@nine_twelfths {
+  .bigs\@nine-twelfths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .bigs\@ten_twelfths {
+  .bigs\@ten-twelfths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .bigs\@eleven_twelfths {
+  .bigs\@eleven-twelfths {
     width: 91.66667% ;
     max-width: 91.66667% ;
     flex-basis: 91.66667% ; }
-  .bigs\@one_eleventh {
+  .bigs\@one-eleventh {
     width: 9.09091% ;
     max-width: 9.09091% ;
     flex-basis: 9.09091% ; }
-  .bigs\@two_elevenths {
+  .bigs\@two-elevenths {
     width: 18.18182% ;
     max-width: 18.18182% ;
     flex-basis: 18.18182% ; }
-  .bigs\@three_elevenths {
+  .bigs\@three-elevenths {
     width: 27.27273% ;
     max-width: 27.27273% ;
     flex-basis: 27.27273% ; }
-  .bigs\@four_elevenths {
+  .bigs\@four-elevenths {
     width: 36.36364% ;
     max-width: 36.36364% ;
     flex-basis: 36.36364% ; }
-  .bigs\@five_elevenths {
+  .bigs\@five-elevenths {
     width: 45.45455% ;
     max-width: 45.45455% ;
     flex-basis: 45.45455% ; }
-  .bigs\@six_elevenths {
+  .bigs\@six-elevenths {
     width: 54.54545% ;
     max-width: 54.54545% ;
     flex-basis: 54.54545% ; }
-  .bigs\@seven_elevenths {
+  .bigs\@seven-elevenths {
     width: 63.63636% ;
     max-width: 63.63636% ;
     flex-basis: 63.63636% ; }
-  .bigs\@eight_elevenths {
+  .bigs\@eight-elevenths {
     width: 72.72727% ;
     max-width: 72.72727% ;
     flex-basis: 72.72727% ; }
-  .bigs\@nine_elevenths {
+  .bigs\@nine-elevenths {
     width: 81.81818% ;
     max-width: 81.81818% ;
     flex-basis: 81.81818% ; }
-  .bigs\@ten_elevenths {
+  .bigs\@ten-elevenths {
     width: 90.90909% ;
     max-width: 90.90909% ;
     flex-basis: 90.90909% ; }
-  .bigs\@one_tenth {
+  .bigs\@one-tenth {
     width: 10% ;
     max-width: 10% ;
     flex-basis: 10% ; }
-  .bigs\@two_tenths {
+  .bigs\@two-tenths {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .bigs\@three_tenths {
+  .bigs\@three-tenths {
     width: 30% ;
     max-width: 30% ;
     flex-basis: 30% ; }
-  .bigs\@four_tenths {
+  .bigs\@four-tenths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .bigs\@five_tenths {
+  .bigs\@five-tenths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .bigs\@six_tenths {
+  .bigs\@six-tenths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .bigs\@seven_tenths {
+  .bigs\@seven-tenths {
     width: 70% ;
     max-width: 70% ;
     flex-basis: 70% ; }
-  .bigs\@eight_tenths {
+  .bigs\@eight-tenths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .bigs\@nine_tenths {
+  .bigs\@nine-tenths {
     width: 90% ;
     max-width: 90% ;
     flex-basis: 90% ; }
-  .bigs\@one_ninth {
+  .bigs\@one-ninth {
     width: 11.11111% ;
     max-width: 11.11111% ;
     flex-basis: 11.11111% ; }
-  .bigs\@two_ninths {
+  .bigs\@two-ninths {
     width: 22.22222% ;
     max-width: 22.22222% ;
     flex-basis: 22.22222% ; }
-  .bigs\@three_ninths {
+  .bigs\@three-ninths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .bigs\@four_ninths {
+  .bigs\@four-ninths {
     width: 44.44444% ;
     max-width: 44.44444% ;
     flex-basis: 44.44444% ; }
-  .bigs\@five_ninths {
+  .bigs\@five-ninths {
     width: 55.55556% ;
     max-width: 55.55556% ;
     flex-basis: 55.55556% ; }
-  .bigs\@six_ninths {
+  .bigs\@six-ninths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .bigs\@seven_ninths {
+  .bigs\@seven-ninths {
     width: 77.77778% ;
     max-width: 77.77778% ;
     flex-basis: 77.77778% ; }
-  .bigs\@eight_ninths {
+  .bigs\@eight-ninths {
     width: 88.88889% ;
     max-width: 88.88889% ;
     flex-basis: 88.88889% ; }
-  .bigs\@one_eighth {
+  .bigs\@one-eighth {
     width: 12.5% ;
     max-width: 12.5% ;
     flex-basis: 12.5% ; }
-  .bigs\@two_eighths {
+  .bigs\@two-eighths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .bigs\@three_eighths {
+  .bigs\@three-eighths {
     width: 37.5% ;
     max-width: 37.5% ;
     flex-basis: 37.5% ; }
-  .bigs\@four_eighths {
+  .bigs\@four-eighths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .bigs\@five_eighths {
+  .bigs\@five-eighths {
     width: 62.5% ;
     max-width: 62.5% ;
     flex-basis: 62.5% ; }
-  .bigs\@six_eighths {
+  .bigs\@six-eighths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .bigs\@seven_eighths {
+  .bigs\@seven-eighths {
     width: 87.5% ;
     max-width: 87.5% ;
     flex-basis: 87.5% ; }
-  .bigs\@one_seventh {
+  .bigs\@one-seventh {
     width: 14.28571% ;
     max-width: 14.28571% ;
     flex-basis: 14.28571% ; }
-  .bigs\@two_sevenths {
+  .bigs\@two-sevenths {
     width: 28.57143% ;
     max-width: 28.57143% ;
     flex-basis: 28.57143% ; }
-  .bigs\@three_sevenths {
+  .bigs\@three-sevenths {
     width: 42.85714% ;
     max-width: 42.85714% ;
     flex-basis: 42.85714% ; }
-  .bigs\@four_sevenths {
+  .bigs\@four-sevenths {
     width: 57.14286% ;
     max-width: 57.14286% ;
     flex-basis: 57.14286% ; }
-  .bigs\@five_sevenths {
+  .bigs\@five-sevenths {
     width: 71.42857% ;
     max-width: 71.42857% ;
     flex-basis: 71.42857% ; }
-  .bigs\@six_sevenths {
+  .bigs\@six-sevenths {
     width: 85.71429% ;
     max-width: 85.71429% ;
     flex-basis: 85.71429% ; }
-  .bigs\@one_sixth {
+  .bigs\@one-sixth {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .bigs\@two_sixths {
+  .bigs\@two-sixths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .bigs\@three_sixths {
+  .bigs\@three-sixths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .bigs\@four_sixths {
+  .bigs\@four-sixths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .bigs\@five_sixths {
+  .bigs\@five-sixths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .bigs\@one_fifth {
+  .bigs\@one-fifth {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .bigs\@two_fifths {
+  .bigs\@two-fifths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .bigs\@three_fifths {
+  .bigs\@three-fifths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .bigs\@four_fifths {
+  .bigs\@four-fifths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .bigs\@one_quarter, .bigs\@one_fourth {
+  .bigs\@one-quarter, .bigs\@one-fourth {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .bigs\@two_quarters, .bigs\@two_fourths {
+  .bigs\@two-quarters, .bigs\@two-fourths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .bigs\@three_quarters, .bigs\@three_fourths {
+  .bigs\@three-quarters, .bigs\@three-fourths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .bigs\@one_third {
+  .bigs\@one-third {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .bigs\@two_thirds {
+  .bigs\@two-thirds {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .bigs\@one_half {
+  .bigs\@one-half {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; } }
 
 @media only screen and (min-width: 56.9375em) and (max-width: 85em) {
-  .lap\@one_whole {
+  .lap\@one-whole {
     width: 100% ;
     max-width: 100% ;
     flex-basis: 100% ; }
-  .lap\@one_twelfth {
+  .lap\@one-twelfth {
     width: 8.33333% ;
     max-width: 8.33333% ;
     flex-basis: 8.33333% ; }
-  .lap\@two_twelfths {
+  .lap\@two-twelfths {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .lap\@three_twelfths {
+  .lap\@three-twelfths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .lap\@four_twelfths {
+  .lap\@four-twelfths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .lap\@five_twelfths {
+  .lap\@five-twelfths {
     width: 41.66667% ;
     max-width: 41.66667% ;
     flex-basis: 41.66667% ; }
-  .lap\@six_twelfths {
+  .lap\@six-twelfths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .lap\@seven_twelfths {
+  .lap\@seven-twelfths {
     width: 58.33333% ;
     max-width: 58.33333% ;
     flex-basis: 58.33333% ; }
-  .lap\@eight_twelfths {
+  .lap\@eight-twelfths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .lap\@nine_twelfths {
+  .lap\@nine-twelfths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .lap\@ten_twelfths {
+  .lap\@ten-twelfths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .lap\@eleven_twelfths {
+  .lap\@eleven-twelfths {
     width: 91.66667% ;
     max-width: 91.66667% ;
     flex-basis: 91.66667% ; }
-  .lap\@one_eleventh {
+  .lap\@one-eleventh {
     width: 9.09091% ;
     max-width: 9.09091% ;
     flex-basis: 9.09091% ; }
-  .lap\@two_elevenths {
+  .lap\@two-elevenths {
     width: 18.18182% ;
     max-width: 18.18182% ;
     flex-basis: 18.18182% ; }
-  .lap\@three_elevenths {
+  .lap\@three-elevenths {
     width: 27.27273% ;
     max-width: 27.27273% ;
     flex-basis: 27.27273% ; }
-  .lap\@four_elevenths {
+  .lap\@four-elevenths {
     width: 36.36364% ;
     max-width: 36.36364% ;
     flex-basis: 36.36364% ; }
-  .lap\@five_elevenths {
+  .lap\@five-elevenths {
     width: 45.45455% ;
     max-width: 45.45455% ;
     flex-basis: 45.45455% ; }
-  .lap\@six_elevenths {
+  .lap\@six-elevenths {
     width: 54.54545% ;
     max-width: 54.54545% ;
     flex-basis: 54.54545% ; }
-  .lap\@seven_elevenths {
+  .lap\@seven-elevenths {
     width: 63.63636% ;
     max-width: 63.63636% ;
     flex-basis: 63.63636% ; }
-  .lap\@eight_elevenths {
+  .lap\@eight-elevenths {
     width: 72.72727% ;
     max-width: 72.72727% ;
     flex-basis: 72.72727% ; }
-  .lap\@nine_elevenths {
+  .lap\@nine-elevenths {
     width: 81.81818% ;
     max-width: 81.81818% ;
     flex-basis: 81.81818% ; }
-  .lap\@ten_elevenths {
+  .lap\@ten-elevenths {
     width: 90.90909% ;
     max-width: 90.90909% ;
     flex-basis: 90.90909% ; }
-  .lap\@one_tenth {
+  .lap\@one-tenth {
     width: 10% ;
     max-width: 10% ;
     flex-basis: 10% ; }
-  .lap\@two_tenths {
+  .lap\@two-tenths {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .lap\@three_tenths {
+  .lap\@three-tenths {
     width: 30% ;
     max-width: 30% ;
     flex-basis: 30% ; }
-  .lap\@four_tenths {
+  .lap\@four-tenths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .lap\@five_tenths {
+  .lap\@five-tenths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .lap\@six_tenths {
+  .lap\@six-tenths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .lap\@seven_tenths {
+  .lap\@seven-tenths {
     width: 70% ;
     max-width: 70% ;
     flex-basis: 70% ; }
-  .lap\@eight_tenths {
+  .lap\@eight-tenths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .lap\@nine_tenths {
+  .lap\@nine-tenths {
     width: 90% ;
     max-width: 90% ;
     flex-basis: 90% ; }
-  .lap\@one_ninth {
+  .lap\@one-ninth {
     width: 11.11111% ;
     max-width: 11.11111% ;
     flex-basis: 11.11111% ; }
-  .lap\@two_ninths {
+  .lap\@two-ninths {
     width: 22.22222% ;
     max-width: 22.22222% ;
     flex-basis: 22.22222% ; }
-  .lap\@three_ninths {
+  .lap\@three-ninths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .lap\@four_ninths {
+  .lap\@four-ninths {
     width: 44.44444% ;
     max-width: 44.44444% ;
     flex-basis: 44.44444% ; }
-  .lap\@five_ninths {
+  .lap\@five-ninths {
     width: 55.55556% ;
     max-width: 55.55556% ;
     flex-basis: 55.55556% ; }
-  .lap\@six_ninths {
+  .lap\@six-ninths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .lap\@seven_ninths {
+  .lap\@seven-ninths {
     width: 77.77778% ;
     max-width: 77.77778% ;
     flex-basis: 77.77778% ; }
-  .lap\@eight_ninths {
+  .lap\@eight-ninths {
     width: 88.88889% ;
     max-width: 88.88889% ;
     flex-basis: 88.88889% ; }
-  .lap\@one_eighth {
+  .lap\@one-eighth {
     width: 12.5% ;
     max-width: 12.5% ;
     flex-basis: 12.5% ; }
-  .lap\@two_eighths {
+  .lap\@two-eighths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .lap\@three_eighths {
+  .lap\@three-eighths {
     width: 37.5% ;
     max-width: 37.5% ;
     flex-basis: 37.5% ; }
-  .lap\@four_eighths {
+  .lap\@four-eighths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .lap\@five_eighths {
+  .lap\@five-eighths {
     width: 62.5% ;
     max-width: 62.5% ;
     flex-basis: 62.5% ; }
-  .lap\@six_eighths {
+  .lap\@six-eighths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .lap\@seven_eighths {
+  .lap\@seven-eighths {
     width: 87.5% ;
     max-width: 87.5% ;
     flex-basis: 87.5% ; }
-  .lap\@one_seventh {
+  .lap\@one-seventh {
     width: 14.28571% ;
     max-width: 14.28571% ;
     flex-basis: 14.28571% ; }
-  .lap\@two_sevenths {
+  .lap\@two-sevenths {
     width: 28.57143% ;
     max-width: 28.57143% ;
     flex-basis: 28.57143% ; }
-  .lap\@three_sevenths {
+  .lap\@three-sevenths {
     width: 42.85714% ;
     max-width: 42.85714% ;
     flex-basis: 42.85714% ; }
-  .lap\@four_sevenths {
+  .lap\@four-sevenths {
     width: 57.14286% ;
     max-width: 57.14286% ;
     flex-basis: 57.14286% ; }
-  .lap\@five_sevenths {
+  .lap\@five-sevenths {
     width: 71.42857% ;
     max-width: 71.42857% ;
     flex-basis: 71.42857% ; }
-  .lap\@six_sevenths {
+  .lap\@six-sevenths {
     width: 85.71429% ;
     max-width: 85.71429% ;
     flex-basis: 85.71429% ; }
-  .lap\@one_sixth {
+  .lap\@one-sixth {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .lap\@two_sixths {
+  .lap\@two-sixths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .lap\@three_sixths {
+  .lap\@three-sixths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .lap\@four_sixths {
+  .lap\@four-sixths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .lap\@five_sixths {
+  .lap\@five-sixths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .lap\@one_fifth {
+  .lap\@one-fifth {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .lap\@two_fifths {
+  .lap\@two-fifths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .lap\@three_fifths {
+  .lap\@three-fifths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .lap\@four_fifths {
+  .lap\@four-fifths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .lap\@one_quarter, .lap\@one_fourth {
+  .lap\@one-quarter, .lap\@one-fourth {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .lap\@two_quarters, .lap\@two_fourths {
+  .lap\@two-quarters, .lap\@two-fourths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .lap\@three_quarters, .lap\@three_fourths {
+  .lap\@three-quarters, .lap\@three-fourths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .lap\@one_third {
+  .lap\@one-third {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .lap\@two_thirds {
+  .lap\@two-thirds {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .lap\@one_half {
+  .lap\@one-half {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; } }
 
 @media only screen and (min-width: 85em) {
-  .desk\@one_whole {
+  .desk\@one-whole {
     width: 100% ;
     max-width: 100% ;
     flex-basis: 100% ; }
-  .desk\@one_twelfth {
+  .desk\@one-twelfth {
     width: 8.33333% ;
     max-width: 8.33333% ;
     flex-basis: 8.33333% ; }
-  .desk\@two_twelfths {
+  .desk\@two-twelfths {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .desk\@three_twelfths {
+  .desk\@three-twelfths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .desk\@four_twelfths {
+  .desk\@four-twelfths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .desk\@five_twelfths {
+  .desk\@five-twelfths {
     width: 41.66667% ;
     max-width: 41.66667% ;
     flex-basis: 41.66667% ; }
-  .desk\@six_twelfths {
+  .desk\@six-twelfths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .desk\@seven_twelfths {
+  .desk\@seven-twelfths {
     width: 58.33333% ;
     max-width: 58.33333% ;
     flex-basis: 58.33333% ; }
-  .desk\@eight_twelfths {
+  .desk\@eight-twelfths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .desk\@nine_twelfths {
+  .desk\@nine-twelfths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .desk\@ten_twelfths {
+  .desk\@ten-twelfths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .desk\@eleven_twelfths {
+  .desk\@eleven-twelfths {
     width: 91.66667% ;
     max-width: 91.66667% ;
     flex-basis: 91.66667% ; }
-  .desk\@one_eleventh {
+  .desk\@one-eleventh {
     width: 9.09091% ;
     max-width: 9.09091% ;
     flex-basis: 9.09091% ; }
-  .desk\@two_elevenths {
+  .desk\@two-elevenths {
     width: 18.18182% ;
     max-width: 18.18182% ;
     flex-basis: 18.18182% ; }
-  .desk\@three_elevenths {
+  .desk\@three-elevenths {
     width: 27.27273% ;
     max-width: 27.27273% ;
     flex-basis: 27.27273% ; }
-  .desk\@four_elevenths {
+  .desk\@four-elevenths {
     width: 36.36364% ;
     max-width: 36.36364% ;
     flex-basis: 36.36364% ; }
-  .desk\@five_elevenths {
+  .desk\@five-elevenths {
     width: 45.45455% ;
     max-width: 45.45455% ;
     flex-basis: 45.45455% ; }
-  .desk\@six_elevenths {
+  .desk\@six-elevenths {
     width: 54.54545% ;
     max-width: 54.54545% ;
     flex-basis: 54.54545% ; }
-  .desk\@seven_elevenths {
+  .desk\@seven-elevenths {
     width: 63.63636% ;
     max-width: 63.63636% ;
     flex-basis: 63.63636% ; }
-  .desk\@eight_elevenths {
+  .desk\@eight-elevenths {
     width: 72.72727% ;
     max-width: 72.72727% ;
     flex-basis: 72.72727% ; }
-  .desk\@nine_elevenths {
+  .desk\@nine-elevenths {
     width: 81.81818% ;
     max-width: 81.81818% ;
     flex-basis: 81.81818% ; }
-  .desk\@ten_elevenths {
+  .desk\@ten-elevenths {
     width: 90.90909% ;
     max-width: 90.90909% ;
     flex-basis: 90.90909% ; }
-  .desk\@one_tenth {
+  .desk\@one-tenth {
     width: 10% ;
     max-width: 10% ;
     flex-basis: 10% ; }
-  .desk\@two_tenths {
+  .desk\@two-tenths {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .desk\@three_tenths {
+  .desk\@three-tenths {
     width: 30% ;
     max-width: 30% ;
     flex-basis: 30% ; }
-  .desk\@four_tenths {
+  .desk\@four-tenths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .desk\@five_tenths {
+  .desk\@five-tenths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .desk\@six_tenths {
+  .desk\@six-tenths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .desk\@seven_tenths {
+  .desk\@seven-tenths {
     width: 70% ;
     max-width: 70% ;
     flex-basis: 70% ; }
-  .desk\@eight_tenths {
+  .desk\@eight-tenths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .desk\@nine_tenths {
+  .desk\@nine-tenths {
     width: 90% ;
     max-width: 90% ;
     flex-basis: 90% ; }
-  .desk\@one_ninth {
+  .desk\@one-ninth {
     width: 11.11111% ;
     max-width: 11.11111% ;
     flex-basis: 11.11111% ; }
-  .desk\@two_ninths {
+  .desk\@two-ninths {
     width: 22.22222% ;
     max-width: 22.22222% ;
     flex-basis: 22.22222% ; }
-  .desk\@three_ninths {
+  .desk\@three-ninths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .desk\@four_ninths {
+  .desk\@four-ninths {
     width: 44.44444% ;
     max-width: 44.44444% ;
     flex-basis: 44.44444% ; }
-  .desk\@five_ninths {
+  .desk\@five-ninths {
     width: 55.55556% ;
     max-width: 55.55556% ;
     flex-basis: 55.55556% ; }
-  .desk\@six_ninths {
+  .desk\@six-ninths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .desk\@seven_ninths {
+  .desk\@seven-ninths {
     width: 77.77778% ;
     max-width: 77.77778% ;
     flex-basis: 77.77778% ; }
-  .desk\@eight_ninths {
+  .desk\@eight-ninths {
     width: 88.88889% ;
     max-width: 88.88889% ;
     flex-basis: 88.88889% ; }
-  .desk\@one_eighth {
+  .desk\@one-eighth {
     width: 12.5% ;
     max-width: 12.5% ;
     flex-basis: 12.5% ; }
-  .desk\@two_eighths {
+  .desk\@two-eighths {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .desk\@three_eighths {
+  .desk\@three-eighths {
     width: 37.5% ;
     max-width: 37.5% ;
     flex-basis: 37.5% ; }
-  .desk\@four_eighths {
+  .desk\@four-eighths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .desk\@five_eighths {
+  .desk\@five-eighths {
     width: 62.5% ;
     max-width: 62.5% ;
     flex-basis: 62.5% ; }
-  .desk\@six_eighths {
+  .desk\@six-eighths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .desk\@seven_eighths {
+  .desk\@seven-eighths {
     width: 87.5% ;
     max-width: 87.5% ;
     flex-basis: 87.5% ; }
-  .desk\@one_seventh {
+  .desk\@one-seventh {
     width: 14.28571% ;
     max-width: 14.28571% ;
     flex-basis: 14.28571% ; }
-  .desk\@two_sevenths {
+  .desk\@two-sevenths {
     width: 28.57143% ;
     max-width: 28.57143% ;
     flex-basis: 28.57143% ; }
-  .desk\@three_sevenths {
+  .desk\@three-sevenths {
     width: 42.85714% ;
     max-width: 42.85714% ;
     flex-basis: 42.85714% ; }
-  .desk\@four_sevenths {
+  .desk\@four-sevenths {
     width: 57.14286% ;
     max-width: 57.14286% ;
     flex-basis: 57.14286% ; }
-  .desk\@five_sevenths {
+  .desk\@five-sevenths {
     width: 71.42857% ;
     max-width: 71.42857% ;
     flex-basis: 71.42857% ; }
-  .desk\@six_sevenths {
+  .desk\@six-sevenths {
     width: 85.71429% ;
     max-width: 85.71429% ;
     flex-basis: 85.71429% ; }
-  .desk\@one_sixth {
+  .desk\@one-sixth {
     width: 16.66667% ;
     max-width: 16.66667% ;
     flex-basis: 16.66667% ; }
-  .desk\@two_sixths {
+  .desk\@two-sixths {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .desk\@three_sixths {
+  .desk\@three-sixths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .desk\@four_sixths {
+  .desk\@four-sixths {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .desk\@five_sixths {
+  .desk\@five-sixths {
     width: 83.33333% ;
     max-width: 83.33333% ;
     flex-basis: 83.33333% ; }
-  .desk\@one_fifth {
+  .desk\@one-fifth {
     width: 20% ;
     max-width: 20% ;
     flex-basis: 20% ; }
-  .desk\@two_fifths {
+  .desk\@two-fifths {
     width: 40% ;
     max-width: 40% ;
     flex-basis: 40% ; }
-  .desk\@three_fifths {
+  .desk\@three-fifths {
     width: 60% ;
     max-width: 60% ;
     flex-basis: 60% ; }
-  .desk\@four_fifths {
+  .desk\@four-fifths {
     width: 80% ;
     max-width: 80% ;
     flex-basis: 80% ; }
-  .desk\@one_quarter, .desk\@one_fourth {
+  .desk\@one-quarter, .desk\@one-fourth {
     width: 25% ;
     max-width: 25% ;
     flex-basis: 25% ; }
-  .desk\@two_quarters, .desk\@two_fourths {
+  .desk\@two-quarters, .desk\@two-fourths {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; }
-  .desk\@three_quarters, .desk\@three_fourths {
+  .desk\@three-quarters, .desk\@three-fourths {
     width: 75% ;
     max-width: 75% ;
     flex-basis: 75% ; }
-  .desk\@one_third {
+  .desk\@one-third {
     width: 33.33333% ;
     max-width: 33.33333% ;
     flex-basis: 33.33333% ; }
-  .desk\@two_thirds {
+  .desk\@two-thirds {
     width: 66.66667% ;
     max-width: 66.66667% ;
     flex-basis: 66.66667% ; }
-  .desk\@one_half {
+  .desk\@one-half {
     width: 50% ;
     max-width: 50% ;
     flex-basis: 50% ; } }
 
-.push_one_whole {
+.push_one-whole {
   left: 100% ; }
 
-.push_one_twelfth {
+.push_one-twelfth {
   position: relative;
   left: 8.33333% ; }
 
-.push_two_twelfths {
+.push_two-twelfths {
   position: relative;
   left: 16.66667% ; }
 
-.push_three_twelfths {
+.push_three-twelfths {
   position: relative;
   left: 25% ; }
 
-.push_four_twelfths {
+.push_four-twelfths {
   position: relative;
   left: 33.33333% ; }
 
-.push_five_twelfths {
+.push_five-twelfths {
   position: relative;
   left: 41.66667% ; }
 
-.push_six_twelfths {
+.push_six-twelfths {
   position: relative;
   left: 50% ; }
 
-.push_seven_twelfths {
+.push_seven-twelfths {
   position: relative;
   left: 58.33333% ; }
 
-.push_eight_twelfths {
+.push_eight-twelfths {
   position: relative;
   left: 66.66667% ; }
 
-.push_nine_twelfths {
+.push_nine-twelfths {
   position: relative;
   left: 75% ; }
 
-.push_ten_twelfths {
+.push_ten-twelfths {
   position: relative;
   left: 83.33333% ; }
 
-.push_eleven_twelfths {
+.push_eleven-twelfths {
   position: relative;
   left: 91.66667% ; }
 
-.push_one_eleventh {
+.push_one-eleventh {
   position: relative;
   left: 9.09091% ; }
 
-.push_two_elevenths {
+.push_two-elevenths {
   position: relative;
   left: 18.18182% ; }
 
-.push_three_elevenths {
+.push_three-elevenths {
   position: relative;
   left: 27.27273% ; }
 
-.push_four_elevenths {
+.push_four-elevenths {
   position: relative;
   left: 36.36364% ; }
 
-.push_five_elevenths {
+.push_five-elevenths {
   position: relative;
   left: 45.45455% ; }
 
-.push_six_elevenths {
+.push_six-elevenths {
   position: relative;
   left: 54.54545% ; }
 
-.push_seven_elevenths {
+.push_seven-elevenths {
   position: relative;
   left: 63.63636% ; }
 
-.push_eight_elevenths {
+.push_eight-elevenths {
   position: relative;
   left: 72.72727% ; }
 
-.push_nine_elevenths {
+.push_nine-elevenths {
   position: relative;
   left: 81.81818% ; }
 
-.push_ten_elevenths {
+.push_ten-elevenths {
   position: relative;
   left: 90.90909% ; }
 
-.push_one_tenth {
+.push_one-tenth {
   position: relative;
   left: 10% ; }
 
-.push_two_tenths {
+.push_two-tenths {
   position: relative;
   left: 20% ; }
 
-.push_three_tenths {
+.push_three-tenths {
   position: relative;
   left: 30% ; }
 
-.push_four_tenths {
+.push_four-tenths {
   position: relative;
   left: 40% ; }
 
-.push_five_tenths {
+.push_five-tenths {
   position: relative;
   left: 50% ; }
 
-.push_six_tenths {
+.push_six-tenths {
   position: relative;
   left: 60% ; }
 
-.push_seven_tenths {
+.push_seven-tenths {
   position: relative;
   left: 70% ; }
 
-.push_eight_tenths {
+.push_eight-tenths {
   position: relative;
   left: 80% ; }
 
-.push_nine_tenths {
+.push_nine-tenths {
   position: relative;
   left: 90% ; }
 
-.push_one_ninth {
+.push_one-ninth {
   position: relative;
   left: 11.11111% ; }
 
-.push_two_ninths {
+.push_two-ninths {
   position: relative;
   left: 22.22222% ; }
 
-.push_three_ninths {
+.push_three-ninths {
   position: relative;
   left: 33.33333% ; }
 
-.push_four_ninths {
+.push_four-ninths {
   position: relative;
   left: 44.44444% ; }
 
-.push_five_ninths {
+.push_five-ninths {
   position: relative;
   left: 55.55556% ; }
 
-.push_six_ninths {
+.push_six-ninths {
   position: relative;
   left: 66.66667% ; }
 
-.push_seven_ninths {
+.push_seven-ninths {
   position: relative;
   left: 77.77778% ; }
 
-.push_eight_ninths {
+.push_eight-ninths {
   position: relative;
   left: 88.88889% ; }
 
-.push_one_eighth {
+.push_one-eighth {
   position: relative;
   left: 12.5% ; }
 
-.push_two_eighths {
+.push_two-eighths {
   position: relative;
   left: 25% ; }
 
-.push_three_eighths {
+.push_three-eighths {
   position: relative;
   left: 37.5% ; }
 
-.push_four_eighths {
+.push_four-eighths {
   position: relative;
   left: 50% ; }
 
-.push_five_eighths {
+.push_five-eighths {
   position: relative;
   left: 62.5% ; }
 
-.push_six_eighths {
+.push_six-eighths {
   position: relative;
   left: 75% ; }
 
-.push_seven_eighths {
+.push_seven-eighths {
   position: relative;
   left: 87.5% ; }
 
-.push_one_seventh {
+.push_one-seventh {
   position: relative;
   left: 14.28571% ; }
 
-.push_two_sevenths {
+.push_two-sevenths {
   position: relative;
   left: 28.57143% ; }
 
-.push_three_sevenths {
+.push_three-sevenths {
   position: relative;
   left: 42.85714% ; }
 
-.push_four_sevenths {
+.push_four-sevenths {
   position: relative;
   left: 57.14286% ; }
 
-.push_five_sevenths {
+.push_five-sevenths {
   position: relative;
   left: 71.42857% ; }
 
-.push_six_sevenths {
+.push_six-sevenths {
   position: relative;
   left: 85.71429% ; }
 
-.push_one_sixth {
+.push_one-sixth {
   position: relative;
   left: 16.66667% ; }
 
-.push_two_sixths {
+.push_two-sixths {
   position: relative;
   left: 33.33333% ; }
 
-.push_three_sixths {
+.push_three-sixths {
   position: relative;
   left: 50% ; }
 
-.push_four_sixths {
+.push_four-sixths {
   position: relative;
   left: 66.66667% ; }
 
-.push_five_sixths {
+.push_five-sixths {
   position: relative;
   left: 83.33333% ; }
 
-.push_one_fifth {
+.push_one-fifth {
   position: relative;
   left: 20% ; }
 
-.push_two_fifths {
+.push_two-fifths {
   position: relative;
   left: 40% ; }
 
-.push_three_fifths {
+.push_three-fifths {
   position: relative;
   left: 60% ; }
 
-.push_four_fifths {
+.push_four-fifths {
   position: relative;
   left: 80% ; }
 
-.push_one_quarter, .push_one_fourth {
+.push_one-quarter, .push_one-fourth {
   position: relative;
   left: 25% ; }
 
-.push_two_quarters, .push_two_fourths {
+.push_two-quarters, .push_two-fourths {
   position: relative;
   left: 50% ; }
 
-.push_three_quarters, .push_three_fourths {
+.push_three-quarters, .push_three-fourths {
   position: relative;
   left: 75% ; }
 
-.push_one_third {
+.push_one-third {
   position: relative;
   left: 33.33333% ; }
 
-.push_two_thirds {
+.push_two-thirds {
   position: relative;
   left: 66.66667% ; }
 
-.push_one_half {
+.push_one-half {
   position: relative;
   left: 50% ; }
 
 @media only screen and (max-width: 56.875em) {
-  .smalls\@push_one_whole {
+  .smalls\@push_one-whole {
     left: 100% ; }
-  .smalls\@push_one_twelfth {
+  .smalls\@push_one-twelfth {
     position: relative;
     left: 8.33333% ; }
-  .smalls\@push_two_twelfths {
+  .smalls\@push_two-twelfths {
     position: relative;
     left: 16.66667% ; }
-  .smalls\@push_three_twelfths {
+  .smalls\@push_three-twelfths {
     position: relative;
     left: 25% ; }
-  .smalls\@push_four_twelfths {
+  .smalls\@push_four-twelfths {
     position: relative;
     left: 33.33333% ; }
-  .smalls\@push_five_twelfths {
+  .smalls\@push_five-twelfths {
     position: relative;
     left: 41.66667% ; }
-  .smalls\@push_six_twelfths {
+  .smalls\@push_six-twelfths {
     position: relative;
     left: 50% ; }
-  .smalls\@push_seven_twelfths {
+  .smalls\@push_seven-twelfths {
     position: relative;
     left: 58.33333% ; }
-  .smalls\@push_eight_twelfths {
+  .smalls\@push_eight-twelfths {
     position: relative;
     left: 66.66667% ; }
-  .smalls\@push_nine_twelfths {
+  .smalls\@push_nine-twelfths {
     position: relative;
     left: 75% ; }
-  .smalls\@push_ten_twelfths {
+  .smalls\@push_ten-twelfths {
     position: relative;
     left: 83.33333% ; }
-  .smalls\@push_eleven_twelfths {
+  .smalls\@push_eleven-twelfths {
     position: relative;
     left: 91.66667% ; }
-  .smalls\@push_one_eleventh {
+  .smalls\@push_one-eleventh {
     position: relative;
     left: 9.09091% ; }
-  .smalls\@push_two_elevenths {
+  .smalls\@push_two-elevenths {
     position: relative;
     left: 18.18182% ; }
-  .smalls\@push_three_elevenths {
+  .smalls\@push_three-elevenths {
     position: relative;
     left: 27.27273% ; }
-  .smalls\@push_four_elevenths {
+  .smalls\@push_four-elevenths {
     position: relative;
     left: 36.36364% ; }
-  .smalls\@push_five_elevenths {
+  .smalls\@push_five-elevenths {
     position: relative;
     left: 45.45455% ; }
-  .smalls\@push_six_elevenths {
+  .smalls\@push_six-elevenths {
     position: relative;
     left: 54.54545% ; }
-  .smalls\@push_seven_elevenths {
+  .smalls\@push_seven-elevenths {
     position: relative;
     left: 63.63636% ; }
-  .smalls\@push_eight_elevenths {
+  .smalls\@push_eight-elevenths {
     position: relative;
     left: 72.72727% ; }
-  .smalls\@push_nine_elevenths {
+  .smalls\@push_nine-elevenths {
     position: relative;
     left: 81.81818% ; }
-  .smalls\@push_ten_elevenths {
+  .smalls\@push_ten-elevenths {
     position: relative;
     left: 90.90909% ; }
-  .smalls\@push_one_tenth {
+  .smalls\@push_one-tenth {
     position: relative;
     left: 10% ; }
-  .smalls\@push_two_tenths {
+  .smalls\@push_two-tenths {
     position: relative;
     left: 20% ; }
-  .smalls\@push_three_tenths {
+  .smalls\@push_three-tenths {
     position: relative;
     left: 30% ; }
-  .smalls\@push_four_tenths {
+  .smalls\@push_four-tenths {
     position: relative;
     left: 40% ; }
-  .smalls\@push_five_tenths {
+  .smalls\@push_five-tenths {
     position: relative;
     left: 50% ; }
-  .smalls\@push_six_tenths {
+  .smalls\@push_six-tenths {
     position: relative;
     left: 60% ; }
-  .smalls\@push_seven_tenths {
+  .smalls\@push_seven-tenths {
     position: relative;
     left: 70% ; }
-  .smalls\@push_eight_tenths {
+  .smalls\@push_eight-tenths {
     position: relative;
     left: 80% ; }
-  .smalls\@push_nine_tenths {
+  .smalls\@push_nine-tenths {
     position: relative;
     left: 90% ; }
-  .smalls\@push_one_ninth {
+  .smalls\@push_one-ninth {
     position: relative;
     left: 11.11111% ; }
-  .smalls\@push_two_ninths {
+  .smalls\@push_two-ninths {
     position: relative;
     left: 22.22222% ; }
-  .smalls\@push_three_ninths {
+  .smalls\@push_three-ninths {
     position: relative;
     left: 33.33333% ; }
-  .smalls\@push_four_ninths {
+  .smalls\@push_four-ninths {
     position: relative;
     left: 44.44444% ; }
-  .smalls\@push_five_ninths {
+  .smalls\@push_five-ninths {
     position: relative;
     left: 55.55556% ; }
-  .smalls\@push_six_ninths {
+  .smalls\@push_six-ninths {
     position: relative;
     left: 66.66667% ; }
-  .smalls\@push_seven_ninths {
+  .smalls\@push_seven-ninths {
     position: relative;
     left: 77.77778% ; }
-  .smalls\@push_eight_ninths {
+  .smalls\@push_eight-ninths {
     position: relative;
     left: 88.88889% ; }
-  .smalls\@push_one_eighth {
+  .smalls\@push_one-eighth {
     position: relative;
     left: 12.5% ; }
-  .smalls\@push_two_eighths {
+  .smalls\@push_two-eighths {
     position: relative;
     left: 25% ; }
-  .smalls\@push_three_eighths {
+  .smalls\@push_three-eighths {
     position: relative;
     left: 37.5% ; }
-  .smalls\@push_four_eighths {
+  .smalls\@push_four-eighths {
     position: relative;
     left: 50% ; }
-  .smalls\@push_five_eighths {
+  .smalls\@push_five-eighths {
     position: relative;
     left: 62.5% ; }
-  .smalls\@push_six_eighths {
+  .smalls\@push_six-eighths {
     position: relative;
     left: 75% ; }
-  .smalls\@push_seven_eighths {
+  .smalls\@push_seven-eighths {
     position: relative;
     left: 87.5% ; }
-  .smalls\@push_one_seventh {
+  .smalls\@push_one-seventh {
     position: relative;
     left: 14.28571% ; }
-  .smalls\@push_two_sevenths {
+  .smalls\@push_two-sevenths {
     position: relative;
     left: 28.57143% ; }
-  .smalls\@push_three_sevenths {
+  .smalls\@push_three-sevenths {
     position: relative;
     left: 42.85714% ; }
-  .smalls\@push_four_sevenths {
+  .smalls\@push_four-sevenths {
     position: relative;
     left: 57.14286% ; }
-  .smalls\@push_five_sevenths {
+  .smalls\@push_five-sevenths {
     position: relative;
     left: 71.42857% ; }
-  .smalls\@push_six_sevenths {
+  .smalls\@push_six-sevenths {
     position: relative;
     left: 85.71429% ; }
-  .smalls\@push_one_sixth {
+  .smalls\@push_one-sixth {
     position: relative;
     left: 16.66667% ; }
-  .smalls\@push_two_sixths {
+  .smalls\@push_two-sixths {
     position: relative;
     left: 33.33333% ; }
-  .smalls\@push_three_sixths {
+  .smalls\@push_three-sixths {
     position: relative;
     left: 50% ; }
-  .smalls\@push_four_sixths {
+  .smalls\@push_four-sixths {
     position: relative;
     left: 66.66667% ; }
-  .smalls\@push_five_sixths {
+  .smalls\@push_five-sixths {
     position: relative;
     left: 83.33333% ; }
-  .smalls\@push_one_fifth {
+  .smalls\@push_one-fifth {
     position: relative;
     left: 20% ; }
-  .smalls\@push_two_fifths {
+  .smalls\@push_two-fifths {
     position: relative;
     left: 40% ; }
-  .smalls\@push_three_fifths {
+  .smalls\@push_three-fifths {
     position: relative;
     left: 60% ; }
-  .smalls\@push_four_fifths {
+  .smalls\@push_four-fifths {
     position: relative;
     left: 80% ; }
-  .smalls\@push_one_quarter, .smalls\@push_one_fourth {
+  .smalls\@push_one-quarter, .smalls\@push_one-fourth {
     position: relative;
     left: 25% ; }
-  .smalls\@push_two_quarters, .smalls\@push_two_fourths {
+  .smalls\@push_two-quarters, .smalls\@push_two-fourths {
     position: relative;
     left: 50% ; }
-  .smalls\@push_three_quarters, .smalls\@push_three_fourths {
+  .smalls\@push_three-quarters, .smalls\@push_three-fourths {
     position: relative;
     left: 75% ; }
-  .smalls\@push_one_third {
+  .smalls\@push_one-third {
     position: relative;
     left: 33.33333% ; }
-  .smalls\@push_two_thirds {
+  .smalls\@push_two-thirds {
     position: relative;
     left: 66.66667% ; }
-  .smalls\@push_one_half {
+  .smalls\@push_one-half {
     position: relative;
     left: 50% ; } }
 
 @media only screen and (max-width: 43.125em) {
-  .small\@push_one_whole {
+  .small\@push_one-whole {
     left: 100% ; }
-  .small\@push_one_twelfth {
+  .small\@push_one-twelfth {
     position: relative;
     left: 8.33333% ; }
-  .small\@push_two_twelfths {
+  .small\@push_two-twelfths {
     position: relative;
     left: 16.66667% ; }
-  .small\@push_three_twelfths {
+  .small\@push_three-twelfths {
     position: relative;
     left: 25% ; }
-  .small\@push_four_twelfths {
+  .small\@push_four-twelfths {
     position: relative;
     left: 33.33333% ; }
-  .small\@push_five_twelfths {
+  .small\@push_five-twelfths {
     position: relative;
     left: 41.66667% ; }
-  .small\@push_six_twelfths {
+  .small\@push_six-twelfths {
     position: relative;
     left: 50% ; }
-  .small\@push_seven_twelfths {
+  .small\@push_seven-twelfths {
     position: relative;
     left: 58.33333% ; }
-  .small\@push_eight_twelfths {
+  .small\@push_eight-twelfths {
     position: relative;
     left: 66.66667% ; }
-  .small\@push_nine_twelfths {
+  .small\@push_nine-twelfths {
     position: relative;
     left: 75% ; }
-  .small\@push_ten_twelfths {
+  .small\@push_ten-twelfths {
     position: relative;
     left: 83.33333% ; }
-  .small\@push_eleven_twelfths {
+  .small\@push_eleven-twelfths {
     position: relative;
     left: 91.66667% ; }
-  .small\@push_one_eleventh {
+  .small\@push_one-eleventh {
     position: relative;
     left: 9.09091% ; }
-  .small\@push_two_elevenths {
+  .small\@push_two-elevenths {
     position: relative;
     left: 18.18182% ; }
-  .small\@push_three_elevenths {
+  .small\@push_three-elevenths {
     position: relative;
     left: 27.27273% ; }
-  .small\@push_four_elevenths {
+  .small\@push_four-elevenths {
     position: relative;
     left: 36.36364% ; }
-  .small\@push_five_elevenths {
+  .small\@push_five-elevenths {
     position: relative;
     left: 45.45455% ; }
-  .small\@push_six_elevenths {
+  .small\@push_six-elevenths {
     position: relative;
     left: 54.54545% ; }
-  .small\@push_seven_elevenths {
+  .small\@push_seven-elevenths {
     position: relative;
     left: 63.63636% ; }
-  .small\@push_eight_elevenths {
+  .small\@push_eight-elevenths {
     position: relative;
     left: 72.72727% ; }
-  .small\@push_nine_elevenths {
+  .small\@push_nine-elevenths {
     position: relative;
     left: 81.81818% ; }
-  .small\@push_ten_elevenths {
+  .small\@push_ten-elevenths {
     position: relative;
     left: 90.90909% ; }
-  .small\@push_one_tenth {
+  .small\@push_one-tenth {
     position: relative;
     left: 10% ; }
-  .small\@push_two_tenths {
+  .small\@push_two-tenths {
     position: relative;
     left: 20% ; }
-  .small\@push_three_tenths {
+  .small\@push_three-tenths {
     position: relative;
     left: 30% ; }
-  .small\@push_four_tenths {
+  .small\@push_four-tenths {
     position: relative;
     left: 40% ; }
-  .small\@push_five_tenths {
+  .small\@push_five-tenths {
     position: relative;
     left: 50% ; }
-  .small\@push_six_tenths {
+  .small\@push_six-tenths {
     position: relative;
     left: 60% ; }
-  .small\@push_seven_tenths {
+  .small\@push_seven-tenths {
     position: relative;
     left: 70% ; }
-  .small\@push_eight_tenths {
+  .small\@push_eight-tenths {
     position: relative;
     left: 80% ; }
-  .small\@push_nine_tenths {
+  .small\@push_nine-tenths {
     position: relative;
     left: 90% ; }
-  .small\@push_one_ninth {
+  .small\@push_one-ninth {
     position: relative;
     left: 11.11111% ; }
-  .small\@push_two_ninths {
+  .small\@push_two-ninths {
     position: relative;
     left: 22.22222% ; }
-  .small\@push_three_ninths {
+  .small\@push_three-ninths {
     position: relative;
     left: 33.33333% ; }
-  .small\@push_four_ninths {
+  .small\@push_four-ninths {
     position: relative;
     left: 44.44444% ; }
-  .small\@push_five_ninths {
+  .small\@push_five-ninths {
     position: relative;
     left: 55.55556% ; }
-  .small\@push_six_ninths {
+  .small\@push_six-ninths {
     position: relative;
     left: 66.66667% ; }
-  .small\@push_seven_ninths {
+  .small\@push_seven-ninths {
     position: relative;
     left: 77.77778% ; }
-  .small\@push_eight_ninths {
+  .small\@push_eight-ninths {
     position: relative;
     left: 88.88889% ; }
-  .small\@push_one_eighth {
+  .small\@push_one-eighth {
     position: relative;
     left: 12.5% ; }
-  .small\@push_two_eighths {
+  .small\@push_two-eighths {
     position: relative;
     left: 25% ; }
-  .small\@push_three_eighths {
+  .small\@push_three-eighths {
     position: relative;
     left: 37.5% ; }
-  .small\@push_four_eighths {
+  .small\@push_four-eighths {
     position: relative;
     left: 50% ; }
-  .small\@push_five_eighths {
+  .small\@push_five-eighths {
     position: relative;
     left: 62.5% ; }
-  .small\@push_six_eighths {
+  .small\@push_six-eighths {
     position: relative;
     left: 75% ; }
-  .small\@push_seven_eighths {
+  .small\@push_seven-eighths {
     position: relative;
     left: 87.5% ; }
-  .small\@push_one_seventh {
+  .small\@push_one-seventh {
     position: relative;
     left: 14.28571% ; }
-  .small\@push_two_sevenths {
+  .small\@push_two-sevenths {
     position: relative;
     left: 28.57143% ; }
-  .small\@push_three_sevenths {
+  .small\@push_three-sevenths {
     position: relative;
     left: 42.85714% ; }
-  .small\@push_four_sevenths {
+  .small\@push_four-sevenths {
     position: relative;
     left: 57.14286% ; }
-  .small\@push_five_sevenths {
+  .small\@push_five-sevenths {
     position: relative;
     left: 71.42857% ; }
-  .small\@push_six_sevenths {
+  .small\@push_six-sevenths {
     position: relative;
     left: 85.71429% ; }
-  .small\@push_one_sixth {
+  .small\@push_one-sixth {
     position: relative;
     left: 16.66667% ; }
-  .small\@push_two_sixths {
+  .small\@push_two-sixths {
     position: relative;
     left: 33.33333% ; }
-  .small\@push_three_sixths {
+  .small\@push_three-sixths {
     position: relative;
     left: 50% ; }
-  .small\@push_four_sixths {
+  .small\@push_four-sixths {
     position: relative;
     left: 66.66667% ; }
-  .small\@push_five_sixths {
+  .small\@push_five-sixths {
     position: relative;
     left: 83.33333% ; }
-  .small\@push_one_fifth {
+  .small\@push_one-fifth {
     position: relative;
     left: 20% ; }
-  .small\@push_two_fifths {
+  .small\@push_two-fifths {
     position: relative;
     left: 40% ; }
-  .small\@push_three_fifths {
+  .small\@push_three-fifths {
     position: relative;
     left: 60% ; }
-  .small\@push_four_fifths {
+  .small\@push_four-fifths {
     position: relative;
     left: 80% ; }
-  .small\@push_one_quarter, .small\@push_one_fourth {
+  .small\@push_one-quarter, .small\@push_one-fourth {
     position: relative;
     left: 25% ; }
-  .small\@push_two_quarters, .small\@push_two_fourths {
+  .small\@push_two-quarters, .small\@push_two-fourths {
     position: relative;
     left: 50% ; }
-  .small\@push_three_quarters, .small\@push_three_fourths {
+  .small\@push_three-quarters, .small\@push_three-fourths {
     position: relative;
     left: 75% ; }
-  .small\@push_one_third {
+  .small\@push_one-third {
     position: relative;
     left: 33.33333% ; }
-  .small\@push_two_thirds {
+  .small\@push_two-thirds {
     position: relative;
     left: 66.66667% ; }
-  .small\@push_one_half {
+  .small\@push_one-half {
     position: relative;
     left: 50% ; } }
 
 @media only screen and (min-width: 43.1875em) and (max-width: 56.875em) {
-  .smallish\@push_one_whole {
+  .smallish\@push_one-whole {
     left: 100% ; }
-  .smallish\@push_one_twelfth {
+  .smallish\@push_one-twelfth {
     position: relative;
     left: 8.33333% ; }
-  .smallish\@push_two_twelfths {
+  .smallish\@push_two-twelfths {
     position: relative;
     left: 16.66667% ; }
-  .smallish\@push_three_twelfths {
+  .smallish\@push_three-twelfths {
     position: relative;
     left: 25% ; }
-  .smallish\@push_four_twelfths {
+  .smallish\@push_four-twelfths {
     position: relative;
     left: 33.33333% ; }
-  .smallish\@push_five_twelfths {
+  .smallish\@push_five-twelfths {
     position: relative;
     left: 41.66667% ; }
-  .smallish\@push_six_twelfths {
+  .smallish\@push_six-twelfths {
     position: relative;
     left: 50% ; }
-  .smallish\@push_seven_twelfths {
+  .smallish\@push_seven-twelfths {
     position: relative;
     left: 58.33333% ; }
-  .smallish\@push_eight_twelfths {
+  .smallish\@push_eight-twelfths {
     position: relative;
     left: 66.66667% ; }
-  .smallish\@push_nine_twelfths {
+  .smallish\@push_nine-twelfths {
     position: relative;
     left: 75% ; }
-  .smallish\@push_ten_twelfths {
+  .smallish\@push_ten-twelfths {
     position: relative;
     left: 83.33333% ; }
-  .smallish\@push_eleven_twelfths {
+  .smallish\@push_eleven-twelfths {
     position: relative;
     left: 91.66667% ; }
-  .smallish\@push_one_eleventh {
+  .smallish\@push_one-eleventh {
     position: relative;
     left: 9.09091% ; }
-  .smallish\@push_two_elevenths {
+  .smallish\@push_two-elevenths {
     position: relative;
     left: 18.18182% ; }
-  .smallish\@push_three_elevenths {
+  .smallish\@push_three-elevenths {
     position: relative;
     left: 27.27273% ; }
-  .smallish\@push_four_elevenths {
+  .smallish\@push_four-elevenths {
     position: relative;
     left: 36.36364% ; }
-  .smallish\@push_five_elevenths {
+  .smallish\@push_five-elevenths {
     position: relative;
     left: 45.45455% ; }
-  .smallish\@push_six_elevenths {
+  .smallish\@push_six-elevenths {
     position: relative;
     left: 54.54545% ; }
-  .smallish\@push_seven_elevenths {
+  .smallish\@push_seven-elevenths {
     position: relative;
     left: 63.63636% ; }
-  .smallish\@push_eight_elevenths {
+  .smallish\@push_eight-elevenths {
     position: relative;
     left: 72.72727% ; }
-  .smallish\@push_nine_elevenths {
+  .smallish\@push_nine-elevenths {
     position: relative;
     left: 81.81818% ; }
-  .smallish\@push_ten_elevenths {
+  .smallish\@push_ten-elevenths {
     position: relative;
     left: 90.90909% ; }
-  .smallish\@push_one_tenth {
+  .smallish\@push_one-tenth {
     position: relative;
     left: 10% ; }
-  .smallish\@push_two_tenths {
+  .smallish\@push_two-tenths {
     position: relative;
     left: 20% ; }
-  .smallish\@push_three_tenths {
+  .smallish\@push_three-tenths {
     position: relative;
     left: 30% ; }
-  .smallish\@push_four_tenths {
+  .smallish\@push_four-tenths {
     position: relative;
     left: 40% ; }
-  .smallish\@push_five_tenths {
+  .smallish\@push_five-tenths {
     position: relative;
     left: 50% ; }
-  .smallish\@push_six_tenths {
+  .smallish\@push_six-tenths {
     position: relative;
     left: 60% ; }
-  .smallish\@push_seven_tenths {
+  .smallish\@push_seven-tenths {
     position: relative;
     left: 70% ; }
-  .smallish\@push_eight_tenths {
+  .smallish\@push_eight-tenths {
     position: relative;
     left: 80% ; }
-  .smallish\@push_nine_tenths {
+  .smallish\@push_nine-tenths {
     position: relative;
     left: 90% ; }
-  .smallish\@push_one_ninth {
+  .smallish\@push_one-ninth {
     position: relative;
     left: 11.11111% ; }
-  .smallish\@push_two_ninths {
+  .smallish\@push_two-ninths {
     position: relative;
     left: 22.22222% ; }
-  .smallish\@push_three_ninths {
+  .smallish\@push_three-ninths {
     position: relative;
     left: 33.33333% ; }
-  .smallish\@push_four_ninths {
+  .smallish\@push_four-ninths {
     position: relative;
     left: 44.44444% ; }
-  .smallish\@push_five_ninths {
+  .smallish\@push_five-ninths {
     position: relative;
     left: 55.55556% ; }
-  .smallish\@push_six_ninths {
+  .smallish\@push_six-ninths {
     position: relative;
     left: 66.66667% ; }
-  .smallish\@push_seven_ninths {
+  .smallish\@push_seven-ninths {
     position: relative;
     left: 77.77778% ; }
-  .smallish\@push_eight_ninths {
+  .smallish\@push_eight-ninths {
     position: relative;
     left: 88.88889% ; }
-  .smallish\@push_one_eighth {
+  .smallish\@push_one-eighth {
     position: relative;
     left: 12.5% ; }
-  .smallish\@push_two_eighths {
+  .smallish\@push_two-eighths {
     position: relative;
     left: 25% ; }
-  .smallish\@push_three_eighths {
+  .smallish\@push_three-eighths {
     position: relative;
     left: 37.5% ; }
-  .smallish\@push_four_eighths {
+  .smallish\@push_four-eighths {
     position: relative;
     left: 50% ; }
-  .smallish\@push_five_eighths {
+  .smallish\@push_five-eighths {
     position: relative;
     left: 62.5% ; }
-  .smallish\@push_six_eighths {
+  .smallish\@push_six-eighths {
     position: relative;
     left: 75% ; }
-  .smallish\@push_seven_eighths {
+  .smallish\@push_seven-eighths {
     position: relative;
     left: 87.5% ; }
-  .smallish\@push_one_seventh {
+  .smallish\@push_one-seventh {
     position: relative;
     left: 14.28571% ; }
-  .smallish\@push_two_sevenths {
+  .smallish\@push_two-sevenths {
     position: relative;
     left: 28.57143% ; }
-  .smallish\@push_three_sevenths {
+  .smallish\@push_three-sevenths {
     position: relative;
     left: 42.85714% ; }
-  .smallish\@push_four_sevenths {
+  .smallish\@push_four-sevenths {
     position: relative;
     left: 57.14286% ; }
-  .smallish\@push_five_sevenths {
+  .smallish\@push_five-sevenths {
     position: relative;
     left: 71.42857% ; }
-  .smallish\@push_six_sevenths {
+  .smallish\@push_six-sevenths {
     position: relative;
     left: 85.71429% ; }
-  .smallish\@push_one_sixth {
+  .smallish\@push_one-sixth {
     position: relative;
     left: 16.66667% ; }
-  .smallish\@push_two_sixths {
+  .smallish\@push_two-sixths {
     position: relative;
     left: 33.33333% ; }
-  .smallish\@push_three_sixths {
+  .smallish\@push_three-sixths {
     position: relative;
     left: 50% ; }
-  .smallish\@push_four_sixths {
+  .smallish\@push_four-sixths {
     position: relative;
     left: 66.66667% ; }
-  .smallish\@push_five_sixths {
+  .smallish\@push_five-sixths {
     position: relative;
     left: 83.33333% ; }
-  .smallish\@push_one_fifth {
+  .smallish\@push_one-fifth {
     position: relative;
     left: 20% ; }
-  .smallish\@push_two_fifths {
+  .smallish\@push_two-fifths {
     position: relative;
     left: 40% ; }
-  .smallish\@push_three_fifths {
+  .smallish\@push_three-fifths {
     position: relative;
     left: 60% ; }
-  .smallish\@push_four_fifths {
+  .smallish\@push_four-fifths {
     position: relative;
     left: 80% ; }
-  .smallish\@push_one_quarter, .smallish\@push_one_fourth {
+  .smallish\@push_one-quarter, .smallish\@push_one-fourth {
     position: relative;
     left: 25% ; }
-  .smallish\@push_two_quarters, .smallish\@push_two_fourths {
+  .smallish\@push_two-quarters, .smallish\@push_two-fourths {
     position: relative;
     left: 50% ; }
-  .smallish\@push_three_quarters, .smallish\@push_three_fourths {
+  .smallish\@push_three-quarters, .smallish\@push_three-fourths {
     position: relative;
     left: 75% ; }
-  .smallish\@push_one_third {
+  .smallish\@push_one-third {
     position: relative;
     left: 33.33333% ; }
-  .smallish\@push_two_thirds {
+  .smallish\@push_two-thirds {
     position: relative;
     left: 66.66667% ; }
-  .smallish\@push_one_half {
+  .smallish\@push_one-half {
     position: relative;
     left: 50% ; } }
 
 @media only screen and (min-width: 56.9375em) {
-  .bigs\@push_one_whole {
+  .bigs\@push_one-whole {
     left: 100% ; }
-  .bigs\@push_one_twelfth {
+  .bigs\@push_one-twelfth {
     position: relative;
     left: 8.33333% ; }
-  .bigs\@push_two_twelfths {
+  .bigs\@push_two-twelfths {
     position: relative;
     left: 16.66667% ; }
-  .bigs\@push_three_twelfths {
+  .bigs\@push_three-twelfths {
     position: relative;
     left: 25% ; }
-  .bigs\@push_four_twelfths {
+  .bigs\@push_four-twelfths {
     position: relative;
     left: 33.33333% ; }
-  .bigs\@push_five_twelfths {
+  .bigs\@push_five-twelfths {
     position: relative;
     left: 41.66667% ; }
-  .bigs\@push_six_twelfths {
+  .bigs\@push_six-twelfths {
     position: relative;
     left: 50% ; }
-  .bigs\@push_seven_twelfths {
+  .bigs\@push_seven-twelfths {
     position: relative;
     left: 58.33333% ; }
-  .bigs\@push_eight_twelfths {
+  .bigs\@push_eight-twelfths {
     position: relative;
     left: 66.66667% ; }
-  .bigs\@push_nine_twelfths {
+  .bigs\@push_nine-twelfths {
     position: relative;
     left: 75% ; }
-  .bigs\@push_ten_twelfths {
+  .bigs\@push_ten-twelfths {
     position: relative;
     left: 83.33333% ; }
-  .bigs\@push_eleven_twelfths {
+  .bigs\@push_eleven-twelfths {
     position: relative;
     left: 91.66667% ; }
-  .bigs\@push_one_eleventh {
+  .bigs\@push_one-eleventh {
     position: relative;
     left: 9.09091% ; }
-  .bigs\@push_two_elevenths {
+  .bigs\@push_two-elevenths {
     position: relative;
     left: 18.18182% ; }
-  .bigs\@push_three_elevenths {
+  .bigs\@push_three-elevenths {
     position: relative;
     left: 27.27273% ; }
-  .bigs\@push_four_elevenths {
+  .bigs\@push_four-elevenths {
     position: relative;
     left: 36.36364% ; }
-  .bigs\@push_five_elevenths {
+  .bigs\@push_five-elevenths {
     position: relative;
     left: 45.45455% ; }
-  .bigs\@push_six_elevenths {
+  .bigs\@push_six-elevenths {
     position: relative;
     left: 54.54545% ; }
-  .bigs\@push_seven_elevenths {
+  .bigs\@push_seven-elevenths {
     position: relative;
     left: 63.63636% ; }
-  .bigs\@push_eight_elevenths {
+  .bigs\@push_eight-elevenths {
     position: relative;
     left: 72.72727% ; }
-  .bigs\@push_nine_elevenths {
+  .bigs\@push_nine-elevenths {
     position: relative;
     left: 81.81818% ; }
-  .bigs\@push_ten_elevenths {
+  .bigs\@push_ten-elevenths {
     position: relative;
     left: 90.90909% ; }
-  .bigs\@push_one_tenth {
+  .bigs\@push_one-tenth {
     position: relative;
     left: 10% ; }
-  .bigs\@push_two_tenths {
+  .bigs\@push_two-tenths {
     position: relative;
     left: 20% ; }
-  .bigs\@push_three_tenths {
+  .bigs\@push_three-tenths {
     position: relative;
     left: 30% ; }
-  .bigs\@push_four_tenths {
+  .bigs\@push_four-tenths {
     position: relative;
     left: 40% ; }
-  .bigs\@push_five_tenths {
+  .bigs\@push_five-tenths {
     position: relative;
     left: 50% ; }
-  .bigs\@push_six_tenths {
+  .bigs\@push_six-tenths {
     position: relative;
     left: 60% ; }
-  .bigs\@push_seven_tenths {
+  .bigs\@push_seven-tenths {
     position: relative;
     left: 70% ; }
-  .bigs\@push_eight_tenths {
+  .bigs\@push_eight-tenths {
     position: relative;
     left: 80% ; }
-  .bigs\@push_nine_tenths {
+  .bigs\@push_nine-tenths {
     position: relative;
     left: 90% ; }
-  .bigs\@push_one_ninth {
+  .bigs\@push_one-ninth {
     position: relative;
     left: 11.11111% ; }
-  .bigs\@push_two_ninths {
+  .bigs\@push_two-ninths {
     position: relative;
     left: 22.22222% ; }
-  .bigs\@push_three_ninths {
+  .bigs\@push_three-ninths {
     position: relative;
     left: 33.33333% ; }
-  .bigs\@push_four_ninths {
+  .bigs\@push_four-ninths {
     position: relative;
     left: 44.44444% ; }
-  .bigs\@push_five_ninths {
+  .bigs\@push_five-ninths {
     position: relative;
     left: 55.55556% ; }
-  .bigs\@push_six_ninths {
+  .bigs\@push_six-ninths {
     position: relative;
     left: 66.66667% ; }
-  .bigs\@push_seven_ninths {
+  .bigs\@push_seven-ninths {
     position: relative;
     left: 77.77778% ; }
-  .bigs\@push_eight_ninths {
+  .bigs\@push_eight-ninths {
     position: relative;
     left: 88.88889% ; }
-  .bigs\@push_one_eighth {
+  .bigs\@push_one-eighth {
     position: relative;
     left: 12.5% ; }
-  .bigs\@push_two_eighths {
+  .bigs\@push_two-eighths {
     position: relative;
     left: 25% ; }
-  .bigs\@push_three_eighths {
+  .bigs\@push_three-eighths {
     position: relative;
     left: 37.5% ; }
-  .bigs\@push_four_eighths {
+  .bigs\@push_four-eighths {
     position: relative;
     left: 50% ; }
-  .bigs\@push_five_eighths {
+  .bigs\@push_five-eighths {
     position: relative;
     left: 62.5% ; }
-  .bigs\@push_six_eighths {
+  .bigs\@push_six-eighths {
     position: relative;
     left: 75% ; }
-  .bigs\@push_seven_eighths {
+  .bigs\@push_seven-eighths {
     position: relative;
     left: 87.5% ; }
-  .bigs\@push_one_seventh {
+  .bigs\@push_one-seventh {
     position: relative;
     left: 14.28571% ; }
-  .bigs\@push_two_sevenths {
+  .bigs\@push_two-sevenths {
     position: relative;
     left: 28.57143% ; }
-  .bigs\@push_three_sevenths {
+  .bigs\@push_three-sevenths {
     position: relative;
     left: 42.85714% ; }
-  .bigs\@push_four_sevenths {
+  .bigs\@push_four-sevenths {
     position: relative;
     left: 57.14286% ; }
-  .bigs\@push_five_sevenths {
+  .bigs\@push_five-sevenths {
     position: relative;
     left: 71.42857% ; }
-  .bigs\@push_six_sevenths {
+  .bigs\@push_six-sevenths {
     position: relative;
     left: 85.71429% ; }
-  .bigs\@push_one_sixth {
+  .bigs\@push_one-sixth {
     position: relative;
     left: 16.66667% ; }
-  .bigs\@push_two_sixths {
+  .bigs\@push_two-sixths {
     position: relative;
     left: 33.33333% ; }
-  .bigs\@push_three_sixths {
+  .bigs\@push_three-sixths {
     position: relative;
     left: 50% ; }
-  .bigs\@push_four_sixths {
+  .bigs\@push_four-sixths {
     position: relative;
     left: 66.66667% ; }
-  .bigs\@push_five_sixths {
+  .bigs\@push_five-sixths {
     position: relative;
     left: 83.33333% ; }
-  .bigs\@push_one_fifth {
+  .bigs\@push_one-fifth {
     position: relative;
     left: 20% ; }
-  .bigs\@push_two_fifths {
+  .bigs\@push_two-fifths {
     position: relative;
     left: 40% ; }
-  .bigs\@push_three_fifths {
+  .bigs\@push_three-fifths {
     position: relative;
     left: 60% ; }
-  .bigs\@push_four_fifths {
+  .bigs\@push_four-fifths {
     position: relative;
     left: 80% ; }
-  .bigs\@push_one_quarter, .bigs\@push_one_fourth {
+  .bigs\@push_one-quarter, .bigs\@push_one-fourth {
     position: relative;
     left: 25% ; }
-  .bigs\@push_two_quarters, .bigs\@push_two_fourths {
+  .bigs\@push_two-quarters, .bigs\@push_two-fourths {
     position: relative;
     left: 50% ; }
-  .bigs\@push_three_quarters, .bigs\@push_three_fourths {
+  .bigs\@push_three-quarters, .bigs\@push_three-fourths {
     position: relative;
     left: 75% ; }
-  .bigs\@push_one_third {
+  .bigs\@push_one-third {
     position: relative;
     left: 33.33333% ; }
-  .bigs\@push_two_thirds {
+  .bigs\@push_two-thirds {
     position: relative;
     left: 66.66667% ; }
-  .bigs\@push_one_half {
+  .bigs\@push_one-half {
     position: relative;
     left: 50% ; } }
 
 @media only screen and (min-width: 56.9375em) and (max-width: 85em) {
-  .lap\@push_one_whole {
+  .lap\@push_one-whole {
     left: 100% ; }
-  .lap\@push_one_twelfth {
+  .lap\@push_one-twelfth {
     position: relative;
     left: 8.33333% ; }
-  .lap\@push_two_twelfths {
+  .lap\@push_two-twelfths {
     position: relative;
     left: 16.66667% ; }
-  .lap\@push_three_twelfths {
+  .lap\@push_three-twelfths {
     position: relative;
     left: 25% ; }
-  .lap\@push_four_twelfths {
+  .lap\@push_four-twelfths {
     position: relative;
     left: 33.33333% ; }
-  .lap\@push_five_twelfths {
+  .lap\@push_five-twelfths {
     position: relative;
     left: 41.66667% ; }
-  .lap\@push_six_twelfths {
+  .lap\@push_six-twelfths {
     position: relative;
     left: 50% ; }
-  .lap\@push_seven_twelfths {
+  .lap\@push_seven-twelfths {
     position: relative;
     left: 58.33333% ; }
-  .lap\@push_eight_twelfths {
+  .lap\@push_eight-twelfths {
     position: relative;
     left: 66.66667% ; }
-  .lap\@push_nine_twelfths {
+  .lap\@push_nine-twelfths {
     position: relative;
     left: 75% ; }
-  .lap\@push_ten_twelfths {
+  .lap\@push_ten-twelfths {
     position: relative;
     left: 83.33333% ; }
-  .lap\@push_eleven_twelfths {
+  .lap\@push_eleven-twelfths {
     position: relative;
     left: 91.66667% ; }
-  .lap\@push_one_eleventh {
+  .lap\@push_one-eleventh {
     position: relative;
     left: 9.09091% ; }
-  .lap\@push_two_elevenths {
+  .lap\@push_two-elevenths {
     position: relative;
     left: 18.18182% ; }
-  .lap\@push_three_elevenths {
+  .lap\@push_three-elevenths {
     position: relative;
     left: 27.27273% ; }
-  .lap\@push_four_elevenths {
+  .lap\@push_four-elevenths {
     position: relative;
     left: 36.36364% ; }
-  .lap\@push_five_elevenths {
+  .lap\@push_five-elevenths {
     position: relative;
     left: 45.45455% ; }
-  .lap\@push_six_elevenths {
+  .lap\@push_six-elevenths {
     position: relative;
     left: 54.54545% ; }
-  .lap\@push_seven_elevenths {
+  .lap\@push_seven-elevenths {
     position: relative;
     left: 63.63636% ; }
-  .lap\@push_eight_elevenths {
+  .lap\@push_eight-elevenths {
     position: relative;
     left: 72.72727% ; }
-  .lap\@push_nine_elevenths {
+  .lap\@push_nine-elevenths {
     position: relative;
     left: 81.81818% ; }
-  .lap\@push_ten_elevenths {
+  .lap\@push_ten-elevenths {
     position: relative;
     left: 90.90909% ; }
-  .lap\@push_one_tenth {
+  .lap\@push_one-tenth {
     position: relative;
     left: 10% ; }
-  .lap\@push_two_tenths {
+  .lap\@push_two-tenths {
     position: relative;
     left: 20% ; }
-  .lap\@push_three_tenths {
+  .lap\@push_three-tenths {
     position: relative;
     left: 30% ; }
-  .lap\@push_four_tenths {
+  .lap\@push_four-tenths {
     position: relative;
     left: 40% ; }
-  .lap\@push_five_tenths {
+  .lap\@push_five-tenths {
     position: relative;
     left: 50% ; }
-  .lap\@push_six_tenths {
+  .lap\@push_six-tenths {
     position: relative;
     left: 60% ; }
-  .lap\@push_seven_tenths {
+  .lap\@push_seven-tenths {
     position: relative;
     left: 70% ; }
-  .lap\@push_eight_tenths {
+  .lap\@push_eight-tenths {
     position: relative;
     left: 80% ; }
-  .lap\@push_nine_tenths {
+  .lap\@push_nine-tenths {
     position: relative;
     left: 90% ; }
-  .lap\@push_one_ninth {
+  .lap\@push_one-ninth {
     position: relative;
     left: 11.11111% ; }
-  .lap\@push_two_ninths {
+  .lap\@push_two-ninths {
     position: relative;
     left: 22.22222% ; }
-  .lap\@push_three_ninths {
+  .lap\@push_three-ninths {
     position: relative;
     left: 33.33333% ; }
-  .lap\@push_four_ninths {
+  .lap\@push_four-ninths {
     position: relative;
     left: 44.44444% ; }
-  .lap\@push_five_ninths {
+  .lap\@push_five-ninths {
     position: relative;
     left: 55.55556% ; }
-  .lap\@push_six_ninths {
+  .lap\@push_six-ninths {
     position: relative;
     left: 66.66667% ; }
-  .lap\@push_seven_ninths {
+  .lap\@push_seven-ninths {
     position: relative;
     left: 77.77778% ; }
-  .lap\@push_eight_ninths {
+  .lap\@push_eight-ninths {
     position: relative;
     left: 88.88889% ; }
-  .lap\@push_one_eighth {
+  .lap\@push_one-eighth {
     position: relative;
     left: 12.5% ; }
-  .lap\@push_two_eighths {
+  .lap\@push_two-eighths {
     position: relative;
     left: 25% ; }
-  .lap\@push_three_eighths {
+  .lap\@push_three-eighths {
     position: relative;
     left: 37.5% ; }
-  .lap\@push_four_eighths {
+  .lap\@push_four-eighths {
     position: relative;
     left: 50% ; }
-  .lap\@push_five_eighths {
+  .lap\@push_five-eighths {
     position: relative;
     left: 62.5% ; }
-  .lap\@push_six_eighths {
+  .lap\@push_six-eighths {
     position: relative;
     left: 75% ; }
-  .lap\@push_seven_eighths {
+  .lap\@push_seven-eighths {
     position: relative;
     left: 87.5% ; }
-  .lap\@push_one_seventh {
+  .lap\@push_one-seventh {
     position: relative;
     left: 14.28571% ; }
-  .lap\@push_two_sevenths {
+  .lap\@push_two-sevenths {
     position: relative;
     left: 28.57143% ; }
-  .lap\@push_three_sevenths {
+  .lap\@push_three-sevenths {
     position: relative;
     left: 42.85714% ; }
-  .lap\@push_four_sevenths {
+  .lap\@push_four-sevenths {
     position: relative;
     left: 57.14286% ; }
-  .lap\@push_five_sevenths {
+  .lap\@push_five-sevenths {
     position: relative;
     left: 71.42857% ; }
-  .lap\@push_six_sevenths {
+  .lap\@push_six-sevenths {
     position: relative;
     left: 85.71429% ; }
-  .lap\@push_one_sixth {
+  .lap\@push_one-sixth {
     position: relative;
     left: 16.66667% ; }
-  .lap\@push_two_sixths {
+  .lap\@push_two-sixths {
     position: relative;
     left: 33.33333% ; }
-  .lap\@push_three_sixths {
+  .lap\@push_three-sixths {
     position: relative;
     left: 50% ; }
-  .lap\@push_four_sixths {
+  .lap\@push_four-sixths {
     position: relative;
     left: 66.66667% ; }
-  .lap\@push_five_sixths {
+  .lap\@push_five-sixths {
     position: relative;
     left: 83.33333% ; }
-  .lap\@push_one_fifth {
+  .lap\@push_one-fifth {
     position: relative;
     left: 20% ; }
-  .lap\@push_two_fifths {
+  .lap\@push_two-fifths {
     position: relative;
     left: 40% ; }
-  .lap\@push_three_fifths {
+  .lap\@push_three-fifths {
     position: relative;
     left: 60% ; }
-  .lap\@push_four_fifths {
+  .lap\@push_four-fifths {
     position: relative;
     left: 80% ; }
-  .lap\@push_one_quarter, .lap\@push_one_fourth {
+  .lap\@push_one-quarter, .lap\@push_one-fourth {
     position: relative;
     left: 25% ; }
-  .lap\@push_two_quarters, .lap\@push_two_fourths {
+  .lap\@push_two-quarters, .lap\@push_two-fourths {
     position: relative;
     left: 50% ; }
-  .lap\@push_three_quarters, .lap\@push_three_fourths {
+  .lap\@push_three-quarters, .lap\@push_three-fourths {
     position: relative;
     left: 75% ; }
-  .lap\@push_one_third {
+  .lap\@push_one-third {
     position: relative;
     left: 33.33333% ; }
-  .lap\@push_two_thirds {
+  .lap\@push_two-thirds {
     position: relative;
     left: 66.66667% ; }
-  .lap\@push_one_half {
+  .lap\@push_one-half {
     position: relative;
     left: 50% ; } }
 
 @media only screen and (min-width: 85em) {
-  .desk\@push_one_whole {
+  .desk\@push_one-whole {
     left: 100% ; }
-  .desk\@push_one_twelfth {
+  .desk\@push_one-twelfth {
     position: relative;
     left: 8.33333% ; }
-  .desk\@push_two_twelfths {
+  .desk\@push_two-twelfths {
     position: relative;
     left: 16.66667% ; }
-  .desk\@push_three_twelfths {
+  .desk\@push_three-twelfths {
     position: relative;
     left: 25% ; }
-  .desk\@push_four_twelfths {
+  .desk\@push_four-twelfths {
     position: relative;
     left: 33.33333% ; }
-  .desk\@push_five_twelfths {
+  .desk\@push_five-twelfths {
     position: relative;
     left: 41.66667% ; }
-  .desk\@push_six_twelfths {
+  .desk\@push_six-twelfths {
     position: relative;
     left: 50% ; }
-  .desk\@push_seven_twelfths {
+  .desk\@push_seven-twelfths {
     position: relative;
     left: 58.33333% ; }
-  .desk\@push_eight_twelfths {
+  .desk\@push_eight-twelfths {
     position: relative;
     left: 66.66667% ; }
-  .desk\@push_nine_twelfths {
+  .desk\@push_nine-twelfths {
     position: relative;
     left: 75% ; }
-  .desk\@push_ten_twelfths {
+  .desk\@push_ten-twelfths {
     position: relative;
     left: 83.33333% ; }
-  .desk\@push_eleven_twelfths {
+  .desk\@push_eleven-twelfths {
     position: relative;
     left: 91.66667% ; }
-  .desk\@push_one_eleventh {
+  .desk\@push_one-eleventh {
     position: relative;
     left: 9.09091% ; }
-  .desk\@push_two_elevenths {
+  .desk\@push_two-elevenths {
     position: relative;
     left: 18.18182% ; }
-  .desk\@push_three_elevenths {
+  .desk\@push_three-elevenths {
     position: relative;
     left: 27.27273% ; }
-  .desk\@push_four_elevenths {
+  .desk\@push_four-elevenths {
     position: relative;
     left: 36.36364% ; }
-  .desk\@push_five_elevenths {
+  .desk\@push_five-elevenths {
     position: relative;
     left: 45.45455% ; }
-  .desk\@push_six_elevenths {
+  .desk\@push_six-elevenths {
     position: relative;
     left: 54.54545% ; }
-  .desk\@push_seven_elevenths {
+  .desk\@push_seven-elevenths {
     position: relative;
     left: 63.63636% ; }
-  .desk\@push_eight_elevenths {
+  .desk\@push_eight-elevenths {
     position: relative;
     left: 72.72727% ; }
-  .desk\@push_nine_elevenths {
+  .desk\@push_nine-elevenths {
     position: relative;
     left: 81.81818% ; }
-  .desk\@push_ten_elevenths {
+  .desk\@push_ten-elevenths {
     position: relative;
     left: 90.90909% ; }
-  .desk\@push_one_tenth {
+  .desk\@push_one-tenth {
     position: relative;
     left: 10% ; }
-  .desk\@push_two_tenths {
+  .desk\@push_two-tenths {
     position: relative;
     left: 20% ; }
-  .desk\@push_three_tenths {
+  .desk\@push_three-tenths {
     position: relative;
     left: 30% ; }
-  .desk\@push_four_tenths {
+  .desk\@push_four-tenths {
     position: relative;
     left: 40% ; }
-  .desk\@push_five_tenths {
+  .desk\@push_five-tenths {
     position: relative;
     left: 50% ; }
-  .desk\@push_six_tenths {
+  .desk\@push_six-tenths {
     position: relative;
     left: 60% ; }
-  .desk\@push_seven_tenths {
+  .desk\@push_seven-tenths {
     position: relative;
     left: 70% ; }
-  .desk\@push_eight_tenths {
+  .desk\@push_eight-tenths {
     position: relative;
     left: 80% ; }
-  .desk\@push_nine_tenths {
+  .desk\@push_nine-tenths {
     position: relative;
     left: 90% ; }
-  .desk\@push_one_ninth {
+  .desk\@push_one-ninth {
     position: relative;
     left: 11.11111% ; }
-  .desk\@push_two_ninths {
+  .desk\@push_two-ninths {
     position: relative;
     left: 22.22222% ; }
-  .desk\@push_three_ninths {
+  .desk\@push_three-ninths {
     position: relative;
     left: 33.33333% ; }
-  .desk\@push_four_ninths {
+  .desk\@push_four-ninths {
     position: relative;
     left: 44.44444% ; }
-  .desk\@push_five_ninths {
+  .desk\@push_five-ninths {
     position: relative;
     left: 55.55556% ; }
-  .desk\@push_six_ninths {
+  .desk\@push_six-ninths {
     position: relative;
     left: 66.66667% ; }
-  .desk\@push_seven_ninths {
+  .desk\@push_seven-ninths {
     position: relative;
     left: 77.77778% ; }
-  .desk\@push_eight_ninths {
+  .desk\@push_eight-ninths {
     position: relative;
     left: 88.88889% ; }
-  .desk\@push_one_eighth {
+  .desk\@push_one-eighth {
     position: relative;
     left: 12.5% ; }
-  .desk\@push_two_eighths {
+  .desk\@push_two-eighths {
     position: relative;
     left: 25% ; }
-  .desk\@push_three_eighths {
+  .desk\@push_three-eighths {
     position: relative;
     left: 37.5% ; }
-  .desk\@push_four_eighths {
+  .desk\@push_four-eighths {
     position: relative;
     left: 50% ; }
-  .desk\@push_five_eighths {
+  .desk\@push_five-eighths {
     position: relative;
     left: 62.5% ; }
-  .desk\@push_six_eighths {
+  .desk\@push_six-eighths {
     position: relative;
     left: 75% ; }
-  .desk\@push_seven_eighths {
+  .desk\@push_seven-eighths {
     position: relative;
     left: 87.5% ; }
-  .desk\@push_one_seventh {
+  .desk\@push_one-seventh {
     position: relative;
     left: 14.28571% ; }
-  .desk\@push_two_sevenths {
+  .desk\@push_two-sevenths {
     position: relative;
     left: 28.57143% ; }
-  .desk\@push_three_sevenths {
+  .desk\@push_three-sevenths {
     position: relative;
     left: 42.85714% ; }
-  .desk\@push_four_sevenths {
+  .desk\@push_four-sevenths {
     position: relative;
     left: 57.14286% ; }
-  .desk\@push_five_sevenths {
+  .desk\@push_five-sevenths {
     position: relative;
     left: 71.42857% ; }
-  .desk\@push_six_sevenths {
+  .desk\@push_six-sevenths {
     position: relative;
     left: 85.71429% ; }
-  .desk\@push_one_sixth {
+  .desk\@push_one-sixth {
     position: relative;
     left: 16.66667% ; }
-  .desk\@push_two_sixths {
+  .desk\@push_two-sixths {
     position: relative;
     left: 33.33333% ; }
-  .desk\@push_three_sixths {
+  .desk\@push_three-sixths {
     position: relative;
     left: 50% ; }
-  .desk\@push_four_sixths {
+  .desk\@push_four-sixths {
     position: relative;
     left: 66.66667% ; }
-  .desk\@push_five_sixths {
+  .desk\@push_five-sixths {
     position: relative;
     left: 83.33333% ; }
-  .desk\@push_one_fifth {
+  .desk\@push_one-fifth {
     position: relative;
     left: 20% ; }
-  .desk\@push_two_fifths {
+  .desk\@push_two-fifths {
     position: relative;
     left: 40% ; }
-  .desk\@push_three_fifths {
+  .desk\@push_three-fifths {
     position: relative;
     left: 60% ; }
-  .desk\@push_four_fifths {
+  .desk\@push_four-fifths {
     position: relative;
     left: 80% ; }
-  .desk\@push_one_quarter, .desk\@push_one_fourth {
+  .desk\@push_one-quarter, .desk\@push_one-fourth {
     position: relative;
     left: 25% ; }
-  .desk\@push_two_quarters, .desk\@push_two_fourths {
+  .desk\@push_two-quarters, .desk\@push_two-fourths {
     position: relative;
     left: 50% ; }
-  .desk\@push_three_quarters, .desk\@push_three_fourths {
+  .desk\@push_three-quarters, .desk\@push_three-fourths {
     position: relative;
     left: 75% ; }
-  .desk\@push_one_third {
+  .desk\@push_one-third {
     position: relative;
     left: 33.33333% ; }
-  .desk\@push_two_thirds {
+  .desk\@push_two-thirds {
     position: relative;
     left: 66.66667% ; }
-  .desk\@push_one_half {
+  .desk\@push_one-half {
     position: relative;
     left: 50% ; } }
 
-.pull_one_whole {
+.pull_one-whole {
   right: 100% ; }
 
-.pull_one_twelfth {
+.pull_one-twelfth {
   position: relative;
   right: 8.33333% ; }
 
-.pull_two_twelfths {
+.pull_two-twelfths {
   position: relative;
   right: 16.66667% ; }
 
-.pull_three_twelfths {
+.pull_three-twelfths {
   position: relative;
   right: 25% ; }
 
-.pull_four_twelfths {
+.pull_four-twelfths {
   position: relative;
   right: 33.33333% ; }
 
-.pull_five_twelfths {
+.pull_five-twelfths {
   position: relative;
   right: 41.66667% ; }
 
-.pull_six_twelfths {
+.pull_six-twelfths {
   position: relative;
   right: 50% ; }
 
-.pull_seven_twelfths {
+.pull_seven-twelfths {
   position: relative;
   right: 58.33333% ; }
 
-.pull_eight_twelfths {
+.pull_eight-twelfths {
   position: relative;
   right: 66.66667% ; }
 
-.pull_nine_twelfths {
+.pull_nine-twelfths {
   position: relative;
   right: 75% ; }
 
-.pull_ten_twelfths {
+.pull_ten-twelfths {
   position: relative;
   right: 83.33333% ; }
 
-.pull_eleven_twelfths {
+.pull_eleven-twelfths {
   position: relative;
   right: 91.66667% ; }
 
-.pull_one_eleventh {
+.pull_one-eleventh {
   position: relative;
   right: 9.09091% ; }
 
-.pull_two_elevenths {
+.pull_two-elevenths {
   position: relative;
   right: 18.18182% ; }
 
-.pull_three_elevenths {
+.pull_three-elevenths {
   position: relative;
   right: 27.27273% ; }
 
-.pull_four_elevenths {
+.pull_four-elevenths {
   position: relative;
   right: 36.36364% ; }
 
-.pull_five_elevenths {
+.pull_five-elevenths {
   position: relative;
   right: 45.45455% ; }
 
-.pull_six_elevenths {
+.pull_six-elevenths {
   position: relative;
   right: 54.54545% ; }
 
-.pull_seven_elevenths {
+.pull_seven-elevenths {
   position: relative;
   right: 63.63636% ; }
 
-.pull_eight_elevenths {
+.pull_eight-elevenths {
   position: relative;
   right: 72.72727% ; }
 
-.pull_nine_elevenths {
+.pull_nine-elevenths {
   position: relative;
   right: 81.81818% ; }
 
-.pull_ten_elevenths {
+.pull_ten-elevenths {
   position: relative;
   right: 90.90909% ; }
 
-.pull_one_tenth {
+.pull_one-tenth {
   position: relative;
   right: 10% ; }
 
-.pull_two_tenths {
+.pull_two-tenths {
   position: relative;
   right: 20% ; }
 
-.pull_three_tenths {
+.pull_three-tenths {
   position: relative;
   right: 30% ; }
 
-.pull_four_tenths {
+.pull_four-tenths {
   position: relative;
   right: 40% ; }
 
-.pull_five_tenths {
+.pull_five-tenths {
   position: relative;
   right: 50% ; }
 
-.pull_six_tenths {
+.pull_six-tenths {
   position: relative;
   right: 60% ; }
 
-.pull_seven_tenths {
+.pull_seven-tenths {
   position: relative;
   right: 70% ; }
 
-.pull_eight_tenths {
+.pull_eight-tenths {
   position: relative;
   right: 80% ; }
 
-.pull_nine_tenths {
+.pull_nine-tenths {
   position: relative;
   right: 90% ; }
 
-.pull_one_ninth {
+.pull_one-ninth {
   position: relative;
   right: 11.11111% ; }
 
-.pull_two_ninths {
+.pull_two-ninths {
   position: relative;
   right: 22.22222% ; }
 
-.pull_three_ninths {
+.pull_three-ninths {
   position: relative;
   right: 33.33333% ; }
 
-.pull_four_ninths {
+.pull_four-ninths {
   position: relative;
   right: 44.44444% ; }
 
-.pull_five_ninths {
+.pull_five-ninths {
   position: relative;
   right: 55.55556% ; }
 
-.pull_six_ninths {
+.pull_six-ninths {
   position: relative;
   right: 66.66667% ; }
 
-.pull_seven_ninths {
+.pull_seven-ninths {
   position: relative;
   right: 77.77778% ; }
 
-.pull_eight_ninths {
+.pull_eight-ninths {
   position: relative;
   right: 88.88889% ; }
 
-.pull_one_eighth {
+.pull_one-eighth {
   position: relative;
   right: 12.5% ; }
 
-.pull_two_eighths {
+.pull_two-eighths {
   position: relative;
   right: 25% ; }
 
-.pull_three_eighths {
+.pull_three-eighths {
   position: relative;
   right: 37.5% ; }
 
-.pull_four_eighths {
+.pull_four-eighths {
   position: relative;
   right: 50% ; }
 
-.pull_five_eighths {
+.pull_five-eighths {
   position: relative;
   right: 62.5% ; }
 
-.pull_six_eighths {
+.pull_six-eighths {
   position: relative;
   right: 75% ; }
 
-.pull_seven_eighths {
+.pull_seven-eighths {
   position: relative;
   right: 87.5% ; }
 
-.pull_one_seventh {
+.pull_one-seventh {
   position: relative;
   right: 14.28571% ; }
 
-.pull_two_sevenths {
+.pull_two-sevenths {
   position: relative;
   right: 28.57143% ; }
 
-.pull_three_sevenths {
+.pull_three-sevenths {
   position: relative;
   right: 42.85714% ; }
 
-.pull_four_sevenths {
+.pull_four-sevenths {
   position: relative;
   right: 57.14286% ; }
 
-.pull_five_sevenths {
+.pull_five-sevenths {
   position: relative;
   right: 71.42857% ; }
 
-.pull_six_sevenths {
+.pull_six-sevenths {
   position: relative;
   right: 85.71429% ; }
 
-.pull_one_sixth {
+.pull_one-sixth {
   position: relative;
   right: 16.66667% ; }
 
-.pull_two_sixths {
+.pull_two-sixths {
   position: relative;
   right: 33.33333% ; }
 
-.pull_three_sixths {
+.pull_three-sixths {
   position: relative;
   right: 50% ; }
 
-.pull_four_sixths {
+.pull_four-sixths {
   position: relative;
   right: 66.66667% ; }
 
-.pull_five_sixths {
+.pull_five-sixths {
   position: relative;
   right: 83.33333% ; }
 
-.pull_one_fifth {
+.pull_one-fifth {
   position: relative;
   right: 20% ; }
 
-.pull_two_fifths {
+.pull_two-fifths {
   position: relative;
   right: 40% ; }
 
-.pull_three_fifths {
+.pull_three-fifths {
   position: relative;
   right: 60% ; }
 
-.pull_four_fifths {
+.pull_four-fifths {
   position: relative;
   right: 80% ; }
 
-.pull_one_quarter, .pull_one_fourth {
+.pull_one-quarter, .pull_one-fourth {
   position: relative;
   right: 25% ; }
 
-.pull_two_quarters, .pull_two_fourths {
+.pull_two-quarters, .pull_two-fourths {
   position: relative;
   right: 50% ; }
 
-.pull_three_quarters, .pull_three_fourths {
+.pull_three-quarters, .pull_three-fourths {
   position: relative;
   right: 75% ; }
 
-.pull_one_third {
+.pull_one-third {
   position: relative;
   right: 33.33333% ; }
 
-.pull_two_thirds {
+.pull_two-thirds {
   position: relative;
   right: 66.66667% ; }
 
-.pull_one_half {
+.pull_one-half {
   position: relative;
   right: 50% ; }
 
 @media only screen and (max-width: 56.875em) {
-  .smalls\@pull_one_whole {
+  .smalls\@pull_one-whole {
     right: 100% ; }
-  .smalls\@pull_one_twelfth {
+  .smalls\@pull_one-twelfth {
     position: relative;
     right: 8.33333% ; }
-  .smalls\@pull_two_twelfths {
+  .smalls\@pull_two-twelfths {
     position: relative;
     right: 16.66667% ; }
-  .smalls\@pull_three_twelfths {
+  .smalls\@pull_three-twelfths {
     position: relative;
     right: 25% ; }
-  .smalls\@pull_four_twelfths {
+  .smalls\@pull_four-twelfths {
     position: relative;
     right: 33.33333% ; }
-  .smalls\@pull_five_twelfths {
+  .smalls\@pull_five-twelfths {
     position: relative;
     right: 41.66667% ; }
-  .smalls\@pull_six_twelfths {
+  .smalls\@pull_six-twelfths {
     position: relative;
     right: 50% ; }
-  .smalls\@pull_seven_twelfths {
+  .smalls\@pull_seven-twelfths {
     position: relative;
     right: 58.33333% ; }
-  .smalls\@pull_eight_twelfths {
+  .smalls\@pull_eight-twelfths {
     position: relative;
     right: 66.66667% ; }
-  .smalls\@pull_nine_twelfths {
+  .smalls\@pull_nine-twelfths {
     position: relative;
     right: 75% ; }
-  .smalls\@pull_ten_twelfths {
+  .smalls\@pull_ten-twelfths {
     position: relative;
     right: 83.33333% ; }
-  .smalls\@pull_eleven_twelfths {
+  .smalls\@pull_eleven-twelfths {
     position: relative;
     right: 91.66667% ; }
-  .smalls\@pull_one_eleventh {
+  .smalls\@pull_one-eleventh {
     position: relative;
     right: 9.09091% ; }
-  .smalls\@pull_two_elevenths {
+  .smalls\@pull_two-elevenths {
     position: relative;
     right: 18.18182% ; }
-  .smalls\@pull_three_elevenths {
+  .smalls\@pull_three-elevenths {
     position: relative;
     right: 27.27273% ; }
-  .smalls\@pull_four_elevenths {
+  .smalls\@pull_four-elevenths {
     position: relative;
     right: 36.36364% ; }
-  .smalls\@pull_five_elevenths {
+  .smalls\@pull_five-elevenths {
     position: relative;
     right: 45.45455% ; }
-  .smalls\@pull_six_elevenths {
+  .smalls\@pull_six-elevenths {
     position: relative;
     right: 54.54545% ; }
-  .smalls\@pull_seven_elevenths {
+  .smalls\@pull_seven-elevenths {
     position: relative;
     right: 63.63636% ; }
-  .smalls\@pull_eight_elevenths {
+  .smalls\@pull_eight-elevenths {
     position: relative;
     right: 72.72727% ; }
-  .smalls\@pull_nine_elevenths {
+  .smalls\@pull_nine-elevenths {
     position: relative;
     right: 81.81818% ; }
-  .smalls\@pull_ten_elevenths {
+  .smalls\@pull_ten-elevenths {
     position: relative;
     right: 90.90909% ; }
-  .smalls\@pull_one_tenth {
+  .smalls\@pull_one-tenth {
     position: relative;
     right: 10% ; }
-  .smalls\@pull_two_tenths {
+  .smalls\@pull_two-tenths {
     position: relative;
     right: 20% ; }
-  .smalls\@pull_three_tenths {
+  .smalls\@pull_three-tenths {
     position: relative;
     right: 30% ; }
-  .smalls\@pull_four_tenths {
+  .smalls\@pull_four-tenths {
     position: relative;
     right: 40% ; }
-  .smalls\@pull_five_tenths {
+  .smalls\@pull_five-tenths {
     position: relative;
     right: 50% ; }
-  .smalls\@pull_six_tenths {
+  .smalls\@pull_six-tenths {
     position: relative;
     right: 60% ; }
-  .smalls\@pull_seven_tenths {
+  .smalls\@pull_seven-tenths {
     position: relative;
     right: 70% ; }
-  .smalls\@pull_eight_tenths {
+  .smalls\@pull_eight-tenths {
     position: relative;
     right: 80% ; }
-  .smalls\@pull_nine_tenths {
+  .smalls\@pull_nine-tenths {
     position: relative;
     right: 90% ; }
-  .smalls\@pull_one_ninth {
+  .smalls\@pull_one-ninth {
     position: relative;
     right: 11.11111% ; }
-  .smalls\@pull_two_ninths {
+  .smalls\@pull_two-ninths {
     position: relative;
     right: 22.22222% ; }
-  .smalls\@pull_three_ninths {
+  .smalls\@pull_three-ninths {
     position: relative;
     right: 33.33333% ; }
-  .smalls\@pull_four_ninths {
+  .smalls\@pull_four-ninths {
     position: relative;
     right: 44.44444% ; }
-  .smalls\@pull_five_ninths {
+  .smalls\@pull_five-ninths {
     position: relative;
     right: 55.55556% ; }
-  .smalls\@pull_six_ninths {
+  .smalls\@pull_six-ninths {
     position: relative;
     right: 66.66667% ; }
-  .smalls\@pull_seven_ninths {
+  .smalls\@pull_seven-ninths {
     position: relative;
     right: 77.77778% ; }
-  .smalls\@pull_eight_ninths {
+  .smalls\@pull_eight-ninths {
     position: relative;
     right: 88.88889% ; }
-  .smalls\@pull_one_eighth {
+  .smalls\@pull_one-eighth {
     position: relative;
     right: 12.5% ; }
-  .smalls\@pull_two_eighths {
+  .smalls\@pull_two-eighths {
     position: relative;
     right: 25% ; }
-  .smalls\@pull_three_eighths {
+  .smalls\@pull_three-eighths {
     position: relative;
     right: 37.5% ; }
-  .smalls\@pull_four_eighths {
+  .smalls\@pull_four-eighths {
     position: relative;
     right: 50% ; }
-  .smalls\@pull_five_eighths {
+  .smalls\@pull_five-eighths {
     position: relative;
     right: 62.5% ; }
-  .smalls\@pull_six_eighths {
+  .smalls\@pull_six-eighths {
     position: relative;
     right: 75% ; }
-  .smalls\@pull_seven_eighths {
+  .smalls\@pull_seven-eighths {
     position: relative;
     right: 87.5% ; }
-  .smalls\@pull_one_seventh {
+  .smalls\@pull_one-seventh {
     position: relative;
     right: 14.28571% ; }
-  .smalls\@pull_two_sevenths {
+  .smalls\@pull_two-sevenths {
     position: relative;
     right: 28.57143% ; }
-  .smalls\@pull_three_sevenths {
+  .smalls\@pull_three-sevenths {
     position: relative;
     right: 42.85714% ; }
-  .smalls\@pull_four_sevenths {
+  .smalls\@pull_four-sevenths {
     position: relative;
     right: 57.14286% ; }
-  .smalls\@pull_five_sevenths {
+  .smalls\@pull_five-sevenths {
     position: relative;
     right: 71.42857% ; }
-  .smalls\@pull_six_sevenths {
+  .smalls\@pull_six-sevenths {
     position: relative;
     right: 85.71429% ; }
-  .smalls\@pull_one_sixth {
+  .smalls\@pull_one-sixth {
     position: relative;
     right: 16.66667% ; }
-  .smalls\@pull_two_sixths {
+  .smalls\@pull_two-sixths {
     position: relative;
     right: 33.33333% ; }
-  .smalls\@pull_three_sixths {
+  .smalls\@pull_three-sixths {
     position: relative;
     right: 50% ; }
-  .smalls\@pull_four_sixths {
+  .smalls\@pull_four-sixths {
     position: relative;
     right: 66.66667% ; }
-  .smalls\@pull_five_sixths {
+  .smalls\@pull_five-sixths {
     position: relative;
     right: 83.33333% ; }
-  .smalls\@pull_one_fifth {
+  .smalls\@pull_one-fifth {
     position: relative;
     right: 20% ; }
-  .smalls\@pull_two_fifths {
+  .smalls\@pull_two-fifths {
     position: relative;
     right: 40% ; }
-  .smalls\@pull_three_fifths {
+  .smalls\@pull_three-fifths {
     position: relative;
     right: 60% ; }
-  .smalls\@pull_four_fifths {
+  .smalls\@pull_four-fifths {
     position: relative;
     right: 80% ; }
-  .smalls\@pull_one_quarter, .smalls\@pull_one_fourth {
+  .smalls\@pull_one-quarter, .smalls\@pull_one-fourth {
     position: relative;
     right: 25% ; }
-  .smalls\@pull_two_quarters, .smalls\@pull_two_fourths {
+  .smalls\@pull_two-quarters, .smalls\@pull_two-fourths {
     position: relative;
     right: 50% ; }
-  .smalls\@pull_three_quarters, .smalls\@pull_three_fourths {
+  .smalls\@pull_three-quarters, .smalls\@pull_three-fourths {
     position: relative;
     right: 75% ; }
-  .smalls\@pull_one_third {
+  .smalls\@pull_one-third {
     position: relative;
     right: 33.33333% ; }
-  .smalls\@pull_two_thirds {
+  .smalls\@pull_two-thirds {
     position: relative;
     right: 66.66667% ; }
-  .smalls\@pull_one_half {
+  .smalls\@pull_one-half {
     position: relative;
     right: 50% ; } }
 
 @media only screen and (max-width: 43.125em) {
-  .small\@pull_one_whole {
+  .small\@pull_one-whole {
     right: 100% ; }
-  .small\@pull_one_twelfth {
+  .small\@pull_one-twelfth {
     position: relative;
     right: 8.33333% ; }
-  .small\@pull_two_twelfths {
+  .small\@pull_two-twelfths {
     position: relative;
     right: 16.66667% ; }
-  .small\@pull_three_twelfths {
+  .small\@pull_three-twelfths {
     position: relative;
     right: 25% ; }
-  .small\@pull_four_twelfths {
+  .small\@pull_four-twelfths {
     position: relative;
     right: 33.33333% ; }
-  .small\@pull_five_twelfths {
+  .small\@pull_five-twelfths {
     position: relative;
     right: 41.66667% ; }
-  .small\@pull_six_twelfths {
+  .small\@pull_six-twelfths {
     position: relative;
     right: 50% ; }
-  .small\@pull_seven_twelfths {
+  .small\@pull_seven-twelfths {
     position: relative;
     right: 58.33333% ; }
-  .small\@pull_eight_twelfths {
+  .small\@pull_eight-twelfths {
     position: relative;
     right: 66.66667% ; }
-  .small\@pull_nine_twelfths {
+  .small\@pull_nine-twelfths {
     position: relative;
     right: 75% ; }
-  .small\@pull_ten_twelfths {
+  .small\@pull_ten-twelfths {
     position: relative;
     right: 83.33333% ; }
-  .small\@pull_eleven_twelfths {
+  .small\@pull_eleven-twelfths {
     position: relative;
     right: 91.66667% ; }
-  .small\@pull_one_eleventh {
+  .small\@pull_one-eleventh {
     position: relative;
     right: 9.09091% ; }
-  .small\@pull_two_elevenths {
+  .small\@pull_two-elevenths {
     position: relative;
     right: 18.18182% ; }
-  .small\@pull_three_elevenths {
+  .small\@pull_three-elevenths {
     position: relative;
     right: 27.27273% ; }
-  .small\@pull_four_elevenths {
+  .small\@pull_four-elevenths {
     position: relative;
     right: 36.36364% ; }
-  .small\@pull_five_elevenths {
+  .small\@pull_five-elevenths {
     position: relative;
     right: 45.45455% ; }
-  .small\@pull_six_elevenths {
+  .small\@pull_six-elevenths {
     position: relative;
     right: 54.54545% ; }
-  .small\@pull_seven_elevenths {
+  .small\@pull_seven-elevenths {
     position: relative;
     right: 63.63636% ; }
-  .small\@pull_eight_elevenths {
+  .small\@pull_eight-elevenths {
     position: relative;
     right: 72.72727% ; }
-  .small\@pull_nine_elevenths {
+  .small\@pull_nine-elevenths {
     position: relative;
     right: 81.81818% ; }
-  .small\@pull_ten_elevenths {
+  .small\@pull_ten-elevenths {
     position: relative;
     right: 90.90909% ; }
-  .small\@pull_one_tenth {
+  .small\@pull_one-tenth {
     position: relative;
     right: 10% ; }
-  .small\@pull_two_tenths {
+  .small\@pull_two-tenths {
     position: relative;
     right: 20% ; }
-  .small\@pull_three_tenths {
+  .small\@pull_three-tenths {
     position: relative;
     right: 30% ; }
-  .small\@pull_four_tenths {
+  .small\@pull_four-tenths {
     position: relative;
     right: 40% ; }
-  .small\@pull_five_tenths {
+  .small\@pull_five-tenths {
     position: relative;
     right: 50% ; }
-  .small\@pull_six_tenths {
+  .small\@pull_six-tenths {
     position: relative;
     right: 60% ; }
-  .small\@pull_seven_tenths {
+  .small\@pull_seven-tenths {
     position: relative;
     right: 70% ; }
-  .small\@pull_eight_tenths {
+  .small\@pull_eight-tenths {
     position: relative;
     right: 80% ; }
-  .small\@pull_nine_tenths {
+  .small\@pull_nine-tenths {
     position: relative;
     right: 90% ; }
-  .small\@pull_one_ninth {
+  .small\@pull_one-ninth {
     position: relative;
     right: 11.11111% ; }
-  .small\@pull_two_ninths {
+  .small\@pull_two-ninths {
     position: relative;
     right: 22.22222% ; }
-  .small\@pull_three_ninths {
+  .small\@pull_three-ninths {
     position: relative;
     right: 33.33333% ; }
-  .small\@pull_four_ninths {
+  .small\@pull_four-ninths {
     position: relative;
     right: 44.44444% ; }
-  .small\@pull_five_ninths {
+  .small\@pull_five-ninths {
     position: relative;
     right: 55.55556% ; }
-  .small\@pull_six_ninths {
+  .small\@pull_six-ninths {
     position: relative;
     right: 66.66667% ; }
-  .small\@pull_seven_ninths {
+  .small\@pull_seven-ninths {
     position: relative;
     right: 77.77778% ; }
-  .small\@pull_eight_ninths {
+  .small\@pull_eight-ninths {
     position: relative;
     right: 88.88889% ; }
-  .small\@pull_one_eighth {
+  .small\@pull_one-eighth {
     position: relative;
     right: 12.5% ; }
-  .small\@pull_two_eighths {
+  .small\@pull_two-eighths {
     position: relative;
     right: 25% ; }
-  .small\@pull_three_eighths {
+  .small\@pull_three-eighths {
     position: relative;
     right: 37.5% ; }
-  .small\@pull_four_eighths {
+  .small\@pull_four-eighths {
     position: relative;
     right: 50% ; }
-  .small\@pull_five_eighths {
+  .small\@pull_five-eighths {
     position: relative;
     right: 62.5% ; }
-  .small\@pull_six_eighths {
+  .small\@pull_six-eighths {
     position: relative;
     right: 75% ; }
-  .small\@pull_seven_eighths {
+  .small\@pull_seven-eighths {
     position: relative;
     right: 87.5% ; }
-  .small\@pull_one_seventh {
+  .small\@pull_one-seventh {
     position: relative;
     right: 14.28571% ; }
-  .small\@pull_two_sevenths {
+  .small\@pull_two-sevenths {
     position: relative;
     right: 28.57143% ; }
-  .small\@pull_three_sevenths {
+  .small\@pull_three-sevenths {
     position: relative;
     right: 42.85714% ; }
-  .small\@pull_four_sevenths {
+  .small\@pull_four-sevenths {
     position: relative;
     right: 57.14286% ; }
-  .small\@pull_five_sevenths {
+  .small\@pull_five-sevenths {
     position: relative;
     right: 71.42857% ; }
-  .small\@pull_six_sevenths {
+  .small\@pull_six-sevenths {
     position: relative;
     right: 85.71429% ; }
-  .small\@pull_one_sixth {
+  .small\@pull_one-sixth {
     position: relative;
     right: 16.66667% ; }
-  .small\@pull_two_sixths {
+  .small\@pull_two-sixths {
     position: relative;
     right: 33.33333% ; }
-  .small\@pull_three_sixths {
+  .small\@pull_three-sixths {
     position: relative;
     right: 50% ; }
-  .small\@pull_four_sixths {
+  .small\@pull_four-sixths {
     position: relative;
     right: 66.66667% ; }
-  .small\@pull_five_sixths {
+  .small\@pull_five-sixths {
     position: relative;
     right: 83.33333% ; }
-  .small\@pull_one_fifth {
+  .small\@pull_one-fifth {
     position: relative;
     right: 20% ; }
-  .small\@pull_two_fifths {
+  .small\@pull_two-fifths {
     position: relative;
     right: 40% ; }
-  .small\@pull_three_fifths {
+  .small\@pull_three-fifths {
     position: relative;
     right: 60% ; }
-  .small\@pull_four_fifths {
+  .small\@pull_four-fifths {
     position: relative;
     right: 80% ; }
-  .small\@pull_one_quarter, .small\@pull_one_fourth {
+  .small\@pull_one-quarter, .small\@pull_one-fourth {
     position: relative;
     right: 25% ; }
-  .small\@pull_two_quarters, .small\@pull_two_fourths {
+  .small\@pull_two-quarters, .small\@pull_two-fourths {
     position: relative;
     right: 50% ; }
-  .small\@pull_three_quarters, .small\@pull_three_fourths {
+  .small\@pull_three-quarters, .small\@pull_three-fourths {
     position: relative;
     right: 75% ; }
-  .small\@pull_one_third {
+  .small\@pull_one-third {
     position: relative;
     right: 33.33333% ; }
-  .small\@pull_two_thirds {
+  .small\@pull_two-thirds {
     position: relative;
     right: 66.66667% ; }
-  .small\@pull_one_half {
+  .small\@pull_one-half {
     position: relative;
     right: 50% ; } }
 
 @media only screen and (min-width: 43.1875em) and (max-width: 56.875em) {
-  .smallish\@pull_one_whole {
+  .smallish\@pull_one-whole {
     right: 100% ; }
-  .smallish\@pull_one_twelfth {
+  .smallish\@pull_one-twelfth {
     position: relative;
     right: 8.33333% ; }
-  .smallish\@pull_two_twelfths {
+  .smallish\@pull_two-twelfths {
     position: relative;
     right: 16.66667% ; }
-  .smallish\@pull_three_twelfths {
+  .smallish\@pull_three-twelfths {
     position: relative;
     right: 25% ; }
-  .smallish\@pull_four_twelfths {
+  .smallish\@pull_four-twelfths {
     position: relative;
     right: 33.33333% ; }
-  .smallish\@pull_five_twelfths {
+  .smallish\@pull_five-twelfths {
     position: relative;
     right: 41.66667% ; }
-  .smallish\@pull_six_twelfths {
+  .smallish\@pull_six-twelfths {
     position: relative;
     right: 50% ; }
-  .smallish\@pull_seven_twelfths {
+  .smallish\@pull_seven-twelfths {
     position: relative;
     right: 58.33333% ; }
-  .smallish\@pull_eight_twelfths {
+  .smallish\@pull_eight-twelfths {
     position: relative;
     right: 66.66667% ; }
-  .smallish\@pull_nine_twelfths {
+  .smallish\@pull_nine-twelfths {
     position: relative;
     right: 75% ; }
-  .smallish\@pull_ten_twelfths {
+  .smallish\@pull_ten-twelfths {
     position: relative;
     right: 83.33333% ; }
-  .smallish\@pull_eleven_twelfths {
+  .smallish\@pull_eleven-twelfths {
     position: relative;
     right: 91.66667% ; }
-  .smallish\@pull_one_eleventh {
+  .smallish\@pull_one-eleventh {
     position: relative;
     right: 9.09091% ; }
-  .smallish\@pull_two_elevenths {
+  .smallish\@pull_two-elevenths {
     position: relative;
     right: 18.18182% ; }
-  .smallish\@pull_three_elevenths {
+  .smallish\@pull_three-elevenths {
     position: relative;
     right: 27.27273% ; }
-  .smallish\@pull_four_elevenths {
+  .smallish\@pull_four-elevenths {
     position: relative;
     right: 36.36364% ; }
-  .smallish\@pull_five_elevenths {
+  .smallish\@pull_five-elevenths {
     position: relative;
     right: 45.45455% ; }
-  .smallish\@pull_six_elevenths {
+  .smallish\@pull_six-elevenths {
     position: relative;
     right: 54.54545% ; }
-  .smallish\@pull_seven_elevenths {
+  .smallish\@pull_seven-elevenths {
     position: relative;
     right: 63.63636% ; }
-  .smallish\@pull_eight_elevenths {
+  .smallish\@pull_eight-elevenths {
     position: relative;
     right: 72.72727% ; }
-  .smallish\@pull_nine_elevenths {
+  .smallish\@pull_nine-elevenths {
     position: relative;
     right: 81.81818% ; }
-  .smallish\@pull_ten_elevenths {
+  .smallish\@pull_ten-elevenths {
     position: relative;
     right: 90.90909% ; }
-  .smallish\@pull_one_tenth {
+  .smallish\@pull_one-tenth {
     position: relative;
     right: 10% ; }
-  .smallish\@pull_two_tenths {
+  .smallish\@pull_two-tenths {
     position: relative;
     right: 20% ; }
-  .smallish\@pull_three_tenths {
+  .smallish\@pull_three-tenths {
     position: relative;
     right: 30% ; }
-  .smallish\@pull_four_tenths {
+  .smallish\@pull_four-tenths {
     position: relative;
     right: 40% ; }
-  .smallish\@pull_five_tenths {
+  .smallish\@pull_five-tenths {
     position: relative;
     right: 50% ; }
-  .smallish\@pull_six_tenths {
+  .smallish\@pull_six-tenths {
     position: relative;
     right: 60% ; }
-  .smallish\@pull_seven_tenths {
+  .smallish\@pull_seven-tenths {
     position: relative;
     right: 70% ; }
-  .smallish\@pull_eight_tenths {
+  .smallish\@pull_eight-tenths {
     position: relative;
     right: 80% ; }
-  .smallish\@pull_nine_tenths {
+  .smallish\@pull_nine-tenths {
     position: relative;
     right: 90% ; }
-  .smallish\@pull_one_ninth {
+  .smallish\@pull_one-ninth {
     position: relative;
     right: 11.11111% ; }
-  .smallish\@pull_two_ninths {
+  .smallish\@pull_two-ninths {
     position: relative;
     right: 22.22222% ; }
-  .smallish\@pull_three_ninths {
+  .smallish\@pull_three-ninths {
     position: relative;
     right: 33.33333% ; }
-  .smallish\@pull_four_ninths {
+  .smallish\@pull_four-ninths {
     position: relative;
     right: 44.44444% ; }
-  .smallish\@pull_five_ninths {
+  .smallish\@pull_five-ninths {
     position: relative;
     right: 55.55556% ; }
-  .smallish\@pull_six_ninths {
+  .smallish\@pull_six-ninths {
     position: relative;
     right: 66.66667% ; }
-  .smallish\@pull_seven_ninths {
+  .smallish\@pull_seven-ninths {
     position: relative;
     right: 77.77778% ; }
-  .smallish\@pull_eight_ninths {
+  .smallish\@pull_eight-ninths {
     position: relative;
     right: 88.88889% ; }
-  .smallish\@pull_one_eighth {
+  .smallish\@pull_one-eighth {
     position: relative;
     right: 12.5% ; }
-  .smallish\@pull_two_eighths {
+  .smallish\@pull_two-eighths {
     position: relative;
     right: 25% ; }
-  .smallish\@pull_three_eighths {
+  .smallish\@pull_three-eighths {
     position: relative;
     right: 37.5% ; }
-  .smallish\@pull_four_eighths {
+  .smallish\@pull_four-eighths {
     position: relative;
     right: 50% ; }
-  .smallish\@pull_five_eighths {
+  .smallish\@pull_five-eighths {
     position: relative;
     right: 62.5% ; }
-  .smallish\@pull_six_eighths {
+  .smallish\@pull_six-eighths {
     position: relative;
     right: 75% ; }
-  .smallish\@pull_seven_eighths {
+  .smallish\@pull_seven-eighths {
     position: relative;
     right: 87.5% ; }
-  .smallish\@pull_one_seventh {
+  .smallish\@pull_one-seventh {
     position: relative;
     right: 14.28571% ; }
-  .smallish\@pull_two_sevenths {
+  .smallish\@pull_two-sevenths {
     position: relative;
     right: 28.57143% ; }
-  .smallish\@pull_three_sevenths {
+  .smallish\@pull_three-sevenths {
     position: relative;
     right: 42.85714% ; }
-  .smallish\@pull_four_sevenths {
+  .smallish\@pull_four-sevenths {
     position: relative;
     right: 57.14286% ; }
-  .smallish\@pull_five_sevenths {
+  .smallish\@pull_five-sevenths {
     position: relative;
     right: 71.42857% ; }
-  .smallish\@pull_six_sevenths {
+  .smallish\@pull_six-sevenths {
     position: relative;
     right: 85.71429% ; }
-  .smallish\@pull_one_sixth {
+  .smallish\@pull_one-sixth {
     position: relative;
     right: 16.66667% ; }
-  .smallish\@pull_two_sixths {
+  .smallish\@pull_two-sixths {
     position: relative;
     right: 33.33333% ; }
-  .smallish\@pull_three_sixths {
+  .smallish\@pull_three-sixths {
     position: relative;
     right: 50% ; }
-  .smallish\@pull_four_sixths {
+  .smallish\@pull_four-sixths {
     position: relative;
     right: 66.66667% ; }
-  .smallish\@pull_five_sixths {
+  .smallish\@pull_five-sixths {
     position: relative;
     right: 83.33333% ; }
-  .smallish\@pull_one_fifth {
+  .smallish\@pull_one-fifth {
     position: relative;
     right: 20% ; }
-  .smallish\@pull_two_fifths {
+  .smallish\@pull_two-fifths {
     position: relative;
     right: 40% ; }
-  .smallish\@pull_three_fifths {
+  .smallish\@pull_three-fifths {
     position: relative;
     right: 60% ; }
-  .smallish\@pull_four_fifths {
+  .smallish\@pull_four-fifths {
     position: relative;
     right: 80% ; }
-  .smallish\@pull_one_quarter, .smallish\@pull_one_fourth {
+  .smallish\@pull_one-quarter, .smallish\@pull_one-fourth {
     position: relative;
     right: 25% ; }
-  .smallish\@pull_two_quarters, .smallish\@pull_two_fourths {
+  .smallish\@pull_two-quarters, .smallish\@pull_two-fourths {
     position: relative;
     right: 50% ; }
-  .smallish\@pull_three_quarters, .smallish\@pull_three_fourths {
+  .smallish\@pull_three-quarters, .smallish\@pull_three-fourths {
     position: relative;
     right: 75% ; }
-  .smallish\@pull_one_third {
+  .smallish\@pull_one-third {
     position: relative;
     right: 33.33333% ; }
-  .smallish\@pull_two_thirds {
+  .smallish\@pull_two-thirds {
     position: relative;
     right: 66.66667% ; }
-  .smallish\@pull_one_half {
+  .smallish\@pull_one-half {
     position: relative;
     right: 50% ; } }
 
 @media only screen and (min-width: 56.9375em) {
-  .bigs\@pull_one_whole {
+  .bigs\@pull_one-whole {
     right: 100% ; }
-  .bigs\@pull_one_twelfth {
+  .bigs\@pull_one-twelfth {
     position: relative;
     right: 8.33333% ; }
-  .bigs\@pull_two_twelfths {
+  .bigs\@pull_two-twelfths {
     position: relative;
     right: 16.66667% ; }
-  .bigs\@pull_three_twelfths {
+  .bigs\@pull_three-twelfths {
     position: relative;
     right: 25% ; }
-  .bigs\@pull_four_twelfths {
+  .bigs\@pull_four-twelfths {
     position: relative;
     right: 33.33333% ; }
-  .bigs\@pull_five_twelfths {
+  .bigs\@pull_five-twelfths {
     position: relative;
     right: 41.66667% ; }
-  .bigs\@pull_six_twelfths {
+  .bigs\@pull_six-twelfths {
     position: relative;
     right: 50% ; }
-  .bigs\@pull_seven_twelfths {
+  .bigs\@pull_seven-twelfths {
     position: relative;
     right: 58.33333% ; }
-  .bigs\@pull_eight_twelfths {
+  .bigs\@pull_eight-twelfths {
     position: relative;
     right: 66.66667% ; }
-  .bigs\@pull_nine_twelfths {
+  .bigs\@pull_nine-twelfths {
     position: relative;
     right: 75% ; }
-  .bigs\@pull_ten_twelfths {
+  .bigs\@pull_ten-twelfths {
     position: relative;
     right: 83.33333% ; }
-  .bigs\@pull_eleven_twelfths {
+  .bigs\@pull_eleven-twelfths {
     position: relative;
     right: 91.66667% ; }
-  .bigs\@pull_one_eleventh {
+  .bigs\@pull_one-eleventh {
     position: relative;
     right: 9.09091% ; }
-  .bigs\@pull_two_elevenths {
+  .bigs\@pull_two-elevenths {
     position: relative;
     right: 18.18182% ; }
-  .bigs\@pull_three_elevenths {
+  .bigs\@pull_three-elevenths {
     position: relative;
     right: 27.27273% ; }
-  .bigs\@pull_four_elevenths {
+  .bigs\@pull_four-elevenths {
     position: relative;
     right: 36.36364% ; }
-  .bigs\@pull_five_elevenths {
+  .bigs\@pull_five-elevenths {
     position: relative;
     right: 45.45455% ; }
-  .bigs\@pull_six_elevenths {
+  .bigs\@pull_six-elevenths {
     position: relative;
     right: 54.54545% ; }
-  .bigs\@pull_seven_elevenths {
+  .bigs\@pull_seven-elevenths {
     position: relative;
     right: 63.63636% ; }
-  .bigs\@pull_eight_elevenths {
+  .bigs\@pull_eight-elevenths {
     position: relative;
     right: 72.72727% ; }
-  .bigs\@pull_nine_elevenths {
+  .bigs\@pull_nine-elevenths {
     position: relative;
     right: 81.81818% ; }
-  .bigs\@pull_ten_elevenths {
+  .bigs\@pull_ten-elevenths {
     position: relative;
     right: 90.90909% ; }
-  .bigs\@pull_one_tenth {
+  .bigs\@pull_one-tenth {
     position: relative;
     right: 10% ; }
-  .bigs\@pull_two_tenths {
+  .bigs\@pull_two-tenths {
     position: relative;
     right: 20% ; }
-  .bigs\@pull_three_tenths {
+  .bigs\@pull_three-tenths {
     position: relative;
     right: 30% ; }
-  .bigs\@pull_four_tenths {
+  .bigs\@pull_four-tenths {
     position: relative;
     right: 40% ; }
-  .bigs\@pull_five_tenths {
+  .bigs\@pull_five-tenths {
     position: relative;
     right: 50% ; }
-  .bigs\@pull_six_tenths {
+  .bigs\@pull_six-tenths {
     position: relative;
     right: 60% ; }
-  .bigs\@pull_seven_tenths {
+  .bigs\@pull_seven-tenths {
     position: relative;
     right: 70% ; }
-  .bigs\@pull_eight_tenths {
+  .bigs\@pull_eight-tenths {
     position: relative;
     right: 80% ; }
-  .bigs\@pull_nine_tenths {
+  .bigs\@pull_nine-tenths {
     position: relative;
     right: 90% ; }
-  .bigs\@pull_one_ninth {
+  .bigs\@pull_one-ninth {
     position: relative;
     right: 11.11111% ; }
-  .bigs\@pull_two_ninths {
+  .bigs\@pull_two-ninths {
     position: relative;
     right: 22.22222% ; }
-  .bigs\@pull_three_ninths {
+  .bigs\@pull_three-ninths {
     position: relative;
     right: 33.33333% ; }
-  .bigs\@pull_four_ninths {
+  .bigs\@pull_four-ninths {
     position: relative;
     right: 44.44444% ; }
-  .bigs\@pull_five_ninths {
+  .bigs\@pull_five-ninths {
     position: relative;
     right: 55.55556% ; }
-  .bigs\@pull_six_ninths {
+  .bigs\@pull_six-ninths {
     position: relative;
     right: 66.66667% ; }
-  .bigs\@pull_seven_ninths {
+  .bigs\@pull_seven-ninths {
     position: relative;
     right: 77.77778% ; }
-  .bigs\@pull_eight_ninths {
+  .bigs\@pull_eight-ninths {
     position: relative;
     right: 88.88889% ; }
-  .bigs\@pull_one_eighth {
+  .bigs\@pull_one-eighth {
     position: relative;
     right: 12.5% ; }
-  .bigs\@pull_two_eighths {
+  .bigs\@pull_two-eighths {
     position: relative;
     right: 25% ; }
-  .bigs\@pull_three_eighths {
+  .bigs\@pull_three-eighths {
     position: relative;
     right: 37.5% ; }
-  .bigs\@pull_four_eighths {
+  .bigs\@pull_four-eighths {
     position: relative;
     right: 50% ; }
-  .bigs\@pull_five_eighths {
+  .bigs\@pull_five-eighths {
     position: relative;
     right: 62.5% ; }
-  .bigs\@pull_six_eighths {
+  .bigs\@pull_six-eighths {
     position: relative;
     right: 75% ; }
-  .bigs\@pull_seven_eighths {
+  .bigs\@pull_seven-eighths {
     position: relative;
     right: 87.5% ; }
-  .bigs\@pull_one_seventh {
+  .bigs\@pull_one-seventh {
     position: relative;
     right: 14.28571% ; }
-  .bigs\@pull_two_sevenths {
+  .bigs\@pull_two-sevenths {
     position: relative;
     right: 28.57143% ; }
-  .bigs\@pull_three_sevenths {
+  .bigs\@pull_three-sevenths {
     position: relative;
     right: 42.85714% ; }
-  .bigs\@pull_four_sevenths {
+  .bigs\@pull_four-sevenths {
     position: relative;
     right: 57.14286% ; }
-  .bigs\@pull_five_sevenths {
+  .bigs\@pull_five-sevenths {
     position: relative;
     right: 71.42857% ; }
-  .bigs\@pull_six_sevenths {
+  .bigs\@pull_six-sevenths {
     position: relative;
     right: 85.71429% ; }
-  .bigs\@pull_one_sixth {
+  .bigs\@pull_one-sixth {
     position: relative;
     right: 16.66667% ; }
-  .bigs\@pull_two_sixths {
+  .bigs\@pull_two-sixths {
     position: relative;
     right: 33.33333% ; }
-  .bigs\@pull_three_sixths {
+  .bigs\@pull_three-sixths {
     position: relative;
     right: 50% ; }
-  .bigs\@pull_four_sixths {
+  .bigs\@pull_four-sixths {
     position: relative;
     right: 66.66667% ; }
-  .bigs\@pull_five_sixths {
+  .bigs\@pull_five-sixths {
     position: relative;
     right: 83.33333% ; }
-  .bigs\@pull_one_fifth {
+  .bigs\@pull_one-fifth {
     position: relative;
     right: 20% ; }
-  .bigs\@pull_two_fifths {
+  .bigs\@pull_two-fifths {
     position: relative;
     right: 40% ; }
-  .bigs\@pull_three_fifths {
+  .bigs\@pull_three-fifths {
     position: relative;
     right: 60% ; }
-  .bigs\@pull_four_fifths {
+  .bigs\@pull_four-fifths {
     position: relative;
     right: 80% ; }
-  .bigs\@pull_one_quarter, .bigs\@pull_one_fourth {
+  .bigs\@pull_one-quarter, .bigs\@pull_one-fourth {
     position: relative;
     right: 25% ; }
-  .bigs\@pull_two_quarters, .bigs\@pull_two_fourths {
+  .bigs\@pull_two-quarters, .bigs\@pull_two-fourths {
     position: relative;
     right: 50% ; }
-  .bigs\@pull_three_quarters, .bigs\@pull_three_fourths {
+  .bigs\@pull_three-quarters, .bigs\@pull_three-fourths {
     position: relative;
     right: 75% ; }
-  .bigs\@pull_one_third {
+  .bigs\@pull_one-third {
     position: relative;
     right: 33.33333% ; }
-  .bigs\@pull_two_thirds {
+  .bigs\@pull_two-thirds {
     position: relative;
     right: 66.66667% ; }
-  .bigs\@pull_one_half {
+  .bigs\@pull_one-half {
     position: relative;
     right: 50% ; } }
 
 @media only screen and (min-width: 56.9375em) and (max-width: 85em) {
-  .lap\@pull_one_whole {
+  .lap\@pull_one-whole {
     right: 100% ; }
-  .lap\@pull_one_twelfth {
+  .lap\@pull_one-twelfth {
     position: relative;
     right: 8.33333% ; }
-  .lap\@pull_two_twelfths {
+  .lap\@pull_two-twelfths {
     position: relative;
     right: 16.66667% ; }
-  .lap\@pull_three_twelfths {
+  .lap\@pull_three-twelfths {
     position: relative;
     right: 25% ; }
-  .lap\@pull_four_twelfths {
+  .lap\@pull_four-twelfths {
     position: relative;
     right: 33.33333% ; }
-  .lap\@pull_five_twelfths {
+  .lap\@pull_five-twelfths {
     position: relative;
     right: 41.66667% ; }
-  .lap\@pull_six_twelfths {
+  .lap\@pull_six-twelfths {
     position: relative;
     right: 50% ; }
-  .lap\@pull_seven_twelfths {
+  .lap\@pull_seven-twelfths {
     position: relative;
     right: 58.33333% ; }
-  .lap\@pull_eight_twelfths {
+  .lap\@pull_eight-twelfths {
     position: relative;
     right: 66.66667% ; }
-  .lap\@pull_nine_twelfths {
+  .lap\@pull_nine-twelfths {
     position: relative;
     right: 75% ; }
-  .lap\@pull_ten_twelfths {
+  .lap\@pull_ten-twelfths {
     position: relative;
     right: 83.33333% ; }
-  .lap\@pull_eleven_twelfths {
+  .lap\@pull_eleven-twelfths {
     position: relative;
     right: 91.66667% ; }
-  .lap\@pull_one_eleventh {
+  .lap\@pull_one-eleventh {
     position: relative;
     right: 9.09091% ; }
-  .lap\@pull_two_elevenths {
+  .lap\@pull_two-elevenths {
     position: relative;
     right: 18.18182% ; }
-  .lap\@pull_three_elevenths {
+  .lap\@pull_three-elevenths {
     position: relative;
     right: 27.27273% ; }
-  .lap\@pull_four_elevenths {
+  .lap\@pull_four-elevenths {
     position: relative;
     right: 36.36364% ; }
-  .lap\@pull_five_elevenths {
+  .lap\@pull_five-elevenths {
     position: relative;
     right: 45.45455% ; }
-  .lap\@pull_six_elevenths {
+  .lap\@pull_six-elevenths {
     position: relative;
     right: 54.54545% ; }
-  .lap\@pull_seven_elevenths {
+  .lap\@pull_seven-elevenths {
     position: relative;
     right: 63.63636% ; }
-  .lap\@pull_eight_elevenths {
+  .lap\@pull_eight-elevenths {
     position: relative;
     right: 72.72727% ; }
-  .lap\@pull_nine_elevenths {
+  .lap\@pull_nine-elevenths {
     position: relative;
     right: 81.81818% ; }
-  .lap\@pull_ten_elevenths {
+  .lap\@pull_ten-elevenths {
     position: relative;
     right: 90.90909% ; }
-  .lap\@pull_one_tenth {
+  .lap\@pull_one-tenth {
     position: relative;
     right: 10% ; }
-  .lap\@pull_two_tenths {
+  .lap\@pull_two-tenths {
     position: relative;
     right: 20% ; }
-  .lap\@pull_three_tenths {
+  .lap\@pull_three-tenths {
     position: relative;
     right: 30% ; }
-  .lap\@pull_four_tenths {
+  .lap\@pull_four-tenths {
     position: relative;
     right: 40% ; }
-  .lap\@pull_five_tenths {
+  .lap\@pull_five-tenths {
     position: relative;
     right: 50% ; }
-  .lap\@pull_six_tenths {
+  .lap\@pull_six-tenths {
     position: relative;
     right: 60% ; }
-  .lap\@pull_seven_tenths {
+  .lap\@pull_seven-tenths {
     position: relative;
     right: 70% ; }
-  .lap\@pull_eight_tenths {
+  .lap\@pull_eight-tenths {
     position: relative;
     right: 80% ; }
-  .lap\@pull_nine_tenths {
+  .lap\@pull_nine-tenths {
     position: relative;
     right: 90% ; }
-  .lap\@pull_one_ninth {
+  .lap\@pull_one-ninth {
     position: relative;
     right: 11.11111% ; }
-  .lap\@pull_two_ninths {
+  .lap\@pull_two-ninths {
     position: relative;
     right: 22.22222% ; }
-  .lap\@pull_three_ninths {
+  .lap\@pull_three-ninths {
     position: relative;
     right: 33.33333% ; }
-  .lap\@pull_four_ninths {
+  .lap\@pull_four-ninths {
     position: relative;
     right: 44.44444% ; }
-  .lap\@pull_five_ninths {
+  .lap\@pull_five-ninths {
     position: relative;
     right: 55.55556% ; }
-  .lap\@pull_six_ninths {
+  .lap\@pull_six-ninths {
     position: relative;
     right: 66.66667% ; }
-  .lap\@pull_seven_ninths {
+  .lap\@pull_seven-ninths {
     position: relative;
     right: 77.77778% ; }
-  .lap\@pull_eight_ninths {
+  .lap\@pull_eight-ninths {
     position: relative;
     right: 88.88889% ; }
-  .lap\@pull_one_eighth {
+  .lap\@pull_one-eighth {
     position: relative;
     right: 12.5% ; }
-  .lap\@pull_two_eighths {
+  .lap\@pull_two-eighths {
     position: relative;
     right: 25% ; }
-  .lap\@pull_three_eighths {
+  .lap\@pull_three-eighths {
     position: relative;
     right: 37.5% ; }
-  .lap\@pull_four_eighths {
+  .lap\@pull_four-eighths {
     position: relative;
     right: 50% ; }
-  .lap\@pull_five_eighths {
+  .lap\@pull_five-eighths {
     position: relative;
     right: 62.5% ; }
-  .lap\@pull_six_eighths {
+  .lap\@pull_six-eighths {
     position: relative;
     right: 75% ; }
-  .lap\@pull_seven_eighths {
+  .lap\@pull_seven-eighths {
     position: relative;
     right: 87.5% ; }
-  .lap\@pull_one_seventh {
+  .lap\@pull_one-seventh {
     position: relative;
     right: 14.28571% ; }
-  .lap\@pull_two_sevenths {
+  .lap\@pull_two-sevenths {
     position: relative;
     right: 28.57143% ; }
-  .lap\@pull_three_sevenths {
+  .lap\@pull_three-sevenths {
     position: relative;
     right: 42.85714% ; }
-  .lap\@pull_four_sevenths {
+  .lap\@pull_four-sevenths {
     position: relative;
     right: 57.14286% ; }
-  .lap\@pull_five_sevenths {
+  .lap\@pull_five-sevenths {
     position: relative;
     right: 71.42857% ; }
-  .lap\@pull_six_sevenths {
+  .lap\@pull_six-sevenths {
     position: relative;
     right: 85.71429% ; }
-  .lap\@pull_one_sixth {
+  .lap\@pull_one-sixth {
     position: relative;
     right: 16.66667% ; }
-  .lap\@pull_two_sixths {
+  .lap\@pull_two-sixths {
     position: relative;
     right: 33.33333% ; }
-  .lap\@pull_three_sixths {
+  .lap\@pull_three-sixths {
     position: relative;
     right: 50% ; }
-  .lap\@pull_four_sixths {
+  .lap\@pull_four-sixths {
     position: relative;
     right: 66.66667% ; }
-  .lap\@pull_five_sixths {
+  .lap\@pull_five-sixths {
     position: relative;
     right: 83.33333% ; }
-  .lap\@pull_one_fifth {
+  .lap\@pull_one-fifth {
     position: relative;
     right: 20% ; }
-  .lap\@pull_two_fifths {
+  .lap\@pull_two-fifths {
     position: relative;
     right: 40% ; }
-  .lap\@pull_three_fifths {
+  .lap\@pull_three-fifths {
     position: relative;
     right: 60% ; }
-  .lap\@pull_four_fifths {
+  .lap\@pull_four-fifths {
     position: relative;
     right: 80% ; }
-  .lap\@pull_one_quarter, .lap\@pull_one_fourth {
+  .lap\@pull_one-quarter, .lap\@pull_one-fourth {
     position: relative;
     right: 25% ; }
-  .lap\@pull_two_quarters, .lap\@pull_two_fourths {
+  .lap\@pull_two-quarters, .lap\@pull_two-fourths {
     position: relative;
     right: 50% ; }
-  .lap\@pull_three_quarters, .lap\@pull_three_fourths {
+  .lap\@pull_three-quarters, .lap\@pull_three-fourths {
     position: relative;
     right: 75% ; }
-  .lap\@pull_one_third {
+  .lap\@pull_one-third {
     position: relative;
     right: 33.33333% ; }
-  .lap\@pull_two_thirds {
+  .lap\@pull_two-thirds {
     position: relative;
     right: 66.66667% ; }
-  .lap\@pull_one_half {
+  .lap\@pull_one-half {
     position: relative;
     right: 50% ; } }
 
 @media only screen and (min-width: 85em) {
-  .desk\@pull_one_whole {
+  .desk\@pull_one-whole {
     right: 100% ; }
-  .desk\@pull_one_twelfth {
+  .desk\@pull_one-twelfth {
     position: relative;
     right: 8.33333% ; }
-  .desk\@pull_two_twelfths {
+  .desk\@pull_two-twelfths {
     position: relative;
     right: 16.66667% ; }
-  .desk\@pull_three_twelfths {
+  .desk\@pull_three-twelfths {
     position: relative;
     right: 25% ; }
-  .desk\@pull_four_twelfths {
+  .desk\@pull_four-twelfths {
     position: relative;
     right: 33.33333% ; }
-  .desk\@pull_five_twelfths {
+  .desk\@pull_five-twelfths {
     position: relative;
     right: 41.66667% ; }
-  .desk\@pull_six_twelfths {
+  .desk\@pull_six-twelfths {
     position: relative;
     right: 50% ; }
-  .desk\@pull_seven_twelfths {
+  .desk\@pull_seven-twelfths {
     position: relative;
     right: 58.33333% ; }
-  .desk\@pull_eight_twelfths {
+  .desk\@pull_eight-twelfths {
     position: relative;
     right: 66.66667% ; }
-  .desk\@pull_nine_twelfths {
+  .desk\@pull_nine-twelfths {
     position: relative;
     right: 75% ; }
-  .desk\@pull_ten_twelfths {
+  .desk\@pull_ten-twelfths {
     position: relative;
     right: 83.33333% ; }
-  .desk\@pull_eleven_twelfths {
+  .desk\@pull_eleven-twelfths {
     position: relative;
     right: 91.66667% ; }
-  .desk\@pull_one_eleventh {
+  .desk\@pull_one-eleventh {
     position: relative;
     right: 9.09091% ; }
-  .desk\@pull_two_elevenths {
+  .desk\@pull_two-elevenths {
     position: relative;
     right: 18.18182% ; }
-  .desk\@pull_three_elevenths {
+  .desk\@pull_three-elevenths {
     position: relative;
     right: 27.27273% ; }
-  .desk\@pull_four_elevenths {
+  .desk\@pull_four-elevenths {
     position: relative;
     right: 36.36364% ; }
-  .desk\@pull_five_elevenths {
+  .desk\@pull_five-elevenths {
     position: relative;
     right: 45.45455% ; }
-  .desk\@pull_six_elevenths {
+  .desk\@pull_six-elevenths {
     position: relative;
     right: 54.54545% ; }
-  .desk\@pull_seven_elevenths {
+  .desk\@pull_seven-elevenths {
     position: relative;
     right: 63.63636% ; }
-  .desk\@pull_eight_elevenths {
+  .desk\@pull_eight-elevenths {
     position: relative;
     right: 72.72727% ; }
-  .desk\@pull_nine_elevenths {
+  .desk\@pull_nine-elevenths {
     position: relative;
     right: 81.81818% ; }
-  .desk\@pull_ten_elevenths {
+  .desk\@pull_ten-elevenths {
     position: relative;
     right: 90.90909% ; }
-  .desk\@pull_one_tenth {
+  .desk\@pull_one-tenth {
     position: relative;
     right: 10% ; }
-  .desk\@pull_two_tenths {
+  .desk\@pull_two-tenths {
     position: relative;
     right: 20% ; }
-  .desk\@pull_three_tenths {
+  .desk\@pull_three-tenths {
     position: relative;
     right: 30% ; }
-  .desk\@pull_four_tenths {
+  .desk\@pull_four-tenths {
     position: relative;
     right: 40% ; }
-  .desk\@pull_five_tenths {
+  .desk\@pull_five-tenths {
     position: relative;
     right: 50% ; }
-  .desk\@pull_six_tenths {
+  .desk\@pull_six-tenths {
     position: relative;
     right: 60% ; }
-  .desk\@pull_seven_tenths {
+  .desk\@pull_seven-tenths {
     position: relative;
     right: 70% ; }
-  .desk\@pull_eight_tenths {
+  .desk\@pull_eight-tenths {
     position: relative;
     right: 80% ; }
-  .desk\@pull_nine_tenths {
+  .desk\@pull_nine-tenths {
     position: relative;
     right: 90% ; }
-  .desk\@pull_one_ninth {
+  .desk\@pull_one-ninth {
     position: relative;
     right: 11.11111% ; }
-  .desk\@pull_two_ninths {
+  .desk\@pull_two-ninths {
     position: relative;
     right: 22.22222% ; }
-  .desk\@pull_three_ninths {
+  .desk\@pull_three-ninths {
     position: relative;
     right: 33.33333% ; }
-  .desk\@pull_four_ninths {
+  .desk\@pull_four-ninths {
     position: relative;
     right: 44.44444% ; }
-  .desk\@pull_five_ninths {
+  .desk\@pull_five-ninths {
     position: relative;
     right: 55.55556% ; }
-  .desk\@pull_six_ninths {
+  .desk\@pull_six-ninths {
     position: relative;
     right: 66.66667% ; }
-  .desk\@pull_seven_ninths {
+  .desk\@pull_seven-ninths {
     position: relative;
     right: 77.77778% ; }
-  .desk\@pull_eight_ninths {
+  .desk\@pull_eight-ninths {
     position: relative;
     right: 88.88889% ; }
-  .desk\@pull_one_eighth {
+  .desk\@pull_one-eighth {
     position: relative;
     right: 12.5% ; }
-  .desk\@pull_two_eighths {
+  .desk\@pull_two-eighths {
     position: relative;
     right: 25% ; }
-  .desk\@pull_three_eighths {
+  .desk\@pull_three-eighths {
     position: relative;
     right: 37.5% ; }
-  .desk\@pull_four_eighths {
+  .desk\@pull_four-eighths {
     position: relative;
     right: 50% ; }
-  .desk\@pull_five_eighths {
+  .desk\@pull_five-eighths {
     position: relative;
     right: 62.5% ; }
-  .desk\@pull_six_eighths {
+  .desk\@pull_six-eighths {
     position: relative;
     right: 75% ; }
-  .desk\@pull_seven_eighths {
+  .desk\@pull_seven-eighths {
     position: relative;
     right: 87.5% ; }
-  .desk\@pull_one_seventh {
+  .desk\@pull_one-seventh {
     position: relative;
     right: 14.28571% ; }
-  .desk\@pull_two_sevenths {
+  .desk\@pull_two-sevenths {
     position: relative;
     right: 28.57143% ; }
-  .desk\@pull_three_sevenths {
+  .desk\@pull_three-sevenths {
     position: relative;
     right: 42.85714% ; }
-  .desk\@pull_four_sevenths {
+  .desk\@pull_four-sevenths {
     position: relative;
     right: 57.14286% ; }
-  .desk\@pull_five_sevenths {
+  .desk\@pull_five-sevenths {
     position: relative;
     right: 71.42857% ; }
-  .desk\@pull_six_sevenths {
+  .desk\@pull_six-sevenths {
     position: relative;
     right: 85.71429% ; }
-  .desk\@pull_one_sixth {
+  .desk\@pull_one-sixth {
     position: relative;
     right: 16.66667% ; }
-  .desk\@pull_two_sixths {
+  .desk\@pull_two-sixths {
     position: relative;
     right: 33.33333% ; }
-  .desk\@pull_three_sixths {
+  .desk\@pull_three-sixths {
     position: relative;
     right: 50% ; }
-  .desk\@pull_four_sixths {
+  .desk\@pull_four-sixths {
     position: relative;
     right: 66.66667% ; }
-  .desk\@pull_five_sixths {
+  .desk\@pull_five-sixths {
     position: relative;
     right: 83.33333% ; }
-  .desk\@pull_one_fifth {
+  .desk\@pull_one-fifth {
     position: relative;
     right: 20% ; }
-  .desk\@pull_two_fifths {
+  .desk\@pull_two-fifths {
     position: relative;
     right: 40% ; }
-  .desk\@pull_three_fifths {
+  .desk\@pull_three-fifths {
     position: relative;
     right: 60% ; }
-  .desk\@pull_four_fifths {
+  .desk\@pull_four-fifths {
     position: relative;
     right: 80% ; }
-  .desk\@pull_one_quarter, .desk\@pull_one_fourth {
+  .desk\@pull_one-quarter, .desk\@pull_one-fourth {
     position: relative;
     right: 25% ; }
-  .desk\@pull_two_quarters, .desk\@pull_two_fourths {
+  .desk\@pull_two-quarters, .desk\@pull_two-fourths {
     position: relative;
     right: 50% ; }
-  .desk\@pull_three_quarters, .desk\@pull_three_fourths {
+  .desk\@pull_three-quarters, .desk\@pull_three-fourths {
     position: relative;
     right: 75% ; }
-  .desk\@pull_one_third {
+  .desk\@pull_one-third {
     position: relative;
     right: 33.33333% ; }
-  .desk\@pull_two_thirds {
+  .desk\@pull_two-thirds {
     position: relative;
     right: 66.66667% ; }
-  .desk\@pull_one_half {
+  .desk\@pull_one-half {
     position: relative;
     right: 50% ; } }
 
@@ -6450,3 +6168,61 @@ h6 {
     display: none; }
   .desk\@flex {
     display: flex; } }
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", sans-serif;
+  background-color: #e4eaf3; }
+
+body {
+  min-height: 100vh; }
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  box-sizing: border-box; }
+
+.wrap {
+  max-width: 1360px;
+  width: 95%;
+  margin: 0 auto;
+  background-color: #f6f8fb;
+  padding: 1.5rem 3rem; }
+
+h1 {
+  font-size: 32.43658px;
+  line-height: 1.47981; }
+
+h2 {
+  font-size: 1.80203rem;
+  line-height: 1.66479; }
+
+h3 {
+  font-size: 1.60181rem;
+  line-height: 1.40466; }
+
+h4 {
+  font-size: 1.42383rem;
+  line-height: 1.58025; }
+
+h5 {
+  font-size: 1.26562rem;
+  line-height: 1.18519; }
+
+h6 {
+  font-size: 1.125rem;
+  line-height: 1.33333; }
+
+.web-font {
+  font-family: 'Asap'; }
+
+.grid_item {
+  outline: 1px solid black; }
+
+.grid-type:before {
+  content: "BEM-style grid";
+  font-size: 0.9375rem;
+  line-height: 1.6; }

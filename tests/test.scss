@@ -1,8 +1,11 @@
 @import '../index.scss';
 @import 'test-config.scss';
 
-@include globalize-config();
-@include web-fonts();
+@include init;
+@include web-fonts;
+@include grid-init;
+@include spacing-utilities-init;
+@include display-utilities-init;
 
 html {
     font-family: $primary-font-stack;
@@ -65,6 +68,7 @@ h6 {
     outline: 1px solid black;
 }
 
-@include grid-init();
-@include spacing-utilities-init();
-@include display-utilities-init();
+.grid-type:before {
+    content: "#{if($grid-bem-naming, 'BEM-style grid', 'Snake-style Grid')}";
+    @include fs($type-small-size);
+}
