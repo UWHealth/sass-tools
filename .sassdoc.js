@@ -14,23 +14,24 @@ module.exports = {
     theme: 'default',
     autofill: ["requires", "throws", "content"],
     groups: {
-        undefined: "General",
         config: "Configuration",
         core: "Core API",
-        math: "Math",
         grid: "Grid",
-        utils: "Sass Utilities"
+        math: "Math",
+        utils: "Sass Utilities",
+        undefined: "General",
     },
     sort: [
         'group<',
-        'file<',
+        'access>',
+        'file>',
         'line<',
-        'access',
     ],
+    basePath: 'https://github.com/UWHealth/sass-tools/tree/master',
     'no-update-notifier': false,
     verbose: true,
     strict: false,
-    privatePrefix: /^[_-]/,
+    privatePrefix: /^[_-]/g,
     display: {
         alias: true,
         access: ["public"]
