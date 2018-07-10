@@ -14,13 +14,25 @@ module.exports = {
     theme: 'default',
     autofill: ["requires", "throws", "content"],
     groups: {
-        undefined: "general",
-        config: "Configuration"
+        undefined: "General",
+        config: "Configuration",
+        core: "Core API",
+        math: "Math",
+        grid: "Grid",
+        utils: "Sass Utilities"
     },
+    sort: [
+        'group<',
+        'file<',
+        'line<',
+        'access',
+    ],
     'no-update-notifier': false,
     verbose: true,
     strict: false,
+    privatePrefix: /^[_-]/,
     display: {
-        alias: true
+        alias: true,
+        access: ["public"]
     }
 }
