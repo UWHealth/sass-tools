@@ -529,7 +529,7 @@ $_cached-values: ();
         }
         $map: map-merge(map-get($_silent-class-registry, $key), $map);
         @return map-deep-set($_silent-class-registry, $key, $map);
-    }@else {
+    } @else {
         @return null;
     }
 }

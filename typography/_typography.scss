@@ -31,8 +31,7 @@
 
     @if $line-height == true or $line-height == 'auto' {
 
-        $line-height: cache(baseline-calc, $font-size);
-        line-height: $line-height;
+        line-height: #{cache(baseline-calc, $font-size)};
 
     }
     @else if type-of($line-height) == 'number' {
@@ -97,7 +96,7 @@
 /// @param {number} $baseline [$base-line-height] - Pixel value of the base line-height.
 /// @param {number} $multiple [1]
 /// @param {boolean} $floor [false] - Calculate the lowest possible number? Rarely useful.
-/// @returns {number}
+/// @returns {number} -
 @function baseline(
     $font-size,
     $baseline: $base-line-height,
@@ -143,16 +142,12 @@ $__font-warn: false;
 /// @group core
 /// @param {number} $font-size [$base-font-size] - font-size in need of a baseline
 /// @param {number} $baseline-slack [$font-looseness] - Percentage.
-/// @returns {number}
+/// @returns {number} -
 @function baseline-calc(
     $font-size: $base-font-size,
     $baseline-slack: $font-looseness
 ){
-    $smallest-size: if(
-        length($type-small-size) > 1,
-        nth($type-small-size, 1),
-            $type-small-size
-        );
+    $smallest-size: _extract-line-height($type-small-size);
     $smallest-size: max(10px, $smallest-size);
     $largest-size: if(
         length($type-h1-size) > 1,
@@ -350,4 +345,15 @@ $__font-warn: false;
         @warn 'You need to supply numbers between 1 and 6' +
             ' for headings mixin to work';
     }
+}
+
+
+/// Checks if a type-size is declared as larger than 1, then either extracts the second value or calculates a line-height.
+/// @param {List|Number} $type-size
+/// @returns {number} The line-height
+@function _extract-line-height($type-size) {
+    @return if(length($type-size) > 1,
+        nth($type-size, 2),
+        baseline-calc(nth($type-size, 1))
+    );
 }

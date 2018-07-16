@@ -30,12 +30,13 @@ $type-h5-size:          modular-scale(2) !default;
 $type-h6-size:			modular-scale(1) !default;
 /// @group config
 /// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-p-size:           ($base-font-size, $base-line-height) !global;
+$type-p-size:           ($base-font-size, $base-line-height) !default;
 /// @group config
 /// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
 $type-small-size:		modular-scale(-1) !default;
+
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
 $auto-scale-type:       false !default;
 
 /// Modular scale ratio
