@@ -3,18 +3,18 @@ const sass = require('gulp-sass');
 const sassdoc = require('sassdoc');
 const browserSync = require('browser-sync').create();
 const series = gulp.series;
-const plumber = require('gulp-plumber');
+//const plumber = require('gulp-plumber');
 
 gulp.task('sass', function() {
     return gulp
         .src('./tests/test.scss')
-        .pipe(plumber())
+        //.pipe(plumber())
         .pipe(sass.sync()
             .on('error', (err) => {
                 console.log(err);
             })
         )
-        .pipe(plumber.stop())
+        //.pipe(plumber.stop())
         .pipe(gulp.dest('./tests'))
 
 });

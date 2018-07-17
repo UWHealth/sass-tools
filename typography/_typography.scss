@@ -147,7 +147,11 @@ $__font-warn: false;
     $font-size: $base-font-size,
     $baseline-slack: $font-looseness
 ){
-    $smallest-size: _extract-line-height($type-small-size);
+    $smallest-size: if(
+        length($type-small-size) > 1,
+        nth($type-small-size, 1),
+            $type-small-size
+        );
     $smallest-size: max(10px, $smallest-size);
     $largest-size: if(
         length($type-h1-size) > 1,
