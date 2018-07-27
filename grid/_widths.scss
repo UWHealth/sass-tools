@@ -3,25 +3,52 @@
 //------------------------------------
 
 /// Second words used to represent numbers in a fraction; Corresponds to grid interval names (whole, half, third, etc.).
-/// @group grid
 $_human-readable-numerators: one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen, twenty;
 
 /// First words used to represent numbers in a fraction; Corresponds to grid interval names (one, two, three, etc.).
-/// @group grid
 $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelfth, thirteenth, fourteenth, fifteenth, sixteenth, seventeenth, eighteenth, nineteenth, twentieth, twentyfirst, twentysecond, twentythird, twentyfourth, twentyfifth, twentysixth, twentyseventh,twentyeigth, twentyninth;
 
-/// Creates a percentage based on the `$size / $total`.
+
+/// Creates a percentage based on the `$size / $context` while allowing for a contextual calculations (`($total/$context) * ($columns/$total)`).
+///
+/// For instance, if you have a grid of 12 columns and you've created an item that is 7 columns wide, its children would then be in a 7/12 context. In order to maintain the grid and calculate the width of a child that spans 4 columns, it would have to be 1 quarter of 7/12.
+/// @example
+///    .parent {
+///       width: grid-size(7, 12);
+///    }
+///    .child {
+///       width: grid-size(4, 7, 12);
+///    }
 /// @group grid
-/// @param {number} $size - Column span
-/// @param {number} $total [$grid-columns]
-@function grid-size($size, $total: $grid-columns) {
-    @return percentage($size / $total);
+/// @param {number} $columns - Column span
+/// @param {number} $context [$grid-columns] - Out of how many columns?
+/// @param {number} $total-columns [$grid-columns] -
+/// @returns {number} percentage
+///
+@function grid-size($columns, $context: $grid-columns, $total-columns: $grid-columns) {
+    //Correct for nested columns() calls
+    @if (unit($context) == "%") {
+        $context: ($context / ($context * 0 + 1) ) / 100;
+        $context: $total-columns * $context;
+    }
+    $context: ($total-columns / $context);
+    $columns: ($columns / $total-columns);
+
+    @return percentage($context * $columns);
 }
+
+/// @alias grid-size
+/// @group grid
+@function columns($columns, $context: $grid-columns, $total-columns: $grid-columns) {
+    @return grid-size($columns, $context, $total-columns);
+}
+
 
 /// Creates a width property with a percentage based on the `$columns / $total`. Also includes flex-based properties if `$grid-flex` is enabled.
 /// @group grid
 /// @param {number} $columns - Column span.
 /// @param {number} $total [$grid-columns]
+///
 @mixin grid-width($columns, $total: $grid-columns) {
     width: #{grid-size($columns, $total)};
     @if $grid-flex {
@@ -32,6 +59,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
 
 /// @alias grid-width
 /// @group grid
+///
 @mixin width($columns, $total:$grid-columns) {
     @include grid-width($columns, $total);
 }

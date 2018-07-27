@@ -26,6 +26,7 @@ $grid-letter-space-fix:  -0.45em !default;
 
 $grid-markup-fix:        false   !default;
 
+
 /// Include push grid classes?
 /// @group config
 $grid-push:              true    !default;
@@ -34,15 +35,17 @@ $grid-push:              true    !default;
 /// @group config
 $grid-pull:              true    !default;
 
+/// String to include before grid width classes.
+/// @group config
+$grid-width-namespace:    if($grid-bem-naming, 'w-', '') !default;
+
 /// String to include before grid push classes.
 /// @group config
-$grid-push-namespace:    if($grid-bem-naming,
-    'push--', 'push_')           !default;
+$grid-push-namespace:    if($grid-bem-naming, 'push--', 'push_') !default;
 
 /// String to include before grid pull classes.
 /// @group config
-$grid-pull-namespace:    if($grid-bem-naming,
-    'pull--', 'pull_')           !default;
+$grid-pull-namespace:    if($grid-bem-naming, 'pull--', 'pull_') !default;
 
 /// The character used to separate breakpoints when generating responsive classes. For instance `.smalls\@one-fourth`, where `'\\@'` is the namespace character.
 ///@group config

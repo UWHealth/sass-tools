@@ -14,7 +14,7 @@
 // * `[% || .]grid_item`
 //  Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
 //
-// * `[% || .]grid_rev`
+// * `[% || .]grid_reverse`
 //  Makes grid columns start from the right.
 //
 // * `[% || .]grid_right`
@@ -98,15 +98,16 @@
     // Special class for grid items that need to behave like both grids and grid__items.
     #{$class-type}grid#{$child}item#{$mod}reset,
     #{$class-type}grid#{$mod}reset#{$child}item {
-        @include grid-item(12, 12);
-        @extend #{$class-type}grid;
+        @include grid-row();
+        margin-left: 0;
+        width: 100%;
+        @include type-space(padding-left, 1, $unit: $gutter);
     }
 
     //
     // Reversed grids allow you to structure your source in the opposite order to
     // how your rendered layout will appear. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}rev,
     #{$class-type}grid#{$mod}reverse {
         @if $floats {
             @extend %grid--clearfix;
@@ -136,7 +137,7 @@
         @if $inline-block {
             text-align: right;
 
-            > #{$class-type}grid#{$child}item {
+            & > #{$class-type}grid#{$child}item {
                 text-align: left;
             }
         }
