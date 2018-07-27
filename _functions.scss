@@ -1,6 +1,7 @@
 @import 'typography/variables';
 
 /// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
+/// @param {string} $name - function name
 /// @link https://github.com/kaelig/sass-safe-get-function
 /// @group utils
 @function safe-get-function($name) {
@@ -9,6 +10,14 @@
     } @else {
         @return $name;
     }
+}
+
+/// Wrapper for Sass' internal `call` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
+/// @param {string} $name - function name
+/// @param {any} $args... - function arguments
+/// @group utils
+@function safe-call($name, $args...) {
+    @return call(safe-get-function($name), $args...);
 }
 
 /// Holds all cached function calls.
@@ -64,7 +73,7 @@ $_cached-values: ();
 /// @param {string} $separator [',']
 /// @returns {string}
 /// @group utils
-@function list-to-string($list, $separator: ",") {
+@function list-to-str($list, $separator: ",") {
     $string: "";
 
     @for $i from 1 through length($list) {
@@ -78,99 +87,79 @@ $_cached-values: ();
     @return $string;
 }
 
-/// Converts a number-like string to a number. Since Sass accepts quoted and non-quoted values like `"10px"` and `10px`, but can only do math on the unquoted (number) value, it is sometimes necessary to convert/cast a string to a number.
+
+/// Casts a string into a number.
+/// @author Hugo Giraudel
 /// @group utils
-/// @param {string} $string
-/// @param {boolean} $unitless [false]
-/// @returns {number}
+///
+/// @param {String | Number} $value - Value to be parsed
+/// @return {Number}
+///
+@function str-to-number($value) {
+    @if type-of($value) == 'number' {
+        @return $value;
+    } @else if type-of($value) != 'string' {
+        @warn 'Value for `to-number` should be a number or a string.';
+    }
 
-@function str-to-number($string, $unitless: false){
-    //Maps to check against
-    $str-numbers:('0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9);
-    //Leading 0 allows us to loop backwards without reaching null
-    $string: 0 + $string;
+    $result: 0;
+    $digits: 0;
+    $minus: str-slice($value, 1, 1) == '-';
+    $numbers: (
+        '0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
+        '5': 5, '6': 6, '7': 7, '8': 8, '9': 9
+    );
 
-    $total: 0;
-    $decimal: 1;
-    $negative: 1;
-    $number-found: false;
-    $unit: -1;
+    @for $i from if($minus, 2, 1) through str-length($value) {
+        $character: str-slice($value, $i, $i);
 
-    //Loop backwards through string until a number is found
-    @while not $number-found {
-
-        //Break if loop is longer than string, or longer than any possible unit value
-        @if (($unit * -1) >= str-length($string)) or $unit < -6 {
-            $unit: -2;
-            //set unitless to true regardless of user input.
-            $unitless: true;
-            $number-found: 1;
+        @if not (index(map-keys($numbers), $character) or $character == '.') {
+            @return to-length(if($minus, -$result, $result), str-slice($value, $i))
         }
 
-        $slice: str-slice($string, $unit, $unit);
-        $number-found: map-get($str-numbers, $slice);
-        $unit:  $unit - 1;
-
-    }
-    //Compensate for Sass' non-zero
-    $unit: $unit + 1;
-    $value: str-slice($string, 1, $unit);
-    $str-length: str-length($value);
-
-    //Just return value if it's length is 2
-    @if $str-length == 2 {
-        @return map-get($str-numbers, str-slice($string, 2));
-    }
-
-    //Loop forward through string
-    @for $i from 1 through $str-length {
-        //Slice at each value
-        $sub-string: str-slice($value, $i, $i);
-        //Check for known number, convert to real number
-        $number: map-get($str-numbers, $sub-string);
-
-        @if $number {
-            //multiply total by ten to give us proper number placement
-            $total: $total * 10 + $number;
-
-        }@else if $sub-string == '-' {
-            //check for negative
-            $negative: -1;
-
-        }@else if $sub-string == '.' {
-            //check for decimal
-            $decimal-pos: $str-length - $i;
-            //Create a number to multiply by to recreate decimal
-            @for $j from 1 through $decimal-pos {
-                $decimal: $decimal * 0.1;
-            }
+        @if $character == '.' {
+            $digits: 1;
+        } @else if $digits == 0 {
+            $result: $result * 10 + map-get($numbers, $character);
+        } @else {
+            $digits: $digits * 10;
+            $result: $result + map-get($numbers, $character) / $digits;
         }
     }
 
-    @if $unitless or $unit == -1 {
-        $unit: 1;
-    } @else {
-        $str-units: (
-            'px':1px,'%':1%,'em':1em,'rem':1rem,'ex':1ex,
-            'cm':1cm,'mm':1mm,'ch':1ch,'pica':1pica,'in':1in,'pt':1pt,'pc':1pc,
-            'vw':1vw,'vh':1vh,'vmin':1vmin,'vmax':1vmax
-        );
-        $unit-str: str-slice($string, ($unit + 1), -1);
-        $unit: map-get($str-units, $unit-str);
+    @return if($minus, -$result, $result);
+}
 
-        @if not $unit {
-            @warn "#{$unit-str} is not a valid CSS unit.";
-            $unit: 1;
-        }
+
+/// Add `$unit` to `$value`
+/// @author Hugo Giraudel
+/// @group utils
+///
+/// @param {Number} $value - Value to add unit to
+/// @param {String} $unit - String representation of the unit
+/// @return {Number} - `$value` expressed in `$unit`
+///
+@function to-length($value, $unit) {
+    $units: (
+        'px': 1px, 'cm': 1cm, 'mm': 1mm,
+        '%': 1%, 'ch': 1ch, 'pc': 1pc, 'in': 1in,
+        'em': 1em, 'rem': 1rem, 'pt': 1pt, 'ex': 1ex,
+        'vw': 1vw, 'vh': 1vh,
+        'vmin': 1vmin, 'vmax': 1vmax
+    );
+
+    @if not index(map-keys($units), $unit) {
+        @warn 'Invalid unit `#{$unit}`.';
     }
-    //Take number and multiply it as necessary to achieve original.
-    @return ($total * $decimal)* $negative * $unit;
+
+    @return $value * map-get($units, $unit);
 }
 
 /// Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
 /// @group utils
 /// @param {any} $value
 /// @param {string} $keep - accepts `'keys'`, `'values'`, or `'both'` for map conversion.
+///
 @function to-list($value, $keep: "both") {
     $keep: if(index("keys" "values" "both", $keep), $keep, "both");
 
@@ -202,6 +191,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {map | list | string} $data - the data you're searching through.
 /// @param {} $value - the value you're searching for.
+///
 @function contains($data, $value){
     @if type-of($data == "map"){
         @return map-has-keys($data, $value);
@@ -217,8 +207,9 @@ $_cached-values: ();
 /// @group utils
 /// @param {list | map} $list
 /// @param {string} $separator [","]
+///
 @function str-join($list, $separator: ",") {
-    @return list-to-string($list, $separator);
+    @return list-to-str($list, $separator);
 }
 
 /// Checks if a `$string` contains a `$value`. Optionally accepts a start (`$pos`) positon.
@@ -226,6 +217,7 @@ $_cached-values: ();
 /// @param {string} $string
 /// @param {string} $value
 /// @param {number} $pos [0]
+///
 @function str-contains($string, $value, $pos: 0) {
 
     $string: str-slice($string, $pos);
@@ -242,6 +234,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {string} $string
 /// @param {string} $insert
+///
 @function str-append($string, $insert) {
     $string: if($string == null, '', $string);
 
@@ -250,6 +243,7 @@ $_cached-values: ();
 
 /// Replaces a value in a string with another.
 /// @group utils
+///
 @function str-replace($string, $search, $replace: '') {
     $index: str-index($string, $search);
 
@@ -260,11 +254,54 @@ $_cached-values: ();
     @return $string;
 }
 
+/// Split a string into a list of strings
+/// @link https://gist.github.com/danielpchen/3677421ea15dcf2579ff
+/// @param {string} $string - the string to be split
+/// @param {string} $delimiter - the boundary string
+/// @return {list} - the result list
+///
+@function str-to-list($string, $delimiter) {
+	$result: ();
+	@if $delimiter == "" {
+		@for $i from 1 through str-length($string) {
+			$result: append($result, str-slice($string, $i, $i));
+		}
+		@return $result;
+	}
+	$exploding: true;
+	@while $exploding {
+		$d-index: str-index($string, $delimiter);
+		@if $d-index {
+			@if $d-index > 1 {
+				$result: append($result, str-slice($string, 1, $d-index - 1));
+				$string: str-slice($string, $d-index + str-length($delimiter));
+			} @else if $d-index == 1 {
+				$string: str-slice($string, 1, $d-index + str-length($delimiter));
+			} @else {
+				$result: append($result, $string);
+				$exploding: false;
+			}
+		} @else {
+			$result: append($result, $string);
+			$exploding: false;
+		}
+	}
+	@return $result;
+}
+
+/// @alias str-to-list
+/// @group utils
+///
+@function explode($string, $delimiter) {
+    @return str-to-list($string, $delimiter);
+}
+
 
 /// Check if a list contains a value
 /// @group utils
 /// @param $list
 /// @param $value
+///
 @function list-contains($list, $value) {
     @return not not index($list, $value);
 }
@@ -273,6 +310,7 @@ $_cached-values: ();
 /// @group utils
 /// @param $list
 /// @param $recursive [false]
+///
 @function list-reverse($list, $recursive: false) {
     $result: ();
 
@@ -292,6 +330,7 @@ $_cached-values: ();
 /// @group utils
 /// @param $list
 /// @param $depth [1]
+///
 @function list-print($list, $depth: 1) {
     $output: '';
 
@@ -309,6 +348,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {map} $map
 /// @param {string} $keys... - final argument is considered the value to the be set.
+///
 @function map-deep-set($map, $keys... /*, $value */) {
     $map-list: ($map,);
     $result: null;
@@ -333,6 +373,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {map} $map
 /// @returns {number}
+///
 @function map-depth($map) {
     $level: 1;
 
@@ -350,6 +391,7 @@ $_cached-values: ();
 /// @param {map} $map
 /// @param {string | list} $keys...
 /// @returns {boolean}
+///
 @function map-has-keys($map, $keys...) {
     @each $key in $keys {
         @if not map-has-key($map, $key) {
@@ -362,6 +404,7 @@ $_cached-values: ();
 
 /// @alias map-has-keys
 /// @group utils
+///
 @function map-contains-keys($map, $keys...) {
     @return map-has-keys($map, $keys);
 }
@@ -370,6 +413,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {map} $map
 /// @param {string | list} $keys...
+///
 @function map-has-nested-keys($map, $keys...) {
     @each $key in $keys {
         @if not map-has-key($map, $key) {
@@ -381,14 +425,19 @@ $_cached-values: ();
 
     @return true;
 }
+
 /// @alias map-has-nested-keys
 /// @group utils
-@function map-contains-nested-keys($map, $keys...) {@return map-has-nested-keys($map, $keys);}
+///
+@function map-contains-nested-keys($map, $keys...) {
+    @return map-has-nested-keys($map, $keys);
+}
 
 /// Get map value at nested or 'deep' key, per $keys list
 /// @group utils
 /// @param {map} $map
 /// @param {string|list} $keys...
+///
 @function map-get-nested($map, $keys...) {
     @each $key in $keys {
         @if type-of($map) != 'map' {
@@ -404,6 +453,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {map} $map
 /// @param {map|list} $maps... - final value can be `true` for "deep" merging
+///
 @function map-extend($map, $maps... /*, $deep */) {
     $last: nth($maps, -1);
     $deep: $last == true;
@@ -456,6 +506,7 @@ $_cached-values: ();
 /// @group utils
 /// @param {map} $map
 /// @param {string} $new-key ['base']
+///
 @function map-add-depth($map, $new-key: 'base'){
     $formatted-key:();
     $new-map:'';
@@ -483,6 +534,7 @@ $_cached-values: ();
 /// @param {map} $map
 /// Useful for debugging maps.
 /// @link https://github.com/lunelson/sass-maps-plus
+///
 @function map-inspect($map, $level: 1) {
     $tab: '    ';
     $cr: '
@@ -516,12 +568,14 @@ $_cached-values: ();
 
 /// @alias map-inspect
 /// @group utils
+///
 @function map-print($map, $level: 1){
     @return map-inspect($map, $level);
 }
 
 /// Add to silent classes registry
 /// @group utils
+///
 @function silents-register($map, $key){
     @if $debug-silent-classes {
         @if map-get($_silent-class-registry, $key) == null {
@@ -563,6 +617,7 @@ $golden_ratio: golden();
 /// @param {number} $base
 /// @param {number} $exp
 /// @link https://gist.github.com/nathancrank/7539155
+///
 @function pow($base, $exp) {
     @if $exp == floor($exp) {
         $r: 1;
@@ -588,15 +643,17 @@ $golden_ratio: golden();
 
 /// @alias pow
 /// @group Math
+///
 @function exponent($base, $exponent) { @return pow($base, $exponent); }
 
 /// Returns the natural logarithm of a number.
 /// @param {number} $x
 /// @group Math
 /// @example
-/// $value:   log(2)  // 0.69315
-/// $value2:  log(10) // 2.30259
+///     $value:   log(2)  // 0.69315
+///     $value2:  log(10) // 2.30259
 /// @returns {number}
+///
 @function log($x) {
     @if $x <= 0 {
         @return 0;
@@ -622,6 +679,7 @@ $golden_ratio: golden();
 /// @group Math
 /// @param $x
 /// @returns {list} (fraction, exponent)
+///
 @function frexp($x) {
     $exp: 0;
     @if $x < 0 {
@@ -648,6 +706,7 @@ $golden_ratio: golden();
 /// @group Math
 /// @param $x
 /// @param $exp
+///
 @function ldexp($x, $exp) {
     $b: if($exp >= 0, 2, 1 / 2);
     @if $exp < 0 {
@@ -667,9 +726,11 @@ $golden_ratio: golden();
 /// @param {number} $x
 /// @group Math
 /// @example
-/// $value: exp(1)  // 2.71828
-/// $value2: exp(-1) // 0.36788
+///     $value: exp(1)  // 2.71828
+///     $value2: exp(-1) // 0.36788
+///
 /// @returns {Number}
+///
 @function exp($x) {
     $ret: 0;
     @for $n from 0 to 24 {
@@ -682,9 +743,10 @@ $golden_ratio: golden();
 /// @param {number} $x
 /// @group Math
 /// @example
-/// $value:  fact(0) // 1
-/// $value2: fact(8) // 40320
+///     $value:  fact(0) // 1
+///     $value2: fact(8) // 40320
 /// @return {Number}
+///
 @function fact($x) {
     @if $x < 0 or  $x != floor($x) {
         @warn "Argument for `fact()` must be a positive integer.";
@@ -703,10 +765,11 @@ $golden_ratio: golden();
 
 /// Greatest Common Divisor calculation (useful for calculating grids and widths).
 /// @group Math
-/// @link http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
 /// @param {number} $number-1
 /// @param {number} $number-2
 /// @returns {number}
+/// @link http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
+///
 @function gcd($number-1, $number-2) {
     @if $number-2 != 0 {
         @return gcd($number-2, ($number-1 % $number-2));
@@ -720,6 +783,7 @@ $golden_ratio: golden();
 /// @group Math
 /// @param {number} $base
 /// @param {number} $precision [12]
+///
 @function sqrt($base, $precision: 12) {
     $guess: random(20);
     $root: $guess;
@@ -733,6 +797,7 @@ $golden_ratio: golden();
 /// @alias sqrt
 /// @param $r
 /// @group Math
+///
 @function sqroot($r) {
     $x0: 1; // initial value
     $solution: false;
@@ -774,6 +839,7 @@ $golden_ratio: golden();
 /// @group Math
 /// @param $angle
 /// @returns {number}
+///
 @function sin($angle) {
     $sin: 0;
     $angle: rad($angle);
@@ -784,6 +850,140 @@ $golden_ratio: golden();
     @return $sin;
 }
 
+
+
+/// Use linear interpolation to produce a calc value for a particular screen size.
+/// @group Math
+/// @param {number} $min-screen
+/// @param {number} $min-value
+/// @param {number} $max-screen
+/// @param {number} $max-value
+/// @param {string} $unit [vw]
+/// @returns {string} - Css `calc()` function.
+/// @author Mike Riethmuller
+/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
+///
+@function calc-interpolation(
+    $min-screen,
+    $min-value,
+    $max-screen,
+    $max-value,
+    $unit: vw
+) {
+    $a: ($max-value - $min-value) / ($max-screen - $min-screen);
+    $b: $min-value - $a * $min-screen;
+
+    $sign: "+";
+
+    @if ($b < 0) {
+        $sign: "-";
+        $b: abs($b);
+    }
+
+    @return calc(#{$a*100}#{$unit} #{$sign} #{$b});
+}
+
+/// This is a crude Sass port webkits cubic-bezier-webkits function.
+/// Will return a "solved" cubic-bezier function for any given `$x`.
+/// @author Mike Riethmuller
+/// @group math
+/// @param {Number} $p1x
+/// @param {Number} $p1y
+/// @param {Number} $p2x
+/// @param {Number} $p2y
+/// @param {Number} $x
+/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
+///
+@function solve-cubic-bezier($p1x, $p1y, $p2x, $p2y, $x) {
+    $cy: 3.0 * $p1y;
+    $by: 3.0 * ($p2y - $p1y) - $cy;
+    $ay: 1.0 - $cy - $by;
+    $t: solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x);
+    @return (($ay * $t + $by) * $t + $cy) * $t;
+}
+
+/// Solves a bezier's `$x` for a given cubic-bezier set.
+/// @author Mike Riethmuller
+/// @group math
+/// @param {Number} $p1x
+/// @param {Number} $p1y
+/// @param {Number} $p2x
+/// @param {Number} $p2y
+/// @param {Number} $x
+///
+@function solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x) {
+    $cx: 3.0 * $p1x;
+    $bx: 3.0 * ($p2x - $p1x) - $cx;
+    $ax: 1.0 - $cx -$bx;
+
+    $t0: 0.0;
+    $t1: 1.0;
+    $t2: $x;
+    $x2: 0;
+    $res: 1000;
+
+    @while ($t0 < $t1 or $break) {
+        $x2: (($ax * $t2 + $bx) * $t2 + $cx) * $t2;
+        @if (abs($x2 - $x) < $res) {
+            @return $t2;
+        }
+        @if ($x > $x2) {
+            $t0: $t2;
+        } @else {
+            $t1: $t2;
+        }
+        $t2: ($t1 - $t0) * 0.5 + $t0;
+    }
+
+    @return $t2;
+}
+
+
+/// Linear interpolation
+/// @link https://en.wikipedia.org/wiki/Linear_interpolation
+/// @group math
+/// @param {number} $a
+/// @param {number} $b
+/// @param {number} $t
+///
+@function lerp($a, $b, $t) {
+    @return $a + ($b - $a) * $t;
+}
+
+
+/// Get the golden ratio from `$base`.
+/// @group Math
+/// @param {} $base [1]
+/// @returns {number}
+///
+@function golden($base: 1) {
+    @return (1/2 + sqrt(5) / 2) * $base;
+}
+
+/// @param $angle
+/// @group Math
+///
+@function rad($angle) {
+    $unit: unit($angle);
+    $unitless: $angle / ($angle * 0 + 1);
+    // If the angle has 'deg' as unit, convert to radians.
+    @if $unit == deg {
+        $unitless: $unitless / 180 * $pi;
+    }
+    @return $unitless;
+}
+
+/// @alias rad
+/// @param $angle
+/// @group Math
+///
+@function angle-to-rad($angle) {
+    @return rad($angle);
+}
+
+
+// Unused functions
+// ------------------------------------
 // Hyperbolic sine
 // @param $number
 // @group Math
@@ -807,50 +1007,3 @@ $golden_ratio: golden();
 //     }
 //     @return $cos;
 // }
-
-
-/// Get the golden ratio from `$base`.
-/// @group Math
-/// @param {} $base [1]
-/// @returns {number}
-@function golden($base: 1) {
-    @return (1/2 + sqrt(5) / 2) * $base;
-}
-
-/// @param $angle
-/// @group Math
-@function rad($angle) {
-    $unit: unit($angle);
-    $unitless: $angle / ($angle * 0 + 1);
-    // If the angle has 'deg' as unit, convert to radians.
-    @if $unit == deg {
-        $unitless: $unitless / 180 * $pi;
-    }
-    @return $unitless;
-}
-
-/// @alias rad
-/// @param $angle
-/// @group Math
-@function angle-to-rad($angle) {
-    @return rad($angle);
-}
-
-
-// Math helpers
-
-@function quarter($number) {
-    @return round($number / 4);
-}
-
-@function halve($number) {
-    @return round($number / 2);
-}
-
-@function double($number) {
-    @return round($number * 2);
-}
-
-@function quadruple($number) {
-    @return round($number * 4);
-}

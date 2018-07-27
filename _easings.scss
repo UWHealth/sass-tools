@@ -1,78 +1,159 @@
-//------------------------------------*\
-//    $EASING VARIABLES
-//------------------------------------*/
+/// Map of cubic-bezier values representing named easing values (eg. `ease-in`, `ease-out-quart`). Can be "easily" accessed with `easing`.
+/// @see easing
+/// @group core
+///
+$easings: (
+    'linear': (0, 0, 1, 1),
+    'ease': (.25,.1,.25,1),
+    'ease-in': (.42,0,1,1),
+    'ease-out': (0,0,.58,1),
+    'ease-in-out': (.42,0,.58,1),
 
-// /* SG
-// # Variables/Easing [[dev]]
-//
-// Each easing variable is a cubic-bezier value that specifies rate of change of an animation. [See easings for more](http://www.easings.net).
-//
-// [Reference](https://github.com/matthewlein/Ceaser/blob/master/developer/)
-//
-// */
+    'ease-in-sine': (0.47, 0, 0.745, 0.715),
+    'ease-out-sine': (0.39, 0.575, 0.565, 1),
+    'ease-in-out-sine': (0.445, 0.05, 0.55, 0.9),
 
-$linear         : cubic-bezier(0.250, 0.250, 0.750, 0.750) !default;
-$ease           : cubic-bezier(0.250, 0.100, 0.250, 1.000) !default;
-$ease-in        : cubic-bezier(0.420, 0.000, 1.000, 1.000) !default;
-$ease-out       : cubic-bezier(0.000, 0.000, 0.580, 1.000) !default;
-$ease-in-out    : cubic-bezier(0.420, 0.000, 0.580, 1.000) !default;
+    'ease-in-quad': (0.55, 0.085, 0.68, 0.53),
+    'ease-out-quad': (0.25, 0.46, 0.45, 0.94),
+    'ease-in-out-quad': (0.455, 0.03, 0.515, 0.955),
 
-// Sine
-// Slight easings
-//Slightly slower beginning
-$ease-in-sine: cubic-bezier(0.470, 0.000, 0.745, 0.715);
-//Slightly slower end
-$ease-out-sine: cubic-bezier(0.390, 0.575, 0.565, 1.000);
-//Slightly slower beginning and end
-$ease-in-out-sine: cubic-bezier(0.445, 0.050, 0.550, 0.950);
+    'ease-in-cubic': (0.55, 0.055, 0.675, 0.19),
+    'ease-out-cubic': (0.215, 0.61, 0.355, 1),
+    'ease-in-out-cubic': (0.645, 0.045, 0.355, 1),
 
-// Quad - Gradual easings
-//Gradual start
-$ease-in-quad: cubic-bezier(0.550, 0.085, 0.680, 0.530);
-//Gradual end
-$ease-out-quad: cubic-bezier(0.250, 0.460, 0.450, 0.940);
-//Soft start and end
-$ease-in-out-quad: cubic-bezier(0.455, 0.030, 0.515, 0.955);
+    'ease-in-quart': (0.895, 0.03, 0.685, 0.22),
+    'ease-out-quart': (0.165, 0.84, 0.44, 1),
+    'ease-in-out-quart': (0.77, 0, 0.175, 1),
 
-// Cubic - Slightly fast beginning or end
-//Slow start, slightly fast end
-$ease-in-cubic: cubic-bezier(0.550, 0.055, 0.675, 0.190);
-//Slightly fast start, Slow end
-$ease-out-cubic: cubic-bezier(0.215, 0.610, 0.355, 1.000);
-//Slow middle
-$ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1.000);
+    'ease-in-quint': (0.755, 0.05, 0.855, 0.06),
+    'ease-out-quint': (0.23, 1, 0.32, 1),
+    'ease-in-out-quint': (0.86, 0, 0.07, 1),
 
-// Quart - Slow beginning or end
-$ease-in-quart: cubic-bezier(0.895, 0.030, 0.685, 0.220);
-$ease-out-quart: cubic-bezier(0.165, 0.840, 0.440, 1.000);
-$ease-in-out-quart: cubic-bezier(0.770, 0.000, 0.175, 1.000);
+    'ease-in-expo': (0.95, 0.05, 0.795, 0.035),
+    'ease-out-expo': (0.19, 1, 0.22, 1),
+    'ease-in-out-expo': (1, 0, 0, 1),
 
+    'ease-in-circ': (0.6, 0.04, 0.98, 0.335),
+    'ease-out-circ': (0.075, 0.82, 0.165, 1),
+    'ease-in-out-circ': (0.785, 0.135, 0.15, 0.86),
 
-// Quint - Rapid changes at beginning or end
-$ease-in-quint: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-$ease-out-quint: cubic-bezier(0.230, 1.000, 0.320, 1.000);
-$ease-in-out-quint: cubic-bezier(0.860, 0.000, 0.070, 1.000);
+    'ease-in-back': (0.6, -0.28, 0.735, 0.045),
+    'ease-out-back': (0.175, 0.885, 0.32, 1.275),
+    'ease-in-out-back': (0.68, -0.55, 0.265, 1.55),
 
+    'authentic-motion': (.4,0,.2,1)
+);
 
-// Expo - Very slow start, fast end
-$ease-in-expo: cubic-bezier(0.950, 0.050, 0.795, 0.035);
-//Fast start, very slow end
-$ease-out-expo: cubic-bezier(0.190, 1.000, 0.220, 1.000);
-//Slow start and end
-$ease-in-out-expo: cubic-bezier(1.000, 0.000, 0.000, 1.000);
+/// Takes a string representation of an cubic-bezier easing, and returns its 4-digit list value.
+/// @param {string} $easing ['ease'] - Easing name
+/// @see $easings
+/// @group core
+@function easing($easing: 'ease') {
+    @if not (map-get($easings, $easing)) {
+        @warn 'No easing named #{$easing}. See _t-easings.scss for a list of all available easings';
+        @return map-get($easings, 'ease');
+    }
 
-// Circ - Rapid increase to end
-$ease-in-circ: cubic-bezier(0.600, 0.040, 0.980, 0.335);
-//Rapid decrease to end
-$ease-out-circ: cubic-bezier(0.075, 0.820, 0.165, 1.000);
-//Rapid middle and end
-$ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.150, 0.860);
+    @return map-get($easings, $easing);
+}
+
+/// @alias ease
+///
+@function ease($easing: 'ease') { @return easing($easing); }
 
 
-// Back - Slight bounce at beginning or end
-//Bounce at beginning
-$ease-in-back: cubic-bezier(0.600, -0.280, 0.735, 0.045);
-//Bounce at end
-$ease-out-back: cubic-bezier(0.175,  0.885, 0.320, 1.275);
-//Bounce at beginning and end
-$ease-in-out-back: cubic-bezier(0.680, -0.550, 0.265, 1.550);
+/// Takes a string representation of an cubic-bezier easing, and returns the corresponding cubic-bezier statement.
+/// @param {string} $easing ['ease'] - Easing name
+/// @see $easings
+/// @group core
+///
+@function cubic-easing($easing: 'ease') {
+    @return cubic-bezier(#{easing($easing)});
+}
+
+/// @alias cubic-easing
+///
+@function c-ease($easing: 'ease') { @return cubic-easing($easing);}
+
+
+/// This mixin generates CSS for interpolation of length properties.
+/// It has 5 required parameters, including the target property, initial
+/// screen size, initial value, final screen size and final value.
+///
+/// It has two optional parameters which include an easing property,
+/// which is a string representation of a CSS animation-timing-function,
+/// and finally a number of bending-points that determines how many
+/// interpolations steps are applied along the easing function.
+///
+/// @author Original: Mike Riethmuller, New: Chris Lee
+/// @group core
+///
+/// @param {String} $property - The CSS property to interpolate
+/// @param {Unit} $min-screen - A CSS length unit
+/// @param {Unit} $min-value - A CSS length unit
+/// @param {Unit} $max-screen - Value to be parsed
+/// @param {Unit} $max-value - Value to be parsed
+/// @param {String} $easing - Value to be parsed
+/// @param {Number} $bending-points - Value to be parsed
+/// @link http://codepen.io/MadeByMike/pen/a2249946658b139b7625b2a58cf03a65?editors=0100
+///
+@mixin interpolate(
+    $property,
+    $min-screen,
+    $min-value,
+    $max-screen,
+    $max-value,
+    $easing: 'linear',
+    $bending-points: 2
+) {
+	// Default Easing 'Linear'
+	$p0: 0;
+	$p1: 0;
+	$p2: 1;
+	$p3: 1;
+
+    @if(type-of($easing) == 'string') {
+      $easing: map-get($easings, $easing);
+    }
+
+	// Parse Cubic Bezier string
+    // Check easing for cubic-bezier values
+    @if(type-of($easing) == list) {
+        $p0: nth($easing, 1);
+        $p1: nth($easing, 2);
+        $p2: nth($easing, 3);
+        $p3: nth($easing, 4);
+    }
+
+	#{$property}: $min-value;
+
+	@if($easing == 'linear' or $bending-points < 1) {
+		@media screen and (min-width: $min-screen) {
+			#{$property}: calc-interpolation($min-screen, $min-value, $max-screen, $max-value);
+		}
+	} @else {
+		// Loop through bending points
+		$t: 1 / ($bending-points + 1);
+		$i:1;
+		$prev-screen: $min-screen;
+		$prev-value: $min-value;
+
+		@while $t*$i <= 1 {
+			$bending-point: $t*$i;
+			$value: solve-cubic-bezier($p0,$p1,$p2,$p3, $bending-point);
+			$screen-int: lerp($min-screen, $max-screen, $bending-point);
+			$value-int: lerp($min-value, $max-value, $value);
+
+			@media screen and  (min-width: $prev-screen) {
+				#{$property}: calc-interpolation($prev-screen, $prev-value, $screen-int, $value-int);
+			}
+
+			$prev-screen: $screen-int;
+			$prev-value: $value-int;
+			$i: $i+1;
+		}
+	}
+	@media screen and (min-width:$max-screen) {
+		#{$property}: $max-value;
+	}
+}
