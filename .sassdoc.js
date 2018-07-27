@@ -2,7 +2,7 @@ const pkg = require('./package.json');
 
 module.exports = {
     dest: './docs',
-    exclude: ['./test/*'],
+    exclude: ['./test/**/*', 'test/*'],
     package: {
         title: 'UW Health Sass Tools',
         name: '@uwhealth/sass-tools',

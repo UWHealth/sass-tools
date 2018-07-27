@@ -1,15 +1,23 @@
 @import '../index.scss';
 @import 'test-config.scss';
-
 @include init;
-@include web-fonts;
-@include grid-init;
-@include spacing-utilities-init;
-@include display-utilities-init;
+
+@function root-ems($size) {
+    @return px-to-ems($size, 16px);
+}
 
 html {
-    font-family: $primary-font-stack;
+    font-family: "Asap";
     background-color: color('bg', 'dark');
+    @include interpolate('font-size',
+        $min-screen: ems(600px),
+        $min-value: ems(12px),
+        $max-screen: ems(1200px),
+        $max-value: ems(28px),
+        $easing: 'ease-in'
+    );
+    line-height: ($base-line-height/$base-font-size);
+    color: color('type');
 }
 
 body {
@@ -34,9 +42,21 @@ body {
     padding: type-space(1 2);
 }
 
+hr {
+    border: 0;
+    height: 0px;
+    outline: 1px solid currentColor;
+    margin: type-space(1 0);
+}
+
+@include headings(1, 6) {
+    font-family: $primary-font-stack;
+}
+
 h1 {
-    font-size: $type-h1-size;
+    font-size: rems($type-h1-size);
     line-height: $type-h1-lh;
+    color: color('type', light);
 }
 
 h2 {
@@ -72,3 +92,29 @@ h6 {
     content: "#{if($grid-bem-naming, 'BEM-style grid', 'Snake-style Grid')}";
     @include fs($type-small-size);
 }
+
+$type-baseline-size: strip-units($base-line-height);
+
+.baseline-on {
+    background-image: url(http://basehold.it/i/#{$type-baseline-size});
+    background: linear-gradient(to top, rgba(0, 0, 0, .15) 1px, transparent 1px, rgba(black, .15) 1px, transparent 1px) top left / auto (($type-p-lh / 2) * 1rem);
+}
+
+// .align-top {
+//     align-items: flex-start;
+// }
+
+.box {
+    align-self: flex-start;
+    border: 1px solid rgba(color('type'), .5);
+    margin-right: -1px;
+
+    > * {
+        border: 1px solid;
+    }
+}
+
+@include web-fonts;
+@include grid-init;
+@include spacing-utilities-init;
+@include display-utilities-init;

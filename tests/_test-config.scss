@@ -5,18 +5,19 @@ $auto-scale-type:           false;
 $scale-ratio:               1.275;
 
 $vertical-space:			$base-line-height; // Maintains best vertical rhythm
-$horizontal-space: 			$base-line-height; // Simplifies measurements
+$horizontal-space: 			28px; // Simplifies measurements
 
-$rem-px-fallback: 			false;
+$rem-px-fallback: 			true;
 
 $indented-paragraphs:       false;
 
-$type-h1-size:           (modular-scale(6));
+$type-h1-size:           (modular-scale(6), baseline-calc(modular-scale(6), 2%));
 $type-h2-size:           (modular-scale(5));
 $type-h3-size:           (modular-scale(4));
 $type-h4-size:           (modular-scale(3));
 $type-h5-size:           (modular-scale(2));
 $type-h6-size:           (modular-scale(1));
+$type-p-size:            (modular-scale(0.25));
 $type-small-size: 		 (ceil(modular-scale(-1)));
 
 //Custom web fonts
@@ -57,11 +58,17 @@ $breakpoints: (
         "desk": "(min-width: #{ems($max-site-width)})"
 );
 
+$breakpoint-namespace-character: "\\@";
+
+
 $grid-columns:           12;
-$grid-gutter:            32px;
+$grid-gutter:            $horizontal-space;
 $grid-silent-classes:	 false;
 $grid-push:              true;
+$breakpoint-has-push:   ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
 $grid-pull:              true;
+$breakpoint-has-pull:   ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
+
 $grid-bem-naming:        true;
 
 $grid-flex:              true;
@@ -72,18 +79,16 @@ $grid-markup-fix:        false;
 $grid-letter-space-fix:  -0.45em;
 
 $breakpoint-has-widths: ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
-$breakpoint-has-push:   ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
-$breakpoint-has-pull:   ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
 
-$breakpoint-namespace-character: "\\@";
 
 $display-classes: (
     "show": block,
-    "il": inline,
-    "i-block": inline-block,
     "hide": none,
     "flex": flex,
 );
+
+$breakpoint-has-display-classes:   ("smalls", "bigs", "desk");
+
 
 // If $breakpoint-has-spacing-classes is false, this can be ignored
 $spacing-classes: (
@@ -113,19 +118,17 @@ $spacing-classes: (
     ),
 );
 
-$breakpoint-has-alignment-classes: ("smalls", "bigs", "desk");
 $breakpoint-has-spacing-classes:   ("smalls", "bigs", "desk");
-$breakpoint-has-display-classes:   ("smalls", "bigs", "desk");
-$breakpoint-has-type-classes:      ("smalls", "bigs", "desk");
+
 
 
 $base-colors: generate-color-variations(
     $map: (
-        'type': #0a1c2b, //Required
+        'type': #052B33, //Required
 
         'links': #0d497b, //Required
 
-        'bg': #f6f8fb, //Required
+        'bg': hsl(188, 50%, 96%), //Required
 
         'success': #bada55
     ),
@@ -142,7 +145,7 @@ $base-colors: generate-color-variations(
         null, #4c5a66, #323d42
     ),
     $increments: ( //How strongly each color should be blended
-        50%,   60%,   80%,
+        25%,   60%,   80%,
         5%,   40%,   70%
     )
 );
