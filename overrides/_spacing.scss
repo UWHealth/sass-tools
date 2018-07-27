@@ -54,7 +54,7 @@ $horizontal-space: $base-line-height !default;
             'pad': 'padding',
             'space': 'margin'
         ),
-        unit: $vertical-space
+        unit: 'auto'
 
     ), $config, true);
 
