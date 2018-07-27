@@ -57,12 +57,15 @@ $base-colors: (
 ) !default;
 
 /// Font-stack for using the user's operating system's native font.
+/// @group core
 $system-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', sans-serif;
 
 /// Reference for the project's main font-stack.
+/// @group config
 $primary-font-stack: $system-font-stack !default;
 
 /// Reference for the project's monospaced font-stack.
+/// @group config
 $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas, 'DejaVu Sans Mono', Menlo, monospace !default;
 
 /// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
