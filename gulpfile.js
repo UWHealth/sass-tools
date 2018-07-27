@@ -5,14 +5,11 @@ const browserSync = require('browser-sync').create();
 const series = gulp.series;
 //const plumber = require('gulp-plumber');
 
-gulp.task('sass', function() {
+gulp.task('sass', () => {
     return gulp
         .src('./tests/test.scss')
-        //.pipe(plumber())
         .pipe(sass.sync()
-            .on('error', (err) => {
-                console.log(err);
-            })
+            .on('error', sass.logError)
         )
         //.pipe(plumber.stop())
         .pipe(gulp.dest('./tests'))
@@ -30,7 +27,7 @@ gulp.task('docs', (done) => {
 
 gulp.task('serve', (done) => {
     browserSync.init({
-        files: ['./test/**/*.css', './test/**/*.html', './docs/**/*'],
+        files: ['./tests/**/*.css', './tests/**/*.html', './docs/**/*', '!*.js'],
         watch: true,
         open: false,
         server: {
@@ -42,7 +39,7 @@ gulp.task('serve', (done) => {
 });
 
 gulp.task('watch', gulp.parallel('serve', function watch(done) {
-    gulp.watch(['./**/*.scss', '!./node_modules/'], { ignoreInitial: false }, series('docs', 'sass'));
+    gulp.watch(['./**/*.scss', '!./node_modules/', '!./docs/**/*'], { ignoreInitial: false }, series('docs', 'sass'));
 }));
 
 gulp.task('default', series('docs', 'sass'));
