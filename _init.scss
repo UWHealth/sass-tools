@@ -3,7 +3,8 @@
 /// Pulls together config variables and routes them into structures expected by the framework, then makes them global.
 /// For instance, the `$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
 /// @group core
-@mixin globalize-config() {
+///
+@mixin init {
 
     @include _set-global-typography-variables();
 
@@ -12,6 +13,7 @@
 
     /// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
     /// @type Number
+    /// @group core
     $type-base-unit:           $base-line-height !global;
 
     @if $base-font-size >= $type-base-unit {
@@ -20,6 +22,7 @@
 
     /// Ratio used to calculate the difference between font sizes and spacing units.
     /// @type Number
+    /// @group core
     $type-base-ratio:          ($type-base-unit / $base-font-size) !global;
 
     /// Used for defining automatic headings functions.
@@ -83,26 +86,21 @@
 
     $anchor-text-decoration: none !global;
     $background-repeat: no-repeat !global;
-
     $form-element-min-height: $base-line-height !global;
     $textarea-resize: vertical !global;
-
     $media-element-vertical-align: middle !global;
-
     $monospace-font-family: $monospace-font-stack !global;
-
     $nav-list-style: none !global;
-
     $selection-background-color: mix(color('links'), color('bg'), 80%) !global;
     $selection-color: black-or-white($selection-background-color) !global;
     $selection-text-shadow: none !global;
-
     $table-border-collapse: collapse !global;
     $table-border-spacing: 0 !global;
 }
 
 /// Makes sure color map contains the necessary depth to be used by `colors` function
 /// @param $color-map
+///
 @function _verify-color-map-depth($color-map) {
     $is-deep-enough: true;
 
@@ -151,64 +149,65 @@
     /// @group core
     $h1-fs: nth($type-h1-size, 1) !global;
     /// @group core
-    $type-h1-lh: _extract-line-height($type-h1-size) !global;
+    $h1-lh: _extract-line-height($type-h1-size) !global;
     /// @group core
     $h2-fs: nth($type-h2-size, 1) !global;
     /// @group core
-    $type-h2-lh: _extract-line-height($type-h2-size) !global;
+    $h2-lh: _extract-line-height($type-h2-size) !global;
     /// @group core
     $h3-fs: nth($type-h3-size, 1) !global;
     /// @group core
-    $type-h3-lh: _extract-line-height($type-h3-size)!global;
+    $h3-lh: _extract-line-height($type-h3-size)!global;
     /// @group core
     $h4-fs: nth($type-h4-size, 1) !global;
     /// @group core
-    $type-h4-lh: _extract-line-height($type-h4-size)!global;
+    $h4-lh: _extract-line-height($type-h4-size)!global;
     /// @group core
     $h5-fs: nth($type-h5-size, 1) !global;
     /// @group core
-    $type-h5-lh: _extract-line-height($type-h5-size)!global;
+    $h5-lh: _extract-line-height($type-h5-size)!global;
     /// @type Number (pixel)
     $h6-fs: nth($type-h6-size, 1) !global;
     /// @group core
-    $type-h6-lh: _extract-line-height($type-h6-size)!global;
+    $h6-lh: _extract-line-height($type-h6-size)!global;
     /// @group core
     $p-fs: nth($type-p-size, 1) !global;
     /// @group core
-    $type-p-lh: _extract-line-height($type-p-size) !global;
+    $p-lh: _extract-line-height($type-p-size) !global;
     /// @group core
     $small-fs: nth($type-small-size, 1) !global;
     /// @group core
-    $type-small-lh: _extract-line-height($type-small-size) !global;
+    $small-lh: _extract-line-height($type-small-size) !global;
 
-    /// @alias type-h1-lh
-    $h1-lh: $type-h1-lh !global;
+    /// @alias h1-lh
+    $type-h1-lh: $h1-lh !global;
     $type-h1-size: $h1-fs !global;
-    /// @alias type-h2-lh
-    $h2-lh: $type-h2-lh !global;
+    /// @alias h2-lh
+    $type-h2-lh: $h2-lh !global;
     $type-h2-size: $h2-fs !global;
-    /// @alias type-h3-lh
-    $h3-lh: $type-h3-lh !global;
+    /// @alias h3-lh
+    $type-h3-lh: $h3-lh !global;
     $type-h3-size: $h3-fs !global;
-    /// @alias type-h4-lh
-    $h4-lh: $type-h4-lh !global;
+    /// @alias h4-lh
+    $type-h4-lh: $h4-lh !global;
     $type-h4-size: $h4-fs !global;
-    /// @alias type-h5-lh
-    $h5-lh: $type-h5-lh !global;
+    /// @alias h5-lh
+    $type-h5-lh: $h5-lh !global;
     $type-h5-size: $h5-fs !global;
-    /// @alias type-h6-lh
-    $h6-lh: $type-h6-lh !global;
+    /// @alias h6-lh
+    $type-h6-lh: $h6-lh !global;
     $type-h6-size: $h6-fs !global;
-    /// @alias type-p-lh
-    $p-lh: $type-p-lh !global;
+    /// @alias p-lh
+    $type-p-lh: $p-lh !global;
     $type-p-size: $p-fs !global;
-    /// @alias type-small-lh
-    $small-lh: $type-small-lh !global;
+    /// @alias small-lh
+    $type-small-lh: $small-lh !global;
     $type-small-size: $small-fs !global;
 }
 
-/// @alias globalize-config
+/// @alias init
 /// @group core
-@mixin init {
-    @include globalize-config;
+///
+@mixin globalize-config {
+    @include init;
 }
