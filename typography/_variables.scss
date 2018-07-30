@@ -1,48 +1,40 @@
 /// Font size all other values will use for calculation. Will be converted to `rems`.
 /// @group config
-$base-font-size:        16px !default;
+$base-font-size:  16px !default;
 /// Line-height for base font-size. Essentially determines the baseline grid for alignment.
 /// @see {function} type-space
 /// @group config
-$base-line-height:      24px !default;
+$base-line-height: 24px !default;
 
 /// A rough estimate of how loose line-heights should be calculated against their font-sizes (when automatically generated).
 /// @group config
-$font-looseness: 15% !default;
+$font-looseness:  15% !default;
 
 /// @group config
 /// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-h1-size:          modular-scale(7) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-h2-size:          modular-scale(5) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-h3-size:          modular-scale(4) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-h4-size:          modular-scale(3) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-h5-size:          modular-scale(2) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-h6-size:			modular-scale(1) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-p-size:           ($base-font-size, $base-line-height) !default;
-/// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$type-small-size:		modular-scale(-1) !default;
+$type-h1-size:    modular-scale(7) !default;
 
 /// @group config
-/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
-$auto-scale-type:       false !default;
-
-/// Modular scale ratio
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h2-size:    modular-scale(5) !default;
 /// @group config
-/// @type number
-$scale-ratio: 1.125 !default;
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h3-size:    modular-scale(4) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h4-size:    modular-scale(3) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h5-size:    modular-scale(2) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h6-size:    modular-scale(1) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-p-size:     ($base-font-size, $base-line-height) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-small-size: modular-scale(-1) !default;
 
 /// Index of all colors used in the project. This is the one place colors should be used from. Accessing them should be done via the colors function.
 /// @see {function} colors
@@ -92,5 +84,15 @@ $web-fonts: (
 /// @group config
 $font-file-location: '' !default;
 
-$_type-modular-scale: $scale-ratio;
+/// The base vertical unit. Used in `type-space` and grid functions.
+/// @see type-space
+/// @group config
+$vertical-space: $base-line-height !default;
+
+/// The base horizontal unit. Used in `type-space` and grid functions.
+/// @group config
+/// @see type-space
+$horizontal-space: $base-line-height !default;
+
+
 $_headings-use: 0;

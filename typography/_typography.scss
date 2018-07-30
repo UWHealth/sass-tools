@@ -1,7 +1,8 @@
-@import 'variables';
-@import 'conversion';
-@import 'font-face';
-@import 'type-space';
+@import '_modular-scale';
+@import '_variables';
+@import '_conversion';
+@import '_font-face';
+@import '_type-space';
 
 /// Quickly generate a font-size in rems (with a pixel fallback if `$rem-px-fallback = true`). Optionally calculates baseline-aligned line-height a using `$base-line-height` and the `baseline-calc` function.
 /// @param {Pixel} $font-size - Pixel value to be converted.
@@ -15,7 +16,7 @@
 /// @param {Pixel} $base-font [$base-font-size]
 /// @requires {function} baseline-calc
 /// @requires {function} cache
-
+///
 @mixin font-size (
     $font-size,
     $line-height: 'auto',
@@ -74,29 +75,13 @@
     @include font-size($font-size, $line-height, $important, $base-font);
 }
 
-
-/// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$scale-ratio` value)
-/// @param {number} $scale
-@function modular-scale($scale, $ratio: $scale-ratio) {
-
-    $modular-scale: $ratio;
-
-    @if $ratio == $scale-ratio {
-        $modular-scale: $_type-modular-scale;
-    }
-
-    $font-size: strip-units($base-font-size);
-    $pow: cache(pow, $modular-scale, $scale);
-    @return $pow * ($font-size) * 1px;
-}
-
-
 /// Aligns a font-size to a baseline (`$baseline`). Returns a unitless value relative to the font-size (equivilent to ems). An optional multiple can be used to make a variation on the given baseline (using decimals will divide the the baseline).
 /// @param {number} $font-size - Font size to calculate against.
 /// @param {number} $baseline [$base-line-height] - Pixel value of the base line-height.
 /// @param {number} $multiple [1]
 /// @param {boolean} $floor [false] - Calculate the lowest possible number? Rarely useful.
-/// @returns {number} -
+/// @returns {number}
+///
 @function baseline(
     $font-size,
     $baseline: $base-line-height,
@@ -118,6 +103,7 @@
 /// @group utils
 /// @param {number} $x - Find the equivilent number on the curve.
 /// @param {number} $accel [1] - Accepts any number between -2 and 2.35. A negative will invert the curve. 1 is a smooth curve.
+///
 @function _baseline-curve($x, $accel: 1) {
     //Cache this exponent since it uses a decimal and requires a lot of computation
     $x2: cache(pow, $x, $accel);
@@ -148,12 +134,15 @@ $__font-warn: false;
     $font-size: $base-font-size,
     $baseline-slack: $font-looseness
 ){
+    @if type-of($font-size) != 'number' {
+        @warn "Font-size: #{$font-size} must be a number, not a #{type-of($font-size)}.";
+    }
     $smallest-size: if(
         length($type-small-size) > 1,
         nth($type-small-size, 1),
             $type-small-size
         );
-    $smallest-size: 10px;
+    $smallest-size: max(10px, $smallest-size);
     $largest-size: if(
         length($type-h1-size) > 1,
         nth($type-h1-size, 1),
@@ -194,9 +183,8 @@ $__font-warn: false;
     $percent-along-lower: 0;
 
     //Non-adjusted placement of the font-size between largest and smallest font sizes
-    $true-percent-along: strip-units(
-        ($font-size - $sm-font-size) / ($lg-font-size - $sm-font-size)
-    );
+    $true-percent-along: ($font-size - $sm-font-size) / ($lg-font-size - $sm-font-size);
+    $true-percent-along: strip-units($true-percent-along);
 
     //Make sure handle fonts larger than our initial assumptions
     @if $font-size <= $sm-font-size {
@@ -360,7 +348,7 @@ $__font-warn: false;
 @function _extract-line-height($type-size) {
     $line-height: if(length($type-size) > 1,
         nth($type-size, 2),
-        baseline-calc(nth($type-size, 1))
+        baseline-calc($type-size)
     );
 
     @if not unitless($line-height) {

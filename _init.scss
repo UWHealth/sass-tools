@@ -32,39 +32,12 @@
     /// Spacing variable for simple inclusion.
     $type-space:               2 * $type-base-ratio !global;
 
-    /// Used for easier math
-    /// @type Number
-    $_stripped-base-font-size:  strip-units($base-font-size) !global;
-
-    /// Abstracts the `$$scale-ratio` and makes sure it's a positive number.
-    /// @type Number
-    $_type-modular-scale:       $scale-ratio !global;
-
-    //Checking for floats in $scale-ratio
-    @if length($scale-ratio) == 2 {
-        // Making sure we don't have a ratio below 1.
-        @if nth($scale-ratio,1) < nth($scale-ratio,2) {
-            $_type-modular-scale: nth($scale-ratio, 2)/nth($scale-ratio, 1) !global;
-        } @else {
-            $_type-modular-scale: nth($scale-ratio, 1)/nth($scale-ratio, 2) !global;
-        }
-    }
-
     /// Silent class registry.
     /// Holds all auto-generated silent classes for debugging.
     $_silent-class-registry: () !global;
 
-    /// Stores all the names defined in `$$breakpoints` for use in abstract framework components so that if names are chagned, boilerplate media queries won't fail.
-    $_all-breakpoints: () !global;
-
-    //Grab all breakpoint names
-    @each $breakpoint in $breakpoints {
-        $temp-bp: nth($breakpoint, 1) !global;
-
-        @if $temp-bp != ' ' {
-            $_all-breakpoints: append($_all-breakpoints, $temp-bp, comma) !global;
-        }
-    }
+    /// All breakpoint names
+    $_all-breakpoints: map-keys($breakpoints);
 
     /// Grabs the first `$_all-breakpoints` name, allowing for abstraction.
     $breakpoint-smallest: nth($_all-breakpoints, 1) !global;
@@ -139,9 +112,9 @@
         $type-h3-size:          modular-scale(4) !global;
         $type-h4-size:          modular-scale(3) !global;
         $type-h5-size:          modular-scale(2) !global;
-        $type-h6-size:			modular-scale(1) !global;
+        $type-h6-size:          modular-scale(1) !global;
         $type-p-size:           modular-scale(0) !global;
-        $type-small-size:		modular-scale(-1) !global;
+        $type-small-size:       modular-scale(-1) !global;
     }
 
     //Check for existence of line-height override, and store it
