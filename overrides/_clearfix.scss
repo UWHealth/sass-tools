@@ -1,14 +1,18 @@
-@mixin clearfix {
-    *zoom: 1;
+/// Add clearfix to a class
+/// @param {boolean} $important - make properties `!important`.
+///
+@mixin clearfix ($important: false) {
+    $important: if($important, ' !important', '');
+    *zoom: 1#{$important};
 
     &:before,
     &:after {
-        display: table;
+        display: table#{$important};
         content: " ";
     }
     &:after {
-        clear: both;
-        height: 0;
-        width: 0;
+        clear: both#{$important};
+        height: 0#{$important};
+        width: 0#{$important};
     }
 }
