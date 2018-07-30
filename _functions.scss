@@ -1,5 +1,3 @@
-@import 'typography/variables';
-
 /// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
 /// @param {string} $name - function name
 /// @link https://github.com/kaelig/sass-safe-get-function
@@ -36,7 +34,7 @@ $_cached-values: ();
     @if $value != null and $value != '' {
         @return $value;
     } @else {
-        $result: call(safe-get-function($function-name), $args...);
+        $result: call(safe-get-function(#{$function-name}), $args...);
         $_cached-values: map-merge($_cached-values, ($cache-map: $result)) !global;
         @return $result;
     }
@@ -54,7 +52,7 @@ $_cached-values: ();
 /// @group utils
 @function percentage-to-decimal($percentage) {
     @if unit($percentage) == '%' {
-        $percentage: $percentage/100%;
+        $percentage: ($percentage/100%);
     }
     @return $percentage;
 }
@@ -516,7 +514,7 @@ $_cached-values: ();
         @if type-of($value) != "map" {                      //[3]
             $formatted-key: ($key: ($new-key: $value));     //[4]
 
-        }@else if not map-has-key($value, $new-key) {       //[3a]
+        } @else if not map-has-key($value, $new-key) {       //[3a]
             $duplicate-value: map-get($value, nth(map-keys($value), 1)); //[3b]
             $duplicate-map: ($new-key : $duplicate-value);               //[3c]
 
@@ -612,7 +610,8 @@ $golden_ratio: golden();
 // Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
 
 
-/// A more robust exponent multiplication which allows for decimal-based exponents. This **fully** replaces Compass' pow() function (allows for float-based exponents).
+/// A robust exponent multiplication which allows for decimal-based exponents.
+/// This **fully** replaces Compass' pow() function (allows for float-based exponents).
 /// @group Math
 /// @param {number} $base
 /// @param {number} $exp
@@ -634,9 +633,12 @@ $golden_ratio: golden();
             $base: $base * $base;
         }
         @return if($s != 0, 1 / $r, $r);
+    } @else if $base == 0 and $exp > 0 {
+        @return 0;
     } @else {
         $log: log($base);
-        $exp: cache(exp, ($log * $exp));
+        $exp: ($log * $exp);
+        $exp: cache(_exp, $exp);
         @return $exp;
     }
 }
@@ -646,20 +648,35 @@ $golden_ratio: golden();
 ///
 @function exponent($base, $exponent) { @return pow($base, $exponent); }
 
+/// A good approximation for $x close to 0. Used with `pow`.
+///
+@function _exp($x) {
+    $ret: 0;
+    $i: 1;
+    @for $n from 0 to 24 {
+        $ret: $ret + $i;
+        $i: $i * $x / ($n + 1);
+    }
+    @return $ret;
+}
+
 /// Returns the natural logarithm of a number.
 /// @param {number} $x
-/// @group Math
 /// @example
 ///     $value:   log(2)  // 0.69315
 ///     $value2:  log(10) // 2.30259
 /// @returns {number}
+/// @group Math
 ///
-@function log($x) {
-    @if $x <= 0 {
-        @return 0;
+@function log ($x, $b: null) {
+    @if $b != null {
+        @return log($x) / log($b);
     }
-    $k-frexp: frexp(($x / $SQRT2));
-    $k: nth($k-frexp, 2);
+
+    @if $x <= 0 {
+        @return 0 / 0;
+    }
+    $k: nth(frexp($x / $SQRT2), 2);
     $x: $x / ldexp(1, $k);
     $x: ($x - 1) / ($x + 1);
     $x2: $x * $x;
@@ -672,11 +689,35 @@ $golden_ratio: golden();
         $sp: $s;
         $s: $s + $x / $i;
     }
-    @return $LN2 * $k + 2 * $s;
+    @return 2 * $s;
+
+    @debug #{$LN2 * $k + _log($x)};
+    @return $LN2 * $k + _log($x);
+}
+
+/// A good aproximation for $x close to 1
+///
+/// @group math
+///
+@function _log ($x) {
+    $x: ($x - 1) / ($x + 1);
+    $x2: $x * $x;
+    $i: 1;
+    $s: $x;
+    $sp: null;
+    @while $sp != $s {
+        $x: $x * $x2;
+        $i: $i + 2;
+        $sp: $s;
+        $s: $s + $x / $i;
+    }
+    @return 2 * $s;
 }
 
 /// Returns a two-element list containing the normalized fraction and exponent of number.
+///
 /// @group Math
+///
 /// @param $x
 /// @returns {list} (fraction, exponent)
 ///
@@ -696,7 +737,7 @@ $golden_ratio: golden();
             $exp: $exp + 1;
         }
     }
-    @return $x, $exp;
+    @return ($x, $exp);
 }
 
 
@@ -704,8 +745,6 @@ $golden_ratio: golden();
 /// @param {number} $x
 /// @param {number} $exp
 /// @group Math
-/// @param $x
-/// @param $exp
 ///
 @function ldexp($x, $exp) {
     $b: if($exp >= 0, 2, 1 / 2);
@@ -720,23 +759,6 @@ $golden_ratio: golden();
         $exp: floor($exp * 0.5);
     }
     @return $x;
-}
-
-/// Returns E^x, where x is the argument, and E is Euler's constant, the base of the natural logarithms.
-/// @param {number} $x
-/// @group Math
-/// @example
-///     $value: exp(1)  // 2.71828
-///     $value2: exp(-1) // 0.36788
-///
-/// @returns {Number}
-///
-@function exp($x) {
-    $ret: 0;
-    @for $n from 0 to 24 {
-        $ret: $ret + pow($x, $n) / fact($n);
-    }
-    @return $ret;
 }
 
 /// Returns the factorial of a non-negative integer.
@@ -757,7 +779,7 @@ $golden_ratio: golden();
 
     @while $x > 0 {
         $ret: $ret * $x;
-        $x: $x - 1;
+        $x: ($x - 1);
     }
 
     @return $ret;
@@ -789,7 +811,7 @@ $golden_ratio: golden();
     $root: $guess;
 
     @for $i from 1 through $precision {
-        $root: $root - (pow($root, 2) - $base) / (2 * $root);
+        $root: ($root - (pow($root, 2) - $base) / (2 * $root));
     }
     @return $root;
 }
@@ -832,7 +854,6 @@ $golden_ratio: golden();
         @return "No solution";
     }
 }
-
 
 /// Determines the Sine of an angle.
 /// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
@@ -914,7 +935,7 @@ $golden_ratio: golden();
 @function solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x) {
     $cx: 3.0 * $p1x;
     $bx: 3.0 * ($p2x - $p1x) - $cx;
-    $ax: 1.0 - $cx -$bx;
+    $ax: 1.0 - $cx - $bx;
 
     $t0: 0.0;
     $t1: 1.0;
