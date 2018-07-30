@@ -80,48 +80,6 @@ $grid-letter-space-fix:  -0.45em;
 
 $breakpoint-has-widths: ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
 
-
-$display-classes: (
-    "show": block,
-    "hide": none,
-    "flex": flex,
-);
-
-$breakpoint-has-display-classes:   ("smalls", "bigs", "desk");
-
-
-// If $breakpoint-has-spacing-classes is false, this can be ignored
-$spacing-classes: (
-    directions: (
-        "": "",
-        "-t": "top",
-        "-b": "bottom",
-        "-l": "left",
-        "-r": "right",
-        "-v": "top" "bottom",
-        "-h": "right" "left",
-    ),
-    units: (
-        "-0": 0,
-        "": 1,
-        "-quarter": 0.25,
-        "-half": 0.5,
-        "-2": 2,
-        "-neg-quarter": -0.25,
-        "-neg-half": -0.5,
-        "-neg": -1,
-        "-neg-2": -2,
-    ),
-    properties: (
-        "pad": padding,
-        "space": margin,
-    ),
-);
-
-$breakpoint-has-spacing-classes:   ("smalls", "bigs", "desk");
-
-
-
 $base-colors: generate-color-variations(
     $map: (
         'type': #052B33, //Required

@@ -116,5 +116,3 @@ $type-baseline-size: strip-units($base-line-height);
 
 @include web-fonts;
 @include grid-init;
-@include spacing-utilities-init;
-@include display-utilities-init;
