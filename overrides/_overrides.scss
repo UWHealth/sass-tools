@@ -3,42 +3,54 @@
 @import 'spacing';
 @import 'clearfix';
 
-///Takes a map of class names and style properties and outputs utility (override) classes over a specified number of breakpoints. Useful for creating a number of single-use classes over multiple breakpoints. Always makes property declarations `!important`.
-/// @group core
-/// @example
-///  //scss
-///     @include creat-overrides(
-///         ("class-name": (
-///            "property": "value",
-///            ),
-///            "float-right, align_right": (
-///                "float": "right"
-///            )
-///          ),
-///          ('smalls', 'bigs')
-///    );
+/// Takes a map of class names and style properties and outputs utility (override) classes over a specified number of breakpoints. Useful for creating a number of single-use classes over multiple breakpoints. Always makes property declarations `!important`.
 ///
-///    //CSS
-///    .float-left {
-///        float: left !important;
-///    }
-///    .float-right,
-///    .align_right {
-///        float: right !important;
-///    }
-///    @media (max-width: 600px) {
-///        .float-left {
-///            float: left !important;
-///        }
-///        .float-right,
-///        .align_right {
-///            float: right !important;
-///        }
-///    }
-///    @media (min-width: 601px) {
-///        ...
-///    }
-@mixin create-overrides($map, $breakpoints, $namespace: "", $separator: $breakpoint-namespace-character) {
+/// @group core
+///
+/// @example
+///  //SCSS
+///  @include creat-overrides(
+///      (
+///          "class-name": (
+///              "property": "value",
+///          ),
+///          "float-right, align_right": (
+///              "float": "right"
+///          )
+///      ),
+///      ('smalls', 'bigs')
+///  );
+///
+///  //CSS
+///  .float-left {
+///      float: left !important;
+///   }
+///  .float-right, .align_right {
+///      float: right !important;
+///  }
+///  @media (max-width: 600px) { // "smalls"
+///      .smalls-float-left {
+///          float: left !important;
+///      }
+///      .smalls-float-right, .smalls-align_right {
+///          float: right !important;
+///      }
+///  }
+///  @media (min-width: 601px) { // "bigs"
+///      ...
+///  }
+///
+/// @param {map} $map - map of class names, properties and their values.
+/// @param {List} $breakpoints [] - List of breakpoints to create classes for.
+/// @param {string} $namespace [""] - Value to put before each class.
+/// @param {string} $separator [$breakpoint-namespace-character] - string to place between breakpoint names and the classes.
+///
+@mixin create-overrides(
+    $map,
+    $breakpoints,
+    $namespace: "",
+    $separator: $breakpoint-namespace-character
+) {
 
     //create non-responsive classes first
     @include _override-output($map, $namespace);
@@ -48,14 +60,14 @@
 
         @include media-query($breakpoint-name) {
 
-			$name: $namespace + $breakpoint-name + $separator;
-        	@include _override-output($map, $name);
+            $name: $namespace + $breakpoint-name + $separator;
+            @include _override-output($map, $name);
 
-		}
+        }
     }
 }
 
-///Used exclusively by `create-overrides` to iterate through a map of classes, properties, and values to create responsive classes.
+/// Used exclusively by `create-overrides` to iterate through a map of classes, properties, and values to create responsive classes.
 @mixin _override-output($map, $namespace) {
 
     @each $class-name in map-keys($map) {
