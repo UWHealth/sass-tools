@@ -8,9 +8,10 @@
   "author": "UW Health Web Center",
   "license": "MIT",
   "scripts": {
-    "patch": "npm version patch && npm run pp",
-    "minor": "npm version minor && npm run pp",
-    "pp": "git push --tags && npm publish"
+    "patch": "npm version patch && npm publish",
+    "minor": "npm version minor && npm publish",
+    "postversion": "git push origin HEAD v$npm_package_version",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
     "browser-sync": "^2.24.5",
