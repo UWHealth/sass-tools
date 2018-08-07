@@ -8,7 +8,7 @@
   "author": "UW Health Web Center",
   "license": "MIT",
   "scripts": {
-    "patch": "npm version patch && git push --tags"
+    "patch": "npm version patch && git push --tags && npm publish"
   },
   "devDependencies": {
     "browser-sync": "^2.24.5",
