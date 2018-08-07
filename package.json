@@ -7,6 +7,9 @@
   "repository": "https://github.com/UWHealth/sass-tools.git",
   "author": "UW Health Web Center",
   "license": "MIT",
+  "scripts": {
+    "publish": "npm version patch && git push --tags && npm publish"
+  },
   "devDependencies": {
     "browser-sync": "^2.24.5",
     "gulp": "4.0.0",
