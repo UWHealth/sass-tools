@@ -1,6 +1,6 @@
 {
   "name": "@uwhealth/sass-tools",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Starter kit for Sass projects",
   "main": "index.scss",
   "homepage": "https://github.com/UWHealth/sass-tools",
