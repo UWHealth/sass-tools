@@ -76,7 +76,9 @@ $easings: (
 @function c-ease($easing: 'ease') { @return cubic-easing($easing);}
 
 
-/// This mixin generates CSS for interpolation of length properties.
+/// Generates CSS for interpolated length properties. In other words,
+/// it will generate multiple values for a property over multiple media-queries.
+///
 /// It has 5 required parameters, including the target property, initial
 /// screen size, initial value, final screen size and final value.
 ///

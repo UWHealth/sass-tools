@@ -100,7 +100,6 @@
 /// Uses this formula: ` y = (sqrt((x^1)+x) - sqrt(x^1)) / .4142135623730951 `
 ///  ( [Visual](https://www.desmos.com/calculator/qswvc6q9kt) )
 ///
-/// @group utils
 /// @param {number} $x - Find the equivilent number on the curve.
 /// @param {number} $accel [1] - Accepts any number between -2 and 2.35. A negative will invert the curve. 1 is a smooth curve.
 ///

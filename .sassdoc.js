@@ -17,8 +17,8 @@ module.exports = {
         config: "Configuration",
         core: "Core API",
         grid: "Grid",
-        math: "Math",
         utils: "Sass Utilities",
+        math: "Math",
         undefined: "General",
     },
     sort: [

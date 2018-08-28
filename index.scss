@@ -6,15 +6,15 @@
 //-----------------------------
 
 // Global functions and variables
-@import 'functions';
-@import 'colors/colors';
-@import 'easings';
-@import 'grid/grid';
-@import 'helpers';
-@import 'media-queries/media-queries';
-@import 'overrides/overrides';
-@import 'typography/typography';
-@import 'zindex';
+@import 'lib/functions';
+@import 'lib/colors/colors';
+@import 'lib/easings';
+@import 'lib/grid/grid';
+@import 'lib/helpers';
+@import 'lib/media-queries/media-queries';
+@import 'lib/overrides/overrides';
+@import 'lib/typography/typography';
+@import 'lib/zindex';
 
 // Initialization & Globalization
-@import 'init';
+@import 'lib/init';
