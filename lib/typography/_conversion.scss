@@ -21,20 +21,17 @@
         // Remove units from 0 values
         @if $size == 0px {
             $size: 0;
-        }
-        @else {
+        } @else {
             $is-all-zero: false;
         }
         // Allow for blank values
         @if $size == '' or $size == null {
             $size: null;
             $px-sizes: join($px-sizes, $size, space);
-        }
-        @else if $size == 'auto' or $size == 'normal' {
+        } @else if $size == 'auto' or $size == 'normal' {
             // Do not conver auto or normal values
             $px-sizes: join($px-sizes, $size, space);
-        }
-        @else {
+        } @else {
             // Store px values
             $px-sizes: join($px-sizes, $size, space);
             // Convert size to rem
@@ -49,7 +46,6 @@
     }
 
     #{$property}: #{$rem-sizes}#{$important-val};
-
 }
 
 /// @alias px-to-rems
@@ -79,12 +75,11 @@
     $pixels: ($pixels / $base-size) * 1rem;
 
     @return $pixels;
-
 }
 
 /// @alias px-to-rems
 ///
-@function rems($pixels, $base-size: $base-font-size){
+@function rems($pixels, $base-size: $base-font-size) {
     @return px-to-rems($pixels, $base-size);
 }
 
@@ -94,7 +89,7 @@
 /// @param {Number} $context [$base-font-size]
 ///
 @function px-to-ems($pixels, $context: $base-font-size) {
-    @if (unitless($pixels)){
+    @if (unitless($pixels)) {
         $pixels: $pixels * 1px;
     }
 

@@ -9,7 +9,7 @@ $debug-silent-classes: false !default;
 /// Outputs all known auto-generated silent classes as a JSON-style list.
 /// @param {boolean} $console [false] - output to the console or as a comment
 @mixin output-silent-classes($console: false) {
-    $string: "#{map-inspect(_$silent-class-registry)}";
+    $string: '#{map-inspect(_$silent-class-registry)}';
 
     @if $console {
         @debug $string;

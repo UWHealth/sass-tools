@@ -1,3 +1,7 @@
+//------------------------------------
+//	$OVERRIDES
+//------------------------------------
+
 @import 'debug';
 @import 'display';
 @import 'spacing';
@@ -48,28 +52,23 @@
 @mixin create-overrides(
     $map,
     $breakpoints,
-    $namespace: "",
+    $namespace: '',
     $separator: $breakpoint-namespace-character
 ) {
-
     //create non-responsive classes first
     @include _override-output($map, $namespace);
 
     //create responsive classes
     @each $breakpoint-name in $breakpoints {
-
         @include media-query($breakpoint-name) {
-
             $name: $namespace + $breakpoint-name + $separator;
             @include _override-output($map, $name);
-
         }
     }
 }
 
 /// Used exclusively by `create-overrides` to iterate through a map of classes, properties, and values to create responsive classes.
 @mixin _override-output($map, $namespace) {
-
     @each $class-name in map-keys($map) {
         $properties: map-keys(map-get($map, $class-name));
         $values: map-values(map-get($map, $class-name));

@@ -1,10 +1,10 @@
-//------------------------------------*\
+//------------------------------------
 //    $DISPLAY UTILITIES
-//------------------------------------*/
+//------------------------------------
 
 $display-classes: (
     'show': 'block',
-    'hide': 'none'
+    'hide': 'none',
 ) !default;
 
 /// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
@@ -14,20 +14,18 @@ $display-classes: (
 /// @param $class-list
 ///
 @mixin _output-display-classes(
-    $namespace: "",
+    $namespace: '',
     $silent: false,
     $important: true,
     $class-list: $display-classes
 ) {
-
-    $classtype: if($silent, unquote('%'), unquote("."));
+    $classtype: if($silent, unquote('%'), unquote('.'));
     $important_str: if($important, ' !important', '');
     $display-lookup: null;
     $display-registry: ();
     $class-name-list: ();
 
     @each $name, $display in $class-list {
-
         $display-class: #{$classtype}#{$namespace}#{$name};
         // Check for existence of a previous class using the same display
         $display-lookup: index($display-registry, $display);
@@ -38,37 +36,37 @@ $display-classes: (
             #{$display-class} {
                 @extend #{$classtype}#{$namespace}#{$extender};
             }
-
         } @else {
             #{$display-class} {
                 display: #{$display}#{$important_str};
             }
-
         }
 
         // Keep track of display values so we can extend if necessary
-        @if index($display-registry, "#{$display}") != null {
+        @if index($display-registry, '#{$display}') != null {
             @if $silent and $debug-silent-classes {
-                $class-name-list:map-merge(
+                $class-name-list: map-merge(
                     $class-name-list,
-                    ($display-class: $display)
+                    (
+                        $display-class: $display,
+                    )
                 );
             }
 
             //Make sure duplicate values get a uniqueID so it's not extended
             $display: $display + '' + length($display-registry);
         }
-        $display-registry: append($display-registry, "#{$display}", comma);
+        $display-registry: append($display-registry, '#{$display}', comma);
     }
 
     //Register silent class names for debugging
     @if $silent and $debug-silent-classes {
         $_silent-class-registry: silents-register(
-            $class-name-list, 'display'
+            $class-name-list,
+            'display'
         ) !global;
     }
 }
-
 
 $_default-display-classes: (
     'show': 'block',
@@ -81,7 +79,7 @@ $_default-display-classes: (
     'block': 'block',
     'inline_block': 'inline-block',
     'table_cell': 'table-cell',
-    'table': 'table'
+    'table': 'table',
 );
 
 /// The responsive component to `_output-display-classes`. Invokes `_output-display-classes`
@@ -100,27 +98,26 @@ $_default-display-classes: (
     $namespace: '',
     $silent: false,
     $important: false
-){
+) {
     $classes: $display-classes;
 
     @if $silent {
         //Merge user-defined classes with defaults
         // (so we have a wide-array of silent classes)
-        $classes: map-extend(
-            $display-classes, $_default-display-classes, true
-        );
+        $classes: map-extend($display-classes, $_default-display-classes, true);
     }
 
     @include _output-display-classes($namespace, $silent, $important, $classes);
 
     @each $name in $breakpoints {
         @include media-query($name) {
-
             $name: $namespace + $name;
 
             @include _output-display-classes(
-                '#{$name}#{$breakpoint-namespace-character}', $silent,
-                $important, $classes
+                '#{$name}#{$breakpoint-namespace-character}',
+                $silent,
+                $important,
+                $classes
             );
         }
     }

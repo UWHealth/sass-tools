@@ -1,51 +1,50 @@
 /// Total columns to base your grid on.
 /// @group config
-$grid-columns:           12      !default;
+$grid-columns: 12 !default;
 /// Space between grid items.
 /// @group config
-$grid-gutter:            32px    !default;
+$grid-gutter: 32px !default;
 /// Use BEM-style naming for grid classes?
 /// @group config
-$grid-bem-naming:        false   !default;
+$grid-bem-naming: false !default;
 /// Generate silent classes for the grid?
 /// @group config
-$grid-silent-classes:	 false   !default;
+$grid-silent-classes: false !default;
 
 /// Use a flex-based grid?
 /// @group config
-$grid-flex:              true    !default;
+$grid-flex: true !default;
 /// Use an inline-block-based grid? Can be used in conjunction with flex as a fallback.
 /// @group config
-$grid-inline-block:      true    !default;
+$grid-inline-block: true !default;
 /// Use a float-based grid?
 /// @group config
-$grid-floats:            false   !default;
+$grid-floats: false !default;
 /// With inline-block-based grids, we need to "fix" the space between items with a negative letter-spacing value. This value might change based on your project's base font.
 /// @group config
-$grid-letter-space-fix:  -0.45em !default;
+$grid-letter-space-fix: -0.45em !default;
 
-$grid-markup-fix:        false   !default;
-
+$grid-markup-fix: false !default;
 
 /// Include push grid classes?
 /// @group config
-$grid-push:              true    !default;
+$grid-push: true !default;
 
 /// Include pull grid classes?
 /// @group config
-$grid-pull:              true    !default;
+$grid-pull: true !default;
 
 /// String to include before grid width classes.
 /// @group config
-$grid-width-namespace:    if($grid-bem-naming, 'w-', '') !default;
+$grid-width-namespace: if($grid-bem-naming, 'w-', '') !default;
 
 /// String to include before grid push classes.
 /// @group config
-$grid-push-namespace:    if($grid-bem-naming, 'push--', 'push_') !default;
+$grid-push-namespace: if($grid-bem-naming, 'push--', 'push_') !default;
 
 /// String to include before grid pull classes.
 /// @group config
-$grid-pull-namespace:    if($grid-bem-naming, 'pull--', 'pull_') !default;
+$grid-pull-namespace: if($grid-bem-naming, 'pull--', 'pull_') !default;
 
 /// The character used to separate breakpoints when generating responsive classes. For instance `.smalls\@one-fourth`, where `'\\@'` is the namespace character.
 ///@group config
@@ -60,9 +59,9 @@ $breakpoint-has-widths: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
 /// List of media-queries (as defined in `$breakpoints`) that should have grid-push utility classes.
 ///@group config
 ///@type list
-$breakpoint-has-push:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
+$breakpoint-has-push: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
 
 /// List of media-queries (as defined in `$breakpoints`) that should have grid-pull utility classes.
 ///@group config
 ///@type list
-$breakpoint-has-pull:   ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
+$breakpoint-has-pull: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;

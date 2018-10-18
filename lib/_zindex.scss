@@ -1,7 +1,3 @@
-//------------------------------------
-//      $MIXINS
-//------------------------------------
-
 // /* SG
 // # Tools/Z-Index [[dev]]
 //
@@ -16,40 +12,55 @@
 // */
 
 $z-index: (
-	reset: 0,
-	behind: -100,
-	head: 100,
-	body: 200,
-	foot: 300,
-	modal: 500
+    reset: 0,
+    behind: -100,
+    head: 100,
+    body: 200,
+    foot: 300,
+    modal: 500,
 ) !default;
 
 $z-registry: ();
 
 @function z($layer, $modifier: false) {
-	$layer-addition: 0;
+    $layer-addition: 0;
 
-	@if map-get($z-index, $layer) != false{
-		@if $modifier == null {
-			@if map-get($z-registry, $layer) == null {
-				$z-registry: map-merge($z-registry, ($layer: 0)) !global;
-			}
+    @if map-get($z-index, $layer) != false {
+        @if $modifier == null {
+            @if map-get($z-registry, $layer) == null {
+                $z-registry: map-merge(
+                    $z-registry,
+                    (
+                        $layer: 0,
+                    )
+                ) !global;
+            }
 
-			@return map-get($z-index, $layer);
+            @return map-get($z-index, $layer);
+        } @else {
+            @if map-get($z-registry, $layer) == null {
+                $z-registry: map-merge(
+                    $z-registry,
+                    (
+                        $layer: 1,
+                    )
+                ) !global;
+            } @else {
+                $layer-addition: map-get($z-registry, $layer) + 1;
+                $z-registry: map-merge(
+                    $z-registry,
+                    (
+                        $layer: $layer-addition,
+                    )
+                ) !global;
+            }
 
-		}@else {
-			@if map-get($z-registry, $layer) == null {
-				$z-registry: map-merge($z-registry, ($layer: 1)) !global;
-			}@else {
-				$layer-addition: map-get($z-registry, $layer) + 1;
-				$z-registry: map-merge($z-registry, ($layer: $layer-addition)) !global;
-			}
+            $return-value: map-get($z-index, $layer) +
+                map-get($z-registry, $layer);
 
-			$return-value: map-get($z-index, $layer) + map-get($z-registry, $layer);
-
-			@return $return-value;
-		}
-	}@else {
-		@warn "#{$layer} is not in the $z-index map, please choose from the following z-index values: #{$z-index}";
-	}
+            @return $return-value;
+        }
+    } @else {
+        @warn "#{$layer} is not in the $z-index map, please choose from the following z-index values: #{$z-index}";
+    }
 }

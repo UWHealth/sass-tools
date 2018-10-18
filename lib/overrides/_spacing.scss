@@ -6,15 +6,15 @@ $_default-spacing-classes-config: (
     silent: true,
     important: false,
     directions: (
-        '': ''
+        '': '',
     ),
     amounts: (
-        '': 1
+        '': 1,
     ),
     properties: (
-        'pad': padding
+        'pad': padding,
     ),
-    unit: 'auto'
+    unit: 'auto',
 );
 
 $spacing-classes: $_default-spacing-classes-config !default;
@@ -38,13 +38,12 @@ $spacing-classes: $_default-spacing-classes-config !default;
 /// @param {boolean} $config.silent [true]
 /// @param {boolean} $config.unit ['auto']
 ///
-@mixin _output-spacing-classes($namespace: "", $config: ()){
-
+@mixin _output-spacing-classes($namespace: '', $config: ()) {
     //Merge the passed map with default values
     $config: map-extend($_default-spacing-classes-config, $config);
 
     //Convert map values to variables for simpler parsing
-    $classtype: if(map-get($config, silent), unquote("%"), unquote("."));
+    $classtype: if(map-get($config, silent), unquote('%'), unquote('.'));
     $properties: map-get($config, properties);
     $directions: map-get($config, directions);
     $amounts: map-get($config, amounts);
@@ -54,68 +53,81 @@ $spacing-classes: $_default-spacing-classes-config !default;
     $unit: map-get($config, unit);
 
     // Check for null properties, set reasonable defaults
-    $properties: if(_is-set($properties), $properties, ('pad': 'padding'));
-    $directions: if(_is-set($directions), $directions, ('': ''));
-    $amounts: if(_is-set($amounts), $amounts, ('': 1));
+    $properties: if(
+        _is-set($properties),
+        $properties,
+        (
+            'pad': 'padding',
+        )
+    );
+    $directions: if(
+        _is-set($directions),
+        $directions,
+        (
+            '': '',
+        )
+    );
+    $amounts: if(
+        _is-set($amounts),
+        $amounts,
+        (
+            '': 1,
+        )
+    );
 
     $class-name-list: ();
     $class-cache: ();
 
     //Loop through base names, then amounts, then directions.
     @each $given-name, $base-property in $properties {
-
         @each $amount_name, $amount in $amounts {
-
             @each $direction_name, $property-directions in $directions {
-
                 $class_name: unquote(
-                    "#{$classtype}#{$namespace}#{$given-name}" +
-                    "#{$direction_name}#{$amount_name}"
+                    '#{$classtype}#{$namespace}#{$given-name}'+'#{$direction_name}#{$amount_name}'
                 );
 
                 //Skip if the padding is a negative value.
-                @if not (($base-property == 'padding') and ($amount < 0)) {
-
+                @if not(($base-property == 'padding') and ($amount < 0)) {
+                    $class-name-list: map-merge(
+                        $class-name-list,
+                        (
+                            $class_name: $amount,
+                        )
+                    );
                     #{$class_name} {
-
                         //multi-direction
                         @each $direction in $property-directions {
                             $property: $base-property;
+
+                            $property-amount: '#{$property+$amount}';
 
                             @if ($direction) and ($direction != '') {
                                 $property: $property + '-' + $direction;
                             }
 
-                            $property-amount: '#{$property+$amount}';
-
                             @if map-get($class-cache, $property-amount) {
                                 @extend #{map-get(
                                     $class-cache, $property-amount
                                 )};
-                            }
-                            @else {
+                            } @else {
+                                $class-cache: map-merge(
+                                    $class-cache,
+                                    (
+                                        $property-amount: $class_name,
+                                    )
+                                );
                                 //Using type-space mixin,
                                 // output the REM-based value
                                 @include type-space(
-                                    $property, $amount, $important, $unit
-                                );
-
-                                $class-cache: map-merge(
-                                    $class-cache,
-                                    ($property-amount: $class_name)
+                                    $property,
+                                    $amount,
+                                    $important,
+                                    $unit
                                 );
                             }
-
                         }
                     }
-
-                    $class-name-list: map-merge(
-                        $class-name-list,
-                        ($class_name: $amount)
-                    );
-
                 }
-
             }
         }
     }
@@ -123,12 +135,11 @@ $spacing-classes: $_default-spacing-classes-config !default;
     // Register silent classes for debugging.
     @if map-get($config, silent) and $debug-silent-classes {
         $_silent-class-registry: silents-register(
-            $class-name-list, 'spacing'
+            $class-name-list,
+            'spacing'
         ) !global;
     }
 }
-
-
 
 /// The responsive component to `_output-spacing-classes`. Invokes `spacing-utilites`
 /// that loops through a set of media-queries defined in `$breakpoints`.
@@ -143,21 +154,20 @@ $spacing-classes: $_default-spacing-classes-config !default;
 @mixin spacing-classes(
     $breakpoints: map-keys($breakpoints),
     $namespace: '',
-    $config: (silent: false)
-){
+    $config: (
+        silent: false,
+    )
+) {
     $config: map-extend($config, $spacing-classes);
     @include _output-spacing-classes($namespace, $config);
 
     @each $name in $breakpoints {
-
         @include media-query($name) {
-
             $name: $namespace + $name;
             @include _output-spacing-classes(
                 '#{$name}#{$breakpoint-namespace-character}',
                 $config
             );
-
         }
     }
 }
@@ -167,11 +177,12 @@ $spacing-classes: $_default-spacing-classes-config !default;
 @mixin spacing-utilities-init(
     $breakpoints: $_all-breakpoints,
     $namespace: '',
-    $config: (silent: false)
+    $config: (
+        silent: false,
+    )
 ) {
     @include spacing-classes($breakpoints, $namespace, $config);
 }
-
 
 @function _is-set($value) {
     @if $value == null or length($value) == 0 {

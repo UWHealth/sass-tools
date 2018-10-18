@@ -59,8 +59,7 @@
     $inline-block: $grid-inline-block,
     $floats: $grid-floats,
     $bem: $grid-bem-naming
-    ) {
-
+) {
     // Allow for BEM naming instead of snake-case
     $child: '_';
     $mod: '_';
@@ -70,12 +69,12 @@
         $mod: '--';
     }
 
-    $class-type: if($silent, "%", ".");
+    $class-type: if($silent, '%', '.');
 
     %grid_reset,
     %grid--reset {
-        letter-spacing: normal;
         word-spacing: normal;
+        letter-spacing: normal;
     }
 
     %grid_clearfix,
@@ -112,23 +111,20 @@
         @if $floats {
             @extend %grid--clearfix;
 
-            & > #{$class-type}grid#{$child}item{
+            & > #{$class-type}grid#{$child}item {
                 float: right;
             }
         }
-        @if $inline-block or
-            $flex
-        {
+        @if $inline-block or $flex {
             direction: rtl;
             text-align: left;
 
-            & > #{$class-type}grid#{$child}item{
+            & > #{$class-type}grid#{$child}item {
                 direction: ltr;
                 text-align: left;
             }
         }
     }
-
 
     //
     // Align the entire grid to the right. Extends `.grid`.
@@ -149,8 +145,7 @@
     // Centered grids align grid items centrally without needing to use push or pull
     // classes. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}center{
-
+    #{$class-type}grid#{$mod}center {
         @if $flex {
             justify-content: center;
         }
@@ -169,7 +164,6 @@
     // `.grid`.
     //
     #{$class-type}grid#{$mod}middle {
-
         & > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: center;
@@ -179,7 +173,6 @@
     }
 
     #{$class-type}grid#{$mod}bottom {
-
         & > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: flex-end;
@@ -188,11 +181,10 @@
         }
     }
 
-
     // Gutterless grids have all the properties of regular grids, minus any spacing.
     // Extends `.grid`.
 
-    #{$class-type}grid#{$mod}full{
+    #{$class-type}grid#{$mod}full {
         margin-left: 0;
 
         > #{$class-type}grid#{$child}item {
@@ -200,18 +192,16 @@
         }
     }
 
-
     //
     // Create grids with narrower gutters. Extends `.grid`.
     //
     #{$class-type}grid#{$mod}narrow {
-        @include type-space(margin-left, -.5, $unit: $gutter);
+        @include type-space(margin-left, -0.5, $unit: $gutter);
 
         > #{$class-type}grid#{$child}item {
-            @include type-space(padding-left, .5, $unit: $gutter);
+            @include type-space(padding-left, 0.5, $unit: $gutter);
         }
     }
-
 
     //
     // Create grids with wider gutters. Extends `.grid`.
@@ -228,12 +218,11 @@
     // Cause layout items to take up a non-explicit amount of width.
     //
     #{$class-type}grid#{$mod}auto {
-
         @if $inline-block {
             text-align: justify;
 
             &:after {
-                content: " ";
+                content: ' ';
                 display: inline-block;
                 width: 100%;
                 height: 1px;
@@ -249,8 +238,8 @@
             }
 
             @if $flex {
-                flex-grow: 1;
                 flex-basis: auto;
+                flex-grow: 1;
             }
         }
     }
@@ -258,14 +247,17 @@
 
 /// Creates a grid container (row) based on your grid configuration.
 /// @group grid
-@mixin grid-row($gutter: $grid-gutter, $letter-spacing: $grid-letter-space-fix) {
+@mixin grid-row(
+    $gutter: $grid-gutter,
+    $letter-spacing: $grid-letter-space-fix
+) {
+    margin: 0; // [2]
+    padding: 0; // [2]
     // 1. Allow the grid system to be used on lists.
     // 2. Remove any margins and paddings that might affect the grid system.
     // 3. Apply a negative `margin-left` to negate the columns’ gutters.
 
-    list-style: none;                // [1]
-    margin: 0;                       // [2]
-    padding: 0;                      // [2]
+    list-style: none; // [1]
     @include type-space(margin-left, -1, $unit: $gutter);
 
     @if $grid-inline-block and $letter-spacing {
@@ -288,7 +280,6 @@
     }
 }
 
-
 /// Creates a grid item (column) based on your grid configuration set to a width based on the `$columns` passed in.
 /// @group grid
 /// @param {number} $columns [$grid-columns] - Number of columns the item should span.
@@ -303,7 +294,7 @@
     $floats: $grid-floats,
     $markup-fix: $grid-markup-fix,
     $letter-spacing: $grid-letter-space-fix
-    ) {
+) {
     // 1. Space columns apart.
     // 2. Cause columns to stack side-by-side.
     // 3. Align columns to the tops of each other.
@@ -314,18 +305,18 @@
     min-height: 1px; // IE 11 fix
 
     @if $inline-block {
-        display: inline-block;            // [2]
-        vertical-align: top;              // [3]
+        display: inline-block; // [2]
+        vertical-align: top; // [3]
 
-        @if $markup-fix != true
-          and $letter-spacing {    // [5]
-            letter-spacing: normal;
+        @if $markup-fix != true and $letter-spacing {
             word-spacing: normal;
+            // [5]
+            letter-spacing: normal;
         }
     }
 
     @if $floats {
-        float: left;                     // [2]
+        float: left; // [2]
     }
 
     @if $flex {
@@ -340,15 +331,19 @@
     @include grid-width($columns, $total-columns);
 }
 
-
-
 /// Creates responsive grid classes by running through all the grid-setup mixins. Uses the media-queries defined in the `$breakpoint-has-` variables to create media-query-scoped classes.
 /// @group grid
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin grid-init($silent: $grid-silent-classes, $important: false) {
-
-    @if ($grid-inline-block != true and $grid-floats != true and $grid-flex != true) {
+    @if (
+        $grid-inline-block !=
+            true and
+            $grid-floats !=
+            true and
+            $grid-flex !=
+            true
+    ) {
         @warn 'No grid type selected. Please make sure to set $grid-inline-block, -floats, or -flex to true.';
     }
 
@@ -378,15 +373,15 @@
 @mixin width-classes($silent: $grid-silent-classes, $important: false) {
     //Include flex-basis (and max-width) for flex-box grids
 
-    $column-props: if($grid-flex, ("width" "max-width" "flex-basis"), "width");
+    $column-props: if($grid-flex, ('width' 'max-width' 'flex-basis'), 'width');
 
-    @include width-setup("", $silent, $column-props, $important);
+    @include width-setup('', $silent, $column-props, $important);
 
     // Our responsive classes, if we have enabled them.
     @each $name in $breakpoint-has-widths {
         @include media-query($name) {
             @include width-setup(
-                "#{$name}#{$breakpoint-namespace-character}",
+                '#{$name}#{$breakpoint-namespace-character}',
                 $silent,
                 $column-props,
                 $important
@@ -400,14 +395,14 @@
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin push-classes($silent: $grid-silent-classes, $important: false) {
-    @include width-setup($grid-push-namespace, $silent, "left", $important);
+    @include width-setup($grid-push-namespace, $silent, 'left', $important);
 
     @each $name in $breakpoint-has-push {
         @include media-query($name) {
             @include width-setup(
-                "#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}",
+                '#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}',
                 $silent,
-                "left",
+                'left',
                 $important
             );
         }
@@ -419,15 +414,14 @@
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin pull-classes($silent: $grid-silent-classes, $important: false) {
-
-    @include width-setup($grid-pull-namespace, $silent, "right", $important);
+    @include width-setup($grid-pull-namespace, $silent, 'right', $important);
 
     @each $name in $breakpoint-has-pull {
         @include media-query($name) {
             @include width-setup(
-                "#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}",
+                '#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}',
                 $silent,
-                "right",
+                'right',
                 $important
             );
         }

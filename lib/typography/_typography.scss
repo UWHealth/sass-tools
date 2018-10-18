@@ -17,11 +17,11 @@
 /// @requires {function} baseline-calc
 /// @requires {function} cache
 ///
-@mixin font-size (
+@mixin font-size(
     $font-size,
     $line-height: 'auto',
     $important: false,
-    $base-font: $base-font-size,
+    $base-font: $base-font-size
 ) {
     @if type-of($important) == 'number' {
         $base-font: $important;
@@ -31,26 +31,19 @@
     @include px-to-rems('font-size', $font-size, $important, $base-font);
 
     @if $line-height == true or $line-height == 'auto' {
-
         line-height: #{cache(baseline-calc, $font-size)};
-
-    }
-    @else if type-of($line-height) == 'number' {
-
+    } @else if type-of($line-height) == 'number' {
         //Convert to unitless
         @if not unitless($line-height) {
             @if unit($line-height) == 'px' {
                 $line-height: $line-height / $font-size;
-            }
-            @else {
+            } @else {
                 @warn 'Line-height for #{$font-size} must be unitless or in pixel values';
             }
         }
 
         line-height: $line-height;
-
-    }
-    @else if $line-height == 'inherit' or $line-height == 'normal' {
+    } @else if $line-height == 'inherit' or $line-height == 'normal' {
         line-height: $line-height;
     }
 }
@@ -61,7 +54,7 @@
     $line-height: 'auto',
     $important: false,
     $base-font: $base-font-size
-    ) {
+) {
     @include font-size($font-size, $line-height, $important, $base-font);
 }
 
@@ -71,7 +64,7 @@
     $line-height: 'auto',
     $important: false,
     $base-font: $base-font-size
-    ) {
+) {
     @include font-size($font-size, $line-height, $important, $base-font);
 }
 
@@ -87,13 +80,14 @@
     $baseline: $base-line-height,
     $multiple: 1,
     $floor: false
-    ) {
+) {
     @if ($floor) {
-        @return floor($font-size / ($baseline * $multiple)) * ($baseline * $multiple) / $font-size;
+        @return floor($font-size / ($baseline * $multiple)) *
+            ($baseline * $multiple) / $font-size;
     }
-    @return ceil($font-size / ($baseline * $multiple)) * ($baseline * $multiple) / $font-size;
+    @return ceil($font-size / ($baseline * $multiple)) * ($baseline * $multiple) /
+        $font-size;
 }
-
 
 /// Calculates a where a number(`$x`) sits along a parabolic arc (curve). Change the curve's severity by changing its `$accel`.
 /// An `$accel` of 1 is a smooth arc.
@@ -132,25 +126,25 @@ $__font-warn: false;
 @function baseline-calc(
     $font-size: $base-font-size,
     $baseline-slack: $font-looseness
-){
+) {
     @if type-of($font-size) != 'number' {
         @warn "Font-size: #{$font-size} must be a number, not a #{type-of($font-size)}.";
     }
     $smallest-size: if(
         length($type-small-size) > 1,
         nth($type-small-size, 1),
-            $type-small-size
-        );
+        $type-small-size
+    );
     $smallest-size: max(10px, $smallest-size);
     $largest-size: if(
         length($type-h1-size) > 1,
         nth($type-h1-size, 1),
-            $type-h1-size
-        );
+        $type-h1-size
+    );
     $i: 0;
 
     //Make sure baseline-slack is a percentage
-    @if unit($baseline-slack) != "%" {
+    @if unit($baseline-slack) != '%' {
         @warn "Baseline-slack/font-looseness should be a percentage.";
         $basline-slack: strip-units($baseline-slack);
         $baseline-slack: percentage($baseline-slack);
@@ -182,7 +176,9 @@ $__font-warn: false;
     $percent-along-lower: 0;
 
     //Non-adjusted placement of the font-size between largest and smallest font sizes
-    $true-percent-along: ($font-size - $sm-font-size) / ($lg-font-size - $sm-font-size);
+    $true-percent-along: (
+        ($font-size - $sm-font-size) / ($lg-font-size - $sm-font-size)
+    );
     $true-percent-along: strip-units($true-percent-along);
 
     //Make sure handle fonts larger than our initial assumptions
@@ -193,11 +189,10 @@ $__font-warn: false;
 
         @if $font-size > $smallest-size {
             $true-percent-along: ($slack / 10);
-        }@else {
-            $true-percent-along: .001;
+        } @else {
+            $true-percent-along: 0.001;
         }
-    }
-    @else if $font-size >= $lg-font-size {
+    } @else if $font-size >= $lg-font-size {
         //Set progress to 100%
         $percent-along-current: 1;
         $percent-along-lower: 1;
@@ -209,34 +204,37 @@ $__font-warn: false;
     // Determine where we're at on the curve
     @else {
         //Standard curve
-        $percent-along-current:cache(_baseline-curve, $true-percent-along, 1);
+        $percent-along-current: cache(_baseline-curve, $true-percent-along, 1);
         //Upper boundary curve
-        $percent-along-upper:  cache(_baseline-curve, $true-percent-along, 1.3);
+        $percent-along-upper: cache(_baseline-curve, $true-percent-along, 1.3);
         //Lower boundary curve
-        $percent-along-lower:  cache(_baseline-curve, $true-percent-along, 1.9);
+        $percent-along-lower: cache(_baseline-curve, $true-percent-along, 1.9);
     }
 
     $upper-boundary: ($sm-lh-upper-bound - $lg-lh-upper-bound);
     $lower-boundary: ($sm-lh-lower-bound - $lg-lh-lower-bound);
 
     //Adjust percentages to line-height values
-    $base-lh-upper-bound: $sm-lh-upper-bound - ($percent-along-upper * $upper-boundary);
-    $base-lh-lower-bound: $sm-lh-lower-bound - ($percent-along-lower * $lower-boundary);
+    $base-lh-upper-bound: (
+        $sm-lh-upper-bound - ($percent-along-upper * $upper-boundary)
+    );
+    $base-lh-lower-bound: (
+        $sm-lh-lower-bound - ($percent-along-lower * $lower-boundary)
+    );
 
+    // stylelint-disable
     @if $debug-fonts {
         @if index($__font-index, $font-size) == null {
-            @debug "font-size: #{$font-size}";
-            @debug "%: #{percentage($true-percent-along)}";
-            @debug "%u: #{percentage($percent-along-upper)}, " +
-                "%l: #{percentage($percent-along-lower)}";
-            @debug "ub: #{$base-lh-upper-bound}" +
-                " (#{$font-size * $base-lh-upper-bound})," +
-                " lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})";
-            @debug "sm-lh-ub: #{$sm-lh-upper-bound}, sm-lh-lb: #{$sm-lh-lower-bound}";
-            @debug "lg-lh-ub: #{$lg-lh-upper-bound}, lg-lh-lb: #{$lg-lh-lower-bound}";
-            @debug "slack: #{$slack}";
+            @debug '\A'+ 'font-size: #{$font-size}\A' + '        %: #{percentage($true-percent-along)} \A' +
+                '       %u: #{percentage($percent-along-upper)}\A' + '       %l: #{percentage($percent-along-lower)}\A' +
+                '       ub: #{$base-lh-upper-bound} (#{$font-size * $base-lh-upper-bound}),' +
+                '\A' + '       lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})' +
+                '\A' + ' sm-lh-ub: #{$sm-lh-upper-bound}, sm-lh-lb: #{$sm-lh-lower-bound}\A' +
+                ' lg-lh-ub: #{$lg-lh-upper-bound}, lg-lh-lb: #{$lg-lh-lower-bound}\A' +
+                '    slack: #{$slack}';
         }
     }
+    // stylelint-enable
 
     //If the lower bound is somehow higher than the upper bound,
     // let's just reset the bounds to simple values
@@ -250,18 +248,16 @@ $__font-warn: false;
     $line-height: baseline($font-size, $baseline);
 
     //Second attempt
-    @if ($line-height < $base-lh-lower-bound)
-        or ($line-height > $base-lh-upper-bound) {
-
+    @if ($line-height < $base-lh-lower-bound) or
+        ($line-height > $base-lh-upper-bound)
+    {
         //Attempt using a negative line-height for very large sizes
-        @if ($true-percent-along > .9) {
-            $line-height: baseline($font-size, $baseline, .5, $floor: true);
-        }
-        @else if $font-size < $base-font-size {
+        @if ($true-percent-along > 0.9) {
+            $line-height: baseline($font-size, $baseline, 0.5, $floor: true);
+        } @else if $font-size < $base-font-size {
             $line-height: baseline($font-size, $baseline, 1.5);
-        }
-        @else {
-            $line-height: baseline($font-size, $baseline, .5);
+        } @else {
+            $line-height: baseline($font-size, $baseline, 0.5);
         }
     }
 
@@ -269,23 +265,29 @@ $__font-warn: false;
     $quit: false;
 
     //Test baselines until we find a match
-    @while(($line-height < $base-lh-lower-bound or $line-height > $base-lh-upper-bound)
-        and not $quit //allows for infinite loop bailout
-    ){
-        $i: $i + .5;
+    @while (
+        (
+                $line-height <
+                    $base-lh-lower-bound or
+                    $line-height >
+                    $base-lh-upper-bound
+            ) and
+            (not $quit)
+    ) {
+        $i: $i + 0.5;
         //Try baselines in half increments
         $line-height: baseline($font-size, $baseline, $i);
 
-        //Bail-out function to prevent infinite loops
+        // Bail-out function to prevent infinite loops
         // Set quit to true so we can escape this hellish loop
-        @if $i > (($font-size / 1px) / 2)  {
+        @if $i > (($font-size / 1px) / 2) {
             @if (not $__font-warn) and ($debug-fonts) {
-                @warn "
-                Your font-looseness might be too high or low," +
-                    " watch for weird baselines and slow compile times.
-                FS: #{$font-size} / LH: #{$line-height}
-                Tolerances: #{$base-lh-upper-bound} / #{$base-lh-lower-bound}
-                loops: #{$i * 2}";
+                @warn ""+
+                "Your font-looseness might be too high or low," +
+                    " watch for weird baselines and slow compile times.\A"+
+                "FS: #{$font-size} / LH: #{$line-height}\A"+
+                "Tolerances: #{$base-lh-upper-bound} / #{$base-lh-lower-bound}\A"+
+                "loops: #{$i * 2}\A";
                 $__font-warn: true !global; //Prevent seeing this warning multiple times
             }
 
@@ -298,15 +300,15 @@ $__font-warn: false;
     @if $debug-fonts {
         @if index($__font-index, $font-size) == null {
             $__font-index: append($__font-index, $font-size) !global;
-            @debug "lh: #{$line-height * $font-size} / #{$line-height} ";
-            @debug "loops: #{$i * 2}";
-            @debug "-----";
+            // stylelint-disable
+            @debug ''+ '\A        lh: #{$line-height * $font-size} / #{$line-height} '+
+                '\A     loops: #{$i * 2}' + '\A  --------\A';
+            // stylelint-enable
         }
     }
 
     @return $line-height;
 }
-
 
 /// Style any number of headings all at once.
 /// @param {Number} $from [1] - Starting heading number
@@ -325,27 +327,25 @@ $__font-warn: false;
     }
 
     @if $from >= 1 and $to <= 6 {
-
         @for $i from $from through $to {
             $selector: '#{$class-type}h#{$i}';
             #{$selector} {
                 @extend %base-headings#{$_headings-use};
             }
         }
-    }
-    @else {
+    } @else {
         @warn 'You need to supply numbers between 1 and 6' +
             ' for headings mixin to work';
     }
 }
-
 
 /// Checks if a type-size is declared as larger than 1, then either extracts the second value or calculates a line-height.
 /// @param {List|Number} $type-size
 /// @returns {number} The line-height
 ///
 @function _extract-line-height($type-size) {
-    $line-height: if(length($type-size) > 1,
+    $line-height: if(
+        length($type-size) > 1,
         nth($type-size, 2),
         baseline-calc($type-size)
     );

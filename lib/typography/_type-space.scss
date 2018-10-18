@@ -20,27 +20,24 @@
 /// @requires $vertical-space
 /// @see {function} type-space
 
-@mixin type-space(
-    $properties,
-    $multipliers,
-    $important: false,
-    $unit: 'auto'
-) {
+@mixin type-space($properties, $multipliers, $important: false, $unit: 'auto') {
     $multiplier: nth($multipliers, 1);
     $m-length: length($multipliers);
-    $important: if($important, true, false); //Allow for strings, convert to boolean
+    $important: if(
+        $important,
+        true,
+        false
+    ); //Allow for strings, convert to boolean
 
     @each $property in $properties {
         $values: null;
         $multiple-index: 1;
 
         @each $multiple in $multipliers {
-
             @if $multiple == 'auto' {
                 $values: append($values, 'auto');
                 $multiple-index: $multiple-index + 1;
-            }
-            @else {
+            } @else {
                 $value: $unit;
 
                 @if $unit == 'auto' {
@@ -49,12 +46,13 @@
                     //If value is the second or fourth value in a list,
                     // or is a left, right, or width value,
                     // multiply by the $horizontal-space
-                    @if ($multiple-index % 2 == 0)
-                    or (
-                    str-contains($property, 'right')
-                    or str-contains($property, 'left')
-                    or str-contains($property, 'width')
-                    ) {
+                    @if ($multiple-index % 2 == 0) or
+                        (
+                            str-contains($property, 'right') or
+                                str-contains($property, 'left') or
+                                str-contains($property, 'width')
+                        )
+                    {
                         $value: $horizontal-space;
                     }
                 }
@@ -66,15 +64,18 @@
         }
 
         @include px-to-rems($property, $values, $important);
-
     }
 }
 
 /// @alias type-space
-@mixin space($properties, $multipliers, $important: false, $unit: $vertical-space) {
+@mixin space(
+    $properties,
+    $multipliers,
+    $important: false,
+    $unit: $vertical-space
+) {
     @include type-space($properties, $multipliers, $important, $unit);
 }
-
 
 /// A functional version of the `type-space` mixin.
 /// @group core

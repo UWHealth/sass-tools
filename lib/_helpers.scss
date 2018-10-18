@@ -13,6 +13,7 @@
 ///         border-style: solid dashed dotted;
 ///         border-color: blue currentColor yellow;
 ///     }
+///
 @mixin border($border) {
     $border-width: ();
     $border-style: ();
@@ -28,27 +29,29 @@
             //Check property types for types and store them into separate list values
             //Numbers (width), colors (color), or strings (style)
             @if ($prop-type == 'number') {
-                $border-width: append($border-width, $property)
+                $border-width: append($border-width, $property);
             }
             @elseif (($prop-type == 'color') or ($property == 'currentColor')) {
-                $border-color: append($border-color, $property)
+                $border-color: append($border-color, $property);
             }
             @elseif ($prop-type == 'string') {
-                $border-style: append($border-style, $property)
+                $border-style: append($border-style, $property);
             }
-
         }
     }
 
     //If this is just a the typical shorthand (width style color)
     // with all values in the correct place, just output the shorthand
-    @if length($border-width) == 1
-        and length($border-style) == 1
-        and length($border-color) == 1
+    @if length($border-width) ==
+        1 and
+        length($border-style) ==
+        1 and
+        length($border-color) ==
+        1
     {
         border: $border-width $border-style $border-color;
     } @else {
-    //Else, put them into nested properties and let sass handle the rest
+        //Else, put them into nested properties and let sass handle the rest
         border: {
             width: $border-width;
             style: $border-style;
@@ -56,7 +59,6 @@
         }
     }
 }
-
 
 /// Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
 /// @param {number} $specificity [1]
@@ -71,7 +73,7 @@
 /// .class.class {
 ///     color: red;
 /// }
-
+///
 @mixin specificity($specificity: 1) {
     $selector: unquote('&');
 
@@ -89,10 +91,9 @@
 
 /// Cross-browser (including IE8-) opacity.
 @mixin opacity($opacity) {
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$opacity * 100})";
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$opacity * 100})';
     opacity: $opacity;
 }
-
 
 //------------------------------------
 //    $LISTS
@@ -101,14 +102,16 @@
 // Turn off the bullet for an element of a list
 
 /// Turn off the bullet for an element of a list
-@mixin no-bullet() {
-    list-style-image : none;
-    list-style-type  : none;
-    margin-left      : 0;
+@mixin no-bullet {
+    margin-left: 0;
+    list-style-type: none;
+    list-style-image: none;
 }
 
 /// Turns off the bullets for an entire list
-@mixin no-bullets() {
+@mixin no-bullets {
     list-style: none;
-    > li { @include no-bullet; }
+    > li {
+        @include no-bullet;
+    }
 }

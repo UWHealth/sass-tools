@@ -5,32 +5,32 @@
 /// @group core
 ///
 @mixin init {
-
     @include _set-global-typography-variables();
 
     //Expand color map if necessary
-    $base-colors:           _verify-color-map-depth($base-colors) !global;
+    $base-colors: _verify-color-map-depth($base-colors) !global;
 
     /// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
     /// @type Number
     /// @group core
-    $type-base-unit:           $base-line-height !global;
+    $type-base-unit: $base-line-height !global;
 
     @if $base-font-size >= $type-base-unit {
-        $type-base-unit: baseline-calc($base-font-size) * $base-font-size !global;
+        $type-base-unit: baseline-calc($base-font-size) *
+            $base-font-size !global;
     }
 
     /// Ratio used to calculate the difference between font sizes and spacing units.
     /// @type Number
     /// @group core
-    $type-base-ratio:          ($type-base-unit / $base-font-size) !global;
+    $type-base-ratio: ($type-base-unit / $base-font-size) !global;
 
     /// Used for defining automatic headings functions.
     /// @type List | Number
-    $type-headings:            6, 5, 4, 3, 2, 1 !global;
+    $type-headings: 6, 5, 4, 3, 2, 1 !global;
 
     /// Spacing variable for simple inclusion.
-    $type-space:               2 * $type-base-ratio !global;
+    $type-space: 2 * $type-base-ratio !global;
 
     /// Silent class registry.
     /// Holds all auto-generated silent classes for debugging.
@@ -43,14 +43,17 @@
     $breakpoint-smallest: nth($_all-breakpoints, 1) !global;
 
     /// Grabs the last `$_all-breakpoints` name, allowing for abstraction.
-    $breakpoint-largest:  nth($_all-breakpoints, length($_all-breakpoints)) !global;
+    $breakpoint-largest: nth(
+        $_all-breakpoints,
+        length($_all-breakpoints)
+    ) !global;
 
     //------------------------------------
-    //		$SANITIZE
+    //        $SANITIZE
     //------------------------------------
 
-    $root-background-color: color('bg') !global;
-    $root-color: color('type') !global;
+    $root-background-color: colors('bg') !global;
+    $root-color: colors('type') !global;
     $root-font-family: $primary-font-stack !global;
     $root-font-size: percentage($base-font-size/16px) !global;
     $root-line-height: $type-base-ratio !global;
@@ -79,8 +82,7 @@
 
     @if map-depth($color-map) {
         $is-deep-enough: false;
-    }
-    @else {
+    } @else {
         $i: 1;
         $map-length: length($color-map);
 
@@ -102,27 +104,29 @@
     @return $color-map;
 }
 
-
 /// Pulls typography variables apart and puts them into easier to use pieces.
 /// For instance `$type-h1-size` starts as a list and becomes a single value, while adding `$type-h1-lh` (line-height) to the global scope for use.
 @mixin _set-global-typography-variables() {
     @if $auto-scale-type {
-        $type-h1-size:          modular-scale(7) !global;
-        $type-h2-size:          modular-scale(5) !global;
-        $type-h3-size:          modular-scale(4) !global;
-        $type-h4-size:          modular-scale(3) !global;
-        $type-h5-size:          modular-scale(2) !global;
-        $type-h6-size:          modular-scale(1) !global;
-        $type-p-size:           modular-scale(0) !global;
-        $type-small-size:       modular-scale(-1) !global;
+        $type-h1-size: modular-scale(7) !global;
+        $type-h2-size: modular-scale(5) !global;
+        $type-h3-size: modular-scale(4) !global;
+        $type-h4-size: modular-scale(3) !global;
+        $type-h5-size: modular-scale(2) !global;
+        $type-h6-size: modular-scale(1) !global;
+        $type-p-size: modular-scale(0) !global;
+        $type-small-size: modular-scale(-1) !global;
     }
 
     //Check for existence of line-height override, and store it
 
+    /// H1 font-size
     /// @group core
     $h1-fs: nth($type-h1-size, 1) !global;
+    /// H1 line-height
     /// @group core
     $h1-lh: _extract-line-height($type-h1-size) !global;
+    @debug 'init';
     /// @group core
     $h2-fs: nth($type-h2-size, 1) !global;
     /// @group core
@@ -130,19 +134,19 @@
     /// @group core
     $h3-fs: nth($type-h3-size, 1) !global;
     /// @group core
-    $h3-lh: _extract-line-height($type-h3-size)!global;
+    $h3-lh: _extract-line-height($type-h3-size) !global;
     /// @group core
     $h4-fs: nth($type-h4-size, 1) !global;
     /// @group core
-    $h4-lh: _extract-line-height($type-h4-size)!global;
+    $h4-lh: _extract-line-height($type-h4-size) !global;
     /// @group core
     $h5-fs: nth($type-h5-size, 1) !global;
     /// @group core
-    $h5-lh: _extract-line-height($type-h5-size)!global;
+    $h5-lh: _extract-line-height($type-h5-size) !global;
     /// @type Number (pixel)
     $h6-fs: nth($type-h6-size, 1) !global;
     /// @group core
-    $h6-lh: _extract-line-height($type-h6-size)!global;
+    $h6-lh: _extract-line-height($type-h6-size) !global;
     /// @group core
     $p-fs: nth($type-p-size, 1) !global;
     /// @group core

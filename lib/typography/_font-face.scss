@@ -27,7 +27,9 @@
 }
 /// @alias web-fonts
 /// @deprecated
-@mixin include-web-fonts($font-map: $web-fonts) {@include web-fonts($font-map);}
+@mixin include-web-fonts($font-map: $web-fonts) {
+    @include web-fonts($font-map);
+}
 
 /// Formats fonts taken from `$web-fonts` and creates their equivilent weight (with correct font-style) output.
 @mixin _font-weights($name, $path, $weight, $formats, $style: '') {
@@ -41,13 +43,7 @@
     $eot: map-get($fonts, 'eot');
     $font-files: map-get($fonts, 'font-files');
 
-    @include font-face(
-        $name,
-        $font-files,
-        $weight,
-        $style,
-        $eot
-    );
+    @include font-face($name, $font-files, $weight, $style, $eot);
 }
 
 /// Generates cross-browser font-face declarations when called.
@@ -63,16 +59,16 @@
     $weight: false,
     $style: false,
     $eot: null
-){
-
+) {
     $iefont: unquote("'#{$eot}?#iefix'");
     @font-face {
         font-family: quote($name);
-        @if $eot {
-            src: unquote("'#{$eot}'");
-            $font-files: url($iefont) unquote("format('embedded-opentype')"), $font-files;
-        }
         src: #{$font-files};
+        @if $eot {
+            $font-files: url($iefont) unquote("format('embedded-opentype')"),
+                $font-files;
+            src: unquote("'#{$eot}'");
+        }
         @if $weight {
             font-weight: #{$weight};
         }
@@ -91,18 +87,16 @@
 
         @if $format == 'eot' {
             $eot: '#{$font-name}.eot';
-        }
-        @else {
+        } @else {
             $font-files: join(
-                unquote('url("#{$font-name}.#{$extension}") format("#{$format}")'),
+                unquote(
+                    'url("#{$font-name}.#{$extension}") format("#{$format}")'
+                ),
                 $font-files,
                 comma
             );
         }
     }
 
-    @return (
-        'font-files': $font-files,
-        'eot': $eot
-    );
+    @return ('font-files': $font-files, 'eot': $eot);
 }

@@ -8,8 +8,7 @@ $auto-scale-type: false !default;
 /// @group config
 /// @type number
 ///
-$scale-ratio:     1.125 !default;
-
+$scale-ratio: 1.125 !default;
 
 /// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$scale-ratio` value)
 /// @param {number} $scale
@@ -34,7 +33,7 @@ $scale-ratio:     1.125 !default;
 @function _normalize-ratio($ratio) {
     @if length($ratio) == 2 {
         // Making sure we don't have a ratio below 1.
-        @if nth($ratio,1) < nth($ratio,2) {
+        @if nth($ratio, 1) < nth($ratio, 2) {
             @return (nth($ratio, 2) / nth($scale-ratio, 1));
         } @else {
             @return (nth($scale-ratio, 1) / nth($scale-ratio, 2));

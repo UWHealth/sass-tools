@@ -3,11 +3,16 @@
 //------------------------------------
 
 /// Second words used to represent numbers in a fraction; Corresponds to grid interval names (whole, half, third, etc.).
-$_human-readable-numerators: one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen, twenty;
+$_human-readable-numerators: one, two, three, four, five, six, seven, eight,
+    nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen,
+    eighteen, nineteen, twenty;
 
 /// First words used to represent numbers in a fraction; Corresponds to grid interval names (one, two, three, etc.).
-$_human-readable-denominators: whole, half, third, quarter, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelfth, thirteenth, fourteenth, fifteenth, sixteenth, seventeenth, eighteenth, nineteenth, twentieth, twentyfirst, twentysecond, twentythird, twentyfourth, twentyfifth, twentysixth, twentyseventh,twentyeigth, twentyninth;
-
+$_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
+    seventh, eighth, ninth, tenth, eleventh, twelfth, thirteenth, fourteenth,
+    fifteenth, sixteenth, seventeenth, eighteenth, nineteenth, twentieth,
+    twentyfirst, twentysecond, twentythird, twentyfourth, twentyfifth,
+    twentysixth, twentyseventh, twentyeigth, twentyninth;
 
 /// Creates a percentage based on the `$size / $context` while allowing for a contextual calculations (`($total/$context) * ($columns/$total)`).
 ///
@@ -25,10 +30,14 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
 /// @param {number} $total-columns [$grid-columns] -
 /// @returns {number} percentage
 ///
-@function grid-size($columns, $context: $grid-columns, $total-columns: $grid-columns) {
+@function grid-size(
+    $columns,
+    $context: $grid-columns,
+    $total-columns: $grid-columns
+) {
     //Correct for nested columns() calls
-    @if (unit($context) == "%") {
-        $context: ($context / ($context * 0 + 1) ) / 100;
+    @if (unit($context) == '%') {
+        $context: ($context / ($context * 0 + 1)) / 100;
         $context: $total-columns * $context;
     }
     $context: ($total-columns / $context);
@@ -39,10 +48,13 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
 
 /// @alias grid-size
 /// @group grid
-@function columns($columns, $context: $grid-columns, $total-columns: $grid-columns) {
+@function columns(
+    $columns,
+    $context: $grid-columns,
+    $total-columns: $grid-columns
+) {
     @return grid-size($columns, $context, $total-columns);
 }
-
 
 /// Creates a width property with a percentage based on the `$columns / $total`. Also includes flex-based properties if `$grid-flex` is enabled.
 /// @group grid
@@ -60,7 +72,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
 /// @alias grid-width
 /// @group grid
 ///
-@mixin width($columns, $total:$grid-columns) {
+@mixin width($columns, $total: $grid-columns) {
     @include grid-width($columns, $total);
 }
 
@@ -80,7 +92,6 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
     $columns: $grid-columns,
     $space: if($grid-bem-naming, '-', '_')
 ) {
-
     // [1] Loop through the $grid-columns.
     // [2] Loop through $divisor (same number as $grid-columns). This acts as the second number in our column fraction.
     // [3a]Loop through $divisor before it decreases by 1 from the previous loop.
@@ -92,7 +103,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
     // Same system used for pushes and pulls.
     $class-type: if($silent, '%', '.');
     $divisor: $columns;
-	$class-name-list: ();
+    $class-name-list: ();
     $prefix: '#{$class-type}#{$namespace}';
     $important: if($important, '!important', '');
 
@@ -103,41 +114,50 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
         }
     }
 
-    @for $i from 1 through $columns {                                         // [1]
+    @for $i from 1 through $columns {
+        // [1]
 
-        @while $divisor > 0 {                                                // [2]
+        @while $divisor > 0 {
+            // [2]
 
-            @for $dividen from 1 to $divisor {                              // [3a]
-				//Create numerator (first number, e.g. 'two').
-                $numerator: nth($_human-readable-numerators, $dividen);      // [4]
+            @for $dividen from 1 to $divisor {
+                // [3a]
+                //Create numerator (first number, e.g. 'two').
+                $numerator: nth($_human-readable-numerators, $dividen); // [4]
 
-				//Create denominator (second number, e.g. 'thirds').
+                //Create denominator (second number, e.g. 'thirds').
                 $denominator: nth($_human-readable-denominators, $divisor);
 
-				//Divide first number(numerator) by second number(denominator).
+                //Divide first number(numerator) by second number(denominator).
                 $size: grid-size($dividen, $divisor);
 
                 //Create class name
-                $class-name: "#{$prefix}#{$numerator}#{$space}#{$denominator}";
+                $class-name: '#{$prefix}#{$numerator}#{$space}#{$denominator}';
 
                 //Pluralize anything other than ratios with a numerator of 1
-                @if $numerator != "one" {                                    // [5]
-					$class-name: "#{$class-name}s";                          // [6]
+                @if $numerator != 'one' {
+                    // [5]
+                    $class-name: '#{$class-name}s'; // [6]
                 }
 
-				#{$class-name} {
+                #{$class-name} {
                     @each $type in $property {
-                        @if index("top" "right" "bottom" "left", $type) != null {
+                        @if index('top' 'right' 'bottom' 'left', $type) != null
+                        {
                             position: relative;
                         }
                         #{$type}: $size #{$important};
                     }
                 }
 
-				@if $grid-silent-classes and $debug-silent-classes {
-					$class-name-list: map-merge($class-name-list, ($class-name: $size));
-				}
-
+                @if $grid-silent-classes and $debug-silent-classes {
+                    $class-name-list: map-merge(
+                        $class-name-list,
+                        (
+                            $class-name: $size,
+                        )
+                    );
+                }
             }
 
             $divisor: $divisor - 1; //[3b]
@@ -146,22 +166,25 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth, sevent
 
     //Allow for fourths as an alias to quarters
     #{$prefix}one#{$space}fourth {
-		@extend #{$prefix}one#{$space}quarter;
+        @extend #{$prefix}one#{$space}quarter;
     }
 
     #{$prefix}two#{$space}fourths {
-		@extend #{$prefix}two#{$space}quarters;
+        @extend #{$prefix}two#{$space}quarters;
     }
 
     #{$prefix}three#{$space}fourths {
-		@extend #{$prefix}three#{$space}quarters;
+        @extend #{$prefix}three#{$space}quarters;
     }
 
-
-	@if $silent and $debug-silent-classes {
-		$class-name-list: map-merge($class-name-list,(
-			#{$prefix}one#{$space}whole: 100%
-		));
-		$_silent-class-registry: silents-register($class-name-list, $type) !global;
-	}
+    @if $silent and $debug-silent-classes {
+        $class-name-list: map-merge(
+            $class-name-list,
+            (#{$prefix}one#{$space}whole: 100%)
+        );
+        $_silent-class-registry: silents-register(
+            $class-name-list,
+            $type
+        ) !global;
+    }
 }

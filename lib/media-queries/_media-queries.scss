@@ -12,8 +12,8 @@
 /// * Passing `height smalls` will replace `width` with `height` within the `smalls` breakpoint. Similarly, using `min smalls` would replace 'max' with 'min'.
 /// @group core
 /// @param {List} $mq... - Can be a reference to a `$breakpoints` key, a pixel value, or a media value.
+///
 @mixin media-query($mq...) {
-
     //Stored for switching on and off
     $rem-px-default: $rem-px-fallback;
 
@@ -29,7 +29,6 @@
     $rem-px-fallback: false !global;
 
     @each $mq-id, $mq-group in $arguments-map {
-
         //Extract each value from the arguments map
         $operator: map-get($mq-group, 'operator');
 
@@ -37,64 +36,81 @@
 
         $device: map-get($mq-group, 'device');
 
-        $device: if($device, $device, 'screen'); //Default to screen if no device specified
+        $device: if(
+            $device,
+            $device,
+            'screen'
+        ); //Default to screen if no device specified
 
         $logical-operator: unquote('#{$operator}#{$value}');
 
         //Multiple media-queries in the map indicates an 'or' media-query
         // So let's concatenate those media-queries together
         @if length($arguments-map) > 1 {
-
-            $media-query-string: $media-query-string + '#{$device} and #{$logical-operator}';
+            $media-query-string: $media-query-string +
+                '#{$device} and #{$logical-operator}';
 
             //Use the IDs assigned to each media-query as a way to compare length
             // (Libsass has an issue with indexes in maps)
             @if $mq-id != length($arguments-map) {
-
                 //Add a comma to the end of all but the last query
                 $media-query-string: $media-query-string + ', ';
-
-            }@else {
-
-                @media only #{$media-query-string}  {
+            } @else {
+                @media only #{$media-query-string} {
                     @content;
                 }
-
             }
-
-        }
-        @else {
-
-            @if $operator { //Only output media-queries with operators
+        } @else {
+            @if $operator {
+                //Only output media-queries with operators
 
                 @media only #{$device} and #{$logical-operator} {
                     @content;
                 }
-
-            }@else {
+            } @else {
                 @warn "the media-query mixin requires a logical-operator" +
-                " and a value (min-width 2px). You will have to write" +
+                " and a value ('min-width', 2px). You will have to write" +
                 " your own media query if you'd like something else";
             }
-
         }
-
     }
 
     //Change back to user setting
     $rem-px-fallback: $rem-px-default !global;
-
 }
 
 //Aliases: Same as above, but shorter
 /// @alias media-query
-@mixin media        ($mq...)	{ @include media-query($mq...) { @content; } }
+///
+@mixin media($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
 /// @alias media-query
-@mixin mq           ($mq...)    { @include media-query($mq...) { @content; } }
+///
+@mixin mq($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
 /// @alias media-query
-@mixin breakpoint   ($mq...)	{ @include media-query($mq...) { @content; } }
+///
+@mixin breakpoint($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
 /// @alias media-query
-@mixin bp           ($mq...)	{ @include media-query($mq...) { @content; } }
+///
+@mixin bp($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
 
 //-------------------------
 // Private media-query functions
@@ -117,8 +133,11 @@
         //Since value should be last, we can assume the grouping is done
         @if (map-get($structure, 'value')) {
             //Wrap arguments into an array-object-like structure (1:(key:value, key:value))
-            $key: $i * 1; //Fixes a libSass error.
-            $arg-map: map-merge($arg-map, ($key: ($structure)));
+            $key: $i * 1;
+            $arg-map: map-merge(
+                $arg-map,
+                ($key: $structure),
+            );
             //Empty the map so we can rewrite it
             $structure: ();
         }
@@ -128,29 +147,53 @@
 }
 
 // Test each argument for its type and match it up to a proper map key
-@function _mq-parse-query-args($argument, $call: 0, $check: null){
+@function _mq-parse-query-args($argument, $call: 0, $check: null) {
     $query-map: ();
     //Check global $breakpoints config variable for matches
-    @if	(map-get($breakpoints, $argument)){
-        $query-map: map-merge($query-map, ('operator': map-get($breakpoints, $argument)));
+    @if (map-get($breakpoints, $argument)) {
+        $query-map: map-merge(
+            $query-map,
+            (
+                'operator': map-get($breakpoints, $argument)
+            )
+        );
         //Also set value to nothing since we already have it
-        $query-map: map-merge($query-map, ('value': ''));
+        $query-map: map-merge(
+            $query-map,
+            (
+                'value': ''
+            )
+        );
     }
     //Check operators for matches
     @elseif (index($media-query-operators, $argument)) {
         //Format operator as the beginning of a parenthesis
-        $query-map: map-merge($query-map, ('operator': "(#{$argument}"));
+        $query-map: map-merge(
+            $query-map,
+            (
+                'operator': '(#{$argument}'
+            )
+        );
     }
     //If its a number, assume its a value
-    @elseif(type-of($argument) == number){
+    @elseif (type-of($argument) == number) {
         //Format value with a colon and closing parenthesis
-        $query-map: map-merge($query-map, ('value': ":#{$argument})"));
+        $query-map: map-merge(
+            $query-map,
+            (
+                'value': ':#{$argument})'
+            )
+        );
     }
     //Check devices for matches
-    @elseif(index($media-query-devices, $argument)) {
-        $query-map: map-merge($query-map, ('device': $argument));
-    }
-    @else {
+    @elseif (index($media-query-devices, $argument)) {
+        $query-map: map-merge(
+            $query-map,
+            (
+                'device': $argument
+            )
+        );
+    } @else {
         //if not a device, $breakpoint, value, or operator, it's probably a nested list
         //We'll need to loop through that list and re-call this function until we get to the bottom
         @for $i from 1 through length($argument) {
@@ -167,7 +210,10 @@
             //Add to the loop count
             $call: $call + 1;
             //Re-run this function through all arguments
-            $query-map: map-merge($query-map, _mq-parse-query-args($arg, $call, $check));
+            $query-map: map-merge(
+                $query-map,
+                _mq-parse-query-args($arg, $call, $check)
+            );
         }
     }
 
