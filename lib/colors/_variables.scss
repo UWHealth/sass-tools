@@ -1,0 +1,11 @@
+/// Index of all colors used in the project. This is the one place colors should be used from. Accessing them should be done via the colors function.
+/// **Note:** `'type'`, `'links'`, and `'bg'` must be defined.
+/// @see {function} colors
+/// @group config
+$base-colors: (
+    'type': (
+        'base': #0a1c2b,
+    ),
+    'links': #0d497b,
+    'bg': #f6f8fb,
+) !default;

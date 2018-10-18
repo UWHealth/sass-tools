@@ -1,44 +1,45 @@
 @import '../index.scss';
 
 $display-classes: (
-    "show": block,
-    "hide": none,
-    "flex": flex,
+    'show': block,
+    'hide': none,
+    'flex': flex,
 );
 
-$breakpoint-has-display-classes:   ("smalls", "bigs", "desk");
+$breakpoint-has-display-classes: ('smalls', 'bigs', 'desk');
 
 // If $breakpoint-has-spacing-classes is false, this can be ignored
 $spacing-classes: (
     directions: (
-        "": "",
-        "-t": "top",
-        "-b": "bottom",
-        "-l": "left",
-        "-r": "right",
-        "-v": "top" "bottom",
-        "-h": "right" "left",
+        '': '',
+        '-t': 'top',
+        '-b': 'bottom',
+        '-l': 'left',
+        '-r': 'right',
+        '-v': 'top' 'bottom',
+        '-h': 'right' 'left',
     ),
     amounts: (
-        "-0": 0,
-        "": 1,
-        "-quarter": 0.25,
-        "-half": 0.5,
-        "-2": 2,
-        "-neg-quarter": -0.25,
-        "-neg-half": -0.5,
-        "-neg": -1,
-        "-neg-2": -2,
+        '-0': 0,
+        '': 1,
+        '-quarter': 0.25,
+        '-half': 0.5,
+        '-2': 2,
+        '-neg-quarter': -0.25,
+        '-neg-half': -0.5,
+        '-neg': -1,
+        '-neg-2': -2,
     ),
     properties: (
-        "pad": padding,
-        "space": margin,
+        'pad': padding,
+        'space': margin,
     ),
 );
 
-$breakpoint-has-spacing-classes:   ("smalls", "bigs", "desk");
+$breakpoint-has-spacing-classes: ('smalls', 'bigs', 'desk');
 
-$auto-scale-type: true;
+$auto-scale-type: false;
+$debug-fonts: false;
 
 @include init;
 

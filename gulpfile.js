@@ -1,22 +1,28 @@
 const gulp = require('gulp');
-const sass = require('gulp-sass');
-const sassdoc = require('sassdoc');
 const series = gulp.series;
 
+let serverRunning = false;
+
 gulp.task('sass', () => {
+    const sass = require('gulp-sass');
+
     return gulp
         .src(['./tests/*.scss', '!./test/_*.scss'])
-        .pipe(sass.sync()
+        .pipe(sass()
             .on('error', sass.logError)
+            // .on('warn', sass.logError)
         )
         .pipe(gulp.dest('./tests'))
-
 });
 
+gulp.task('test' series('sass'));
+
 gulp.task('docs', (done) => {
+    const sassdoc = require('sassdoc');
     const sdConfig = require('./.sassdoc.js');
+
     gulp
-        .src('./**/*.scss')
+        .src('./lib/**/*.scss')
         .pipe(sassdoc(sdConfig)
             .on('end', done)
             .on('error', done))
@@ -24,6 +30,7 @@ gulp.task('docs', (done) => {
 });
 
 gulp.task('serve', (done) => {
+    serverRunning = true;
     const browserSync = require('browser-sync').create();
 
     browserSync.init({
@@ -39,8 +46,13 @@ gulp.task('serve', (done) => {
 });
 
 gulp.task('watch', function watch(done) {
-    gulp.watch(['./**/*.scss', '!./node_modules/', '!./docs/**/*'], { ignoreInitial: false }, series('docs', 'sass'));
-    console.log('If you want to run a server as well, use "gulp watch serve".');
+    gulp.watch(
+        ['./**/*.scss', '!./node_modules/', '!./docs/**/*'],
+        { ignoreInitial: false },
+        series('docs', 'sass')
+    );
+
+    if (!serverRunning) console.info('If you want to run a server as well, use \n "gulp serve watch".');
 });
 
 gulp.task('default', series('docs', 'sass'));

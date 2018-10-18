@@ -1,20 +1,5315 @@
-//----------------------------
-// TOOLS
+// *******************************************
+// SASS TOOLS
+//
 // Sass-specific, independent functions/mixins/variables.
 // Should never produce CSS without their outer function/mixin being called.
 // Created to be portable to any project.
-//-----------------------------
+// ***************************************************
 
-// Global functions and variables
-@import 'lib/functions';
-@import 'lib/colors/colors';
-@import 'lib/easings';
-@import 'lib/grid/grid';
-@import 'lib/helpers';
-@import 'lib/media-queries/media-queries';
-@import 'lib/overrides/overrides';
-@import 'lib/typography/typography';
-@import 'lib/zindex';
+/// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
+/// @param {string} $name - function name
+/// @link https://github.com/kaelig/sass-safe-get-function
+/// @group utils
+@function safe-get-function($name) {
+    @if function-exists("get-function") {
+        @return get-function($name);
+    } @else {
+        @return $name;
+    }
+}
+
+/// Wrapper for Sass' internal `call` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
+/// @param {string} $name - function name
+/// @param {any} $args... - function arguments
+/// @group utils
+@function safe-call($name, $args...) {
+    @return call(safe-get-function($name), $args...);
+}
+
+/// Holds all cached function calls.
+/// @type Map
+$_cached-values: ();
+
+/// Memoize (cache) a function's return values and arguments. Speeds up processing on intensive functions that get called many times (with the same arguments).
+/// _NOTE: This can actually **increase** processing time if used too often or on simple functions as the lookup process isn't free. Every cached value is unique._
+/// @param {string} $function-name
+/// @param {} $args... - Arguments to be passed to the function
+/// @group utils
+@function cache($function-name, $args...) {
+    $cache-map: "#{$function-name}, #{$args}";
+    $value: map-get($_cached-values, $cache-map);
+
+    @if $value != null and $value != "" {
+        @return $value;
+    } @else {
+        $result: call(safe-get-function(#{$function-name}), $args...);
+        $_cached-values: map-merge(
+            $_cached-values,
+            (
+                $cache-map: $result
+            )
+        ) !global;
+        @return $result;
+    }
+}
+
+/// Remove lengths (`px`, `em`, `rem`, etc.) from a value. Usually a variable. This is sometimes required because Sass cannot calculate incompatible units (`px * rem` for instance).
+/// @param {Length} $value
+/// @group utils
+@function strip-units($value) {
+    @return $value / ($value * 0 + 1);
+}
+
+/// Changes percent value to decimal.
+/// @param {Number} $percentage
+/// @group utils
+@function percentage-to-decimal($percentage) {
+    @if unit($percentage) == "%" {
+        $percentage: ($percentage/100%);
+    }
+    @return $percentage;
+}
+
+/// Converts pixel dimensions to viewport width (vw) dimensions.
+/// @param {number} $pixels
+/// @returns {number}
+/// @group utils
+@function px-to-vw($pixels) {
+    $vw-context: ($max-site-width * 0.01) * 1px;
+    @return ($pixels / $vw-context) * 1vw;
+}
+
+/// Converts a list to a string with an optional separator.
+/// @param {list} $list
+/// @param {string} $separator [',']
+/// @returns {string}
+/// @group utils
+@function list-to-str($list, $separator: ",") {
+    $string: "";
+
+    @for $i from 1 through length($list) {
+        $string: str-append($string, #{nth($list, $i)});
+
+        @if $i != length($list) {
+            $string: str-append($string, $separator);
+        }
+    }
+
+    @return $string;
+}
+
+/// Casts a string into a number.
+/// @author Hugo Giraudel
+/// @group utils
+///
+/// @param {String | Number} $value - Value to be parsed
+/// @return {Number}
+///
+@function str-to-number($value) {
+    @if type-of($value) == "number" {
+        @return $value;
+    } @else if type-of($value) != "string" {
+        @warn 'Value for `to-number` should be a number or a string.';
+    }
+
+    $result: 0;
+    $digits: 0;
+    $minus: str-slice($value, 1, 1) == "-";
+    $numbers: (
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9
+    );
+
+    @for $i from if($minus, 2, 1) through str-length($value) {
+        $character: str-slice($value, $i, $i);
+
+        @if not(index(map-keys($numbers), $character) or $character == ".") {
+            @return to-length(
+                if($minus, -$result, $result),
+                str-slice($value, $i)
+            );
+        }
+
+        @if $character == "." {
+            $digits: 1;
+        } @else if $digits == 0 {
+            $result: $result * 10 + map-get($numbers, $character);
+        } @else {
+            $digits: $digits * 10;
+            $result: $result + map-get($numbers, $character) / $digits;
+        }
+    }
+
+    @return if($minus, -$result, $result);
+}
+
+/// Add `$unit` to `$value`
+/// @author Hugo Giraudel
+/// @group utils
+///
+/// @param {Number} $value - Value to add unit to
+/// @param {String} $unit - String representation of the unit
+/// @return {Number} - `$value` expressed in `$unit`
+///
+@function to-length($value, $unit) {
+    $units: (
+        "px": 1px,
+        "cm": 1cm,
+        "mm": 1mm,
+        "%": 1%,
+        "ch": 1ch,
+        "pc": 1pc,
+        "in": 1in,
+        "em": 1em,
+        "rem": 1rem,
+        "pt": 1pt,
+        "ex": 1ex,
+        "vw": 1vw,
+        "vh": 1vh,
+        "vmin": 1vmin,
+        "vmax": 1vmax
+    );
+
+    @if not index(map-keys($units), $unit) {
+        @warn 'Invalid unit `#{$unit}`.';
+    }
+
+    @return $value * map-get($units, $unit);
+}
+
+/// Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
+/// @group utils
+/// @param {any} $value
+/// @param {string} $keep - accepts `'keys'`, `'values'`, or `'both'` for map conversion.
+///
+@function to-list($value, $keep: "both") {
+    $keep: if(index("keys" "values" "both", $keep), $keep, "both");
+
+    @if type-of($value) == "map" {
+        $keys: ();
+        $values: ();
+
+        @each $key, $val in $value {
+            $keys: append($keys, $key);
+            $values: append($values, $val);
+        }
+
+        @if $keep == "keys" {
+            @return $keys;
+        } @else if $keep == "values" {
+            @return $values;
+        } @else {
+            @return zip($keys, $values);
+        }
+    }
+
+    @return if(type-of($value) != list, ($value), $value);
+}
+
+/// Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean. Delegates methods to the appropriate function based on variable type.
+/// @group utils
+/// @param {map | list | string} $data - the data you're searching through.
+/// @param {} $value - the value you're searching for.
+///
+@function contains($data, $value) {
+    @if type-of($data == "map") {
+        @return map-has-keys($data, $value);
+    } @else if type-of($data == "list") {
+        @return list-contains($data, $value);
+    } @else if type-of($data == "string") {
+        @return str-contains($data, $value);
+    }
+}
+
+/// Converts a map or list to a string (`('this', 'and', 'this')` becomes `'this,and,this'`).
+/// @group utils
+/// @param {list | map} $list
+/// @param {string} $separator [","]
+///
+@function str-join($list, $separator: ",") {
+    @return list-to-str($list, $separator);
+}
+
+/// Checks if a `$string` contains a `$value`. Optionally accepts a start (`$pos`) positon.
+/// @group utils
+/// @param {string} $string
+/// @param {string} $value
+/// @param {number} $pos [0]
+///
+@function str-contains($string, $value, $pos: 0) {
+    $string: str-slice($string, $pos);
+
+    @if str-index($string, $value) != null {
+        @return true;
+    } @else {
+        @return false;
+    }
+}
+
+/// Adds one string to another (e.g. `str-append('hello', 'world')` becomes `hello world`).
+/// @group utils
+/// @param {string} $string
+/// @param {string} $insert
+///
+@function str-append($string, $insert) {
+    $string: if($string == null, "", $string);
+
+    @return str-insert($string, $insert, str-length($string) + 1);
+}
+
+/// Replaces a value in a string with another.
+/// @group utils
+///
+@function str-replace($string, $search, $replace: "") {
+    $index: str-index($string, $search);
+
+    @if $index {
+        @return str-slice($string, 1, $index - 1) + $replace +
+            str-replace(
+                str-slice($string, $index + str-length($search)),
+                $search,
+                $replace
+            );
+    }
+
+    @return $string;
+}
+
+/// Split a string into a list of strings
+/// @link https://gist.github.com/danielpchen/3677421ea15dcf2579ff
+/// @param {string} $string - the string to be split
+/// @param {string} $delimiter - the boundary string
+/// @return {list} - the result list
+///
+@function str-to-list($string, $delimiter) {
+    $result: ();
+    @if $delimiter == "" {
+        @for $i from 1 through str-length($string) {
+            $result: append($result, str-slice($string, $i, $i));
+        }
+        @return $result;
+    }
+    $exploding: true;
+    @while $exploding {
+        $d-index: str-index($string, $delimiter);
+        @if $d-index {
+            @if $d-index > 1 {
+                $result: append($result, str-slice($string, 1, $d-index - 1));
+                $string: str-slice($string, $d-index + str-length($delimiter));
+            } @else if $d-index == 1 {
+                $string: str-slice(
+                    $string,
+                    1,
+                    $d-index + str-length($delimiter)
+                );
+            } @else {
+                $result: append($result, $string);
+                $exploding: false;
+            }
+        } @else {
+            $result: append($result, $string);
+            $exploding: false;
+        }
+    }
+    @return $result;
+}
+
+/// @alias str-to-list
+/// @group utils
+///
+@function explode($string, $delimiter) {
+    @return str-to-list($string, $delimiter);
+}
+
+/// Check if a list contains a value
+/// @group utils
+/// @param $list
+/// @param $value
+///
+@function list-contains($list, $value) {
+    @return not not index($list, $value);
+}
+
+/// Reverse a List
+/// @group utils
+/// @param $list
+/// @param $recursive [false]
+///
+@function list-reverse($list, $recursive: false) {
+    $result: ();
+
+    @for $i from length($list) * -1 through -1 {
+        @if type-of(nth($list, abs($i))) == list and $recursive {
+            $result: append($result, reverse(nth($list, abs($i)), $recursive));
+        } @else {
+            $result: append($result, nth($list, abs($i)));
+        }
+    }
+
+    @return $result;
+}
+
+/// List print
+/// @group utils
+/// @param $list
+/// @param $depth [1]
+///
+@function list-print($list, $depth: 1) {
+    $output: "";
+
+    @if $depth > 0 {
+        @for $i from 1 through $depth {
+            $output: $output + $list;
+        }
+    }
+
+    @return $output;
+}
+
+/// Add to a deeply nested map key. Accepts any number of keys, but the final value is the new key.
+/// @group utils
+/// @param {map} $map
+/// @param {string} $keys... - final argument is considered the value to the be set.
+///
+@function map-deep-set($map, $keys... /*, $value */) {
+    $map-list: ($map);
+    $result: null;
+
+    @if length($keys) == 2 {
+        @return map-merge(
+            $map,
+            (
+                nth($keys, 1): nth($keys, -1)
+            )
+        );
+    }
+
+    @for $i from 1 through length($keys) - 2 {
+        $map-list: append(
+            $map-list,
+            map-get(nth($map-list, -1), nth($keys, $i))
+        );
+    }
+
+    @for $i from length($map-list) through 1 {
+        $result: map-merge(
+            nth($map-list, $i),
+            (
+                nth($keys, $i):
+                    if($i == length($map-list), nth($keys, -1), $result)
+            )
+        );
+    }
+
+    @return $result;
+}
+
+/// Finds a map's depth at its deepest point. Useful for debugging maps.
+/// @group utils
+/// @param {map} $map
+/// @returns {number}
+///
+@function map-depth($map) {
+    $level: 1;
+
+    @each $key, $value in $map {
+        @if type-of($value) == "map" {
+            $level: max(map-depth($value) + 1, $level);
+        }
+    }
+
+    @return $level;
+}
+
+/// Determine whether a map contains certain keys.
+/// @group utils
+/// @param {map} $map
+/// @param {string | list} $keys...
+/// @returns {boolean}
+///
+@function map-has-keys($map, $keys...) {
+    @each $key in $keys {
+        @if not map-has-key($map, $key) {
+            @return false;
+        }
+    }
+
+    @return true;
+}
+
+/// @alias map-has-keys
+/// @group utils
+///
+@function map-contains-keys($map, $keys...) {
+    @return map-has-keys($map, $keys);
+}
+
+/// Check for deep map keys
+/// @group utils
+/// @param {map} $map
+/// @param {string | list} $keys...
+///
+@function map-has-nested-keys($map, $keys...) {
+    @each $key in $keys {
+        @if not map-has-key($map, $key) {
+            @return false;
+        }
+
+        $map: map-get($map, $key);
+    }
+
+    @return true;
+}
+
+/// @alias map-has-nested-keys
+/// @group utils
+///
+@function map-contains-nested-keys($map, $keys...) {
+    @return map-has-nested-keys($map, $keys);
+}
+
+/// Get map value at nested or 'deep' key, per $keys list
+/// @group utils
+/// @param {map} $map
+/// @param {string|list} $keys...
+///
+@function map-get-nested($map, $keys...) {
+    @each $key in $keys {
+        @if type-of($map) != "map" {
+            @return $map;
+        }
+        $map: map-get($map, $key);
+    }
+    @return $map;
+}
+
+/// Merges multiple maps. Similar to jQuery's `extend`.
+/// Takes two maps and merges their differences.
+/// @group utils
+/// @param {map} $map
+/// @param {map|list} $maps... - final value can be `true` for "deep" merging
+///
+@function map-extend($map, $maps... /*, $deep */) {
+    $last: nth($maps, -1);
+    $deep: $last == true;
+    $max: if($deep, length($maps) - 1, length($maps));
+
+    // Loop through all maps in $maps...
+    @for $i from 1 through $max {
+        // Store current map
+        $current: nth($maps, $i);
+
+        // If not in deep mode, simply merge current map with map
+        @if not $deep {
+            $map: map-merge($map, $current);
+        } @else {
+            // If in deep mode, loop through all tuples in current map
+            @each $key, $value in $current {
+                // If value is a nested map and same key from map is a nested map as well
+                @if type-of($value) ==
+                    "map" and
+                    type-of(map-get($map, $key)) ==
+                    "map"
+                {
+                    // Recursive extend
+                    $value: map-extend(map-get($map, $key), $value, true);
+                }
+
+                // Merge current tuple with map
+                $map: map-merge(
+                    $map,
+                    (
+                        $key: $value
+                    )
+                );
+            }
+        }
+    }
+
+    @return $map;
+}
+
+//Map depth-adder
+//-------------------------
+// Adds 'base'(or whatever initial key that's passed in) to a color map.
+// Used by color map generator function (colors/_colorfunctions)
+//--------------------------
+// 1. Check if map is less than or equal to the depth tolerance (default: 1).
+// 2. loops through all keys and values in the map.
+// 3. Make sure value isn't alreayd a map
+//   3a. If value is a map, then check to make sure $new-key is in the map
+//     3b. Duplicate first value of map (in case there are multiple)
+//     3c. Create new map with new-key and duplicated value
+// 4. Reformats those key-value pairs into a (key: (new-key: value ))
+// 5. Merges new depthy key-key-value back into the map.
+// 6. Returns the new map.
+
+/// Adds one level to a map using the new key to a map. Used by `generate_color_varations()`. (e.g. `(key: value, key: value)` becomes `(key:(new-key: value), key:(new-key: value))` )
+/// @group utils
+/// @param {map} $map
+/// @param {string} $new-key ['base']
+///
+@function map-add-depth($map, $new-key: "base") {
+    $formatted-key: ();
+    $new-map: "";
+
+    @each $key, $value in $map {
+        //[2]
+        $formatted-key: ();
+        @if type-of($value) != "map" {
+            //[3]
+            $formatted-key: (
+                $key: (
+                    $new-key: $value
+                )
+            ); //[4]
+        } @else if not map-has-key($value, $new-key) {
+            //[3a]
+            $duplicate-value: map-get($value, nth(map-keys($value), 1)); //[3b]
+            $duplicate-map: (
+                $new-key: $duplicate-value
+            ); //[3c]
+
+            $formatted-key: (
+                $key: (
+                    map-merge($value, $duplicate-map)
+                )
+            ); //[4]
+        }
+        $map: map-merge($map, $formatted-key); //[5]
+    }
+
+    @return $map; //[6]
+}
+
+/// Print maps into a string
+/// @group utils
+/// @param {map} $map
+/// Useful for debugging maps.
+/// @link https://github.com/lunelson/sass-maps-plus
+///
+@function map-inspect($map, $level: 1) {
+    $tab: "    ";
+    $cr: "
+";
+
+    @if type-of($map) != "map" {
+        @return "#{inspect($map)}";
+    }
+
+    $indent: list-print($tab, $level + 1);
+    $output: "{" + $cr + $indent;
+    $i: 1;
+
+    @each $key, $value in $map {
+        @if type-of($value) == "map" {
+            $output: $output + "#{$key}: #{map-inspect($value, $level+1)}";
+        } @else {
+            $output: $output + "#{$key}: #{$value}";
+        }
+
+        @if $i < length(map-keys($map)) {
+            $output: $output + "," + $cr + $indent;
+        }
+
+        $i: $i + 1;
+    }
+
+    $outdent: list-print($tab, $level);
+
+    @return $output + $cr + $outdent + "}";
+}
+
+/// @alias map-inspect
+/// @group utils
+///
+@function map-print($map, $level: 1) {
+    @return map-inspect($map, $level);
+}
+
+/// Add to silent classes registry
+/// @group utils
+///
+@function silents-register($map, $key) {
+    @if $debug-silent-classes {
+        @if map-get($_silent-class-registry, $key) == null {
+            $_silent-class-registry: map-merge(
+                $_silent-class-registry,
+                (
+                    $key: ()
+                )
+            ) !global;
+        }
+        $map: map-merge(map-get($_silent-class-registry, $key), $map);
+        @return map-deep-set($_silent-class-registry, $key, $map);
+    } @else {
+        @return null;
+    }
+}
+
+// Global math constants
+/// @group Math
+$PI: 3.1415926535897932384626433832795028841971693993751;
+$π: $PI;
+$pi: $PI;
+/// @group Math
+$E: 2.71828182845904523536028747135266249775724709369995;
+$e: $E;
+/// @group Math
+$LN2: 0.6931471805599453;
+/// @group Math
+$SQRT2: 1.4142135623730951;
+
+/// @group Math
+/// @alias golden
+$PHI: golden();
+
+$golden_ratio: golden();
+
+// MATH FUNCTIONS
+//
+// Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
+
+/// A robust exponent multiplication which allows for decimal-based exponents.
+/// This **fully** replaces Compass' pow() function (allows for float-based exponents).
+/// @group Math
+/// @param {number} $base
+/// @param {number} $exp
+/// @link https://gist.github.com/nathancrank/7539155
+///
+@function pow($base, $exp) {
+    @if $exp == floor($exp) {
+        $r: 1;
+        $s: 0;
+        @if $exp < 0 {
+            $exp: $exp * -1;
+            $s: 1;
+        }
+        @while $exp > 0 {
+            @if $exp % 2 == 1 {
+                $r: $r * $base;
+            }
+            $exp: floor($exp * 0.5);
+            $base: $base * $base;
+        }
+        @return if($s != 0, 1 / $r, $r);
+    } @else if $base == 0 and $exp > 0 {
+        @return 0;
+    } @else {
+        $log: log($base);
+        $exp: ($log * $exp);
+        $exp: cache(_exp, $exp);
+        @return $exp;
+    }
+}
+
+/// @alias pow
+/// @group Math
+///
+@function exponent($base, $exponent) {
+    @return pow($base, $exponent);
+}
+
+/// A good approximation for $x close to 0. Used with `pow`.
+///
+@function _exp($x) {
+    $ret: 0;
+    $i: 1;
+    @for $n from 0 to 24 {
+        $ret: $ret + $i;
+        $i: $i * $x / ($n + 1);
+    }
+    @return $ret;
+}
+
+/// Returns the natural logarithm of a number.
+/// @param {number} $x
+/// @example
+///     $value:   log(2)  // 0.69315
+///     $value2:  log(10) // 2.30259
+/// @returns {number}
+/// @group Math
+///
+@function log($x, $b: null) {
+    @if $b != null {
+        @return log($x) / log($b);
+    }
+
+    @if $x <= 0 {
+        @return 0 / 0;
+    }
+    $k: nth(frexp($x / $SQRT2), 2);
+    $x: $x / ldexp(1, $k);
+    $x: ($x - 1) / ($x + 1);
+    $x2: $x * $x;
+    $i: 1;
+    $s: $x;
+    $sp: null;
+    @while $sp != $s {
+        $x: $x * $x2;
+        $i: $i + 2;
+        $sp: $s;
+        $s: $s + $x / $i;
+    }
+    @return 2 * $s;
+
+    @debug #{$LN2 * $k + _log($x)};
+    @return $LN2 * $k + _log($x);
+}
+
+/// A good aproximation for $x close to 1
+///
+/// @group math
+///
+@function _log($x) {
+    $x: ($x - 1) / ($x + 1);
+    $x2: $x * $x;
+    $i: 1;
+    $s: $x;
+    $sp: null;
+    @while $sp != $s {
+        $x: $x * $x2;
+        $i: $i + 2;
+        $sp: $s;
+        $s: $s + $x / $i;
+    }
+    @return 2 * $s;
+}
+
+/// Returns a two-element list containing the normalized fraction and exponent of number.
+///
+/// @group Math
+///
+/// @param $x
+/// @returns {list} (fraction, exponent)
+///
+@function frexp($x) {
+    $exp: 0;
+    @if $x < 0 {
+        $x: $x * -1;
+    }
+    @if $x < 0.5 {
+        @while $x < 0.5 {
+            $x: $x * 2;
+            $exp: $exp - 1;
+        }
+    } @else if $x >= 1 {
+        @while $x >= 1 {
+            $x: $x / 2;
+            $exp: $exp + 1;
+        }
+    }
+    @return ($x, $exp);
+}
+
+/// Returns `$x * 2^$exp`
+/// @param {number} $x
+/// @param {number} $exp
+/// @group Math
+///
+@function ldexp($x, $exp) {
+    $b: if($exp >= 0, 2, 1 / 2);
+    @if $exp < 0 {
+        $exp: $exp * -1;
+    }
+    @while $exp > 0 {
+        @if $exp % 2 == 1 {
+            $x: $x * $b;
+        }
+        $b: $b * $b;
+        $exp: floor($exp * 0.5);
+    }
+    @return $x;
+}
+
+/// Returns the factorial of a non-negative integer.
+/// @param {number} $x
+/// @group Math
+/// @example
+///     $value:  fact(0) // 1
+///     $value2: fact(8) // 40320
+/// @return {Number}
+///
+@function fact($x) {
+    @if $x < 0 or $x != floor($x) {
+        @warn "Argument for `fact()` must be a positive integer.";
+        @return null;
+    }
+
+    $ret: 1;
+
+    @while $x > 0 {
+        $ret: $ret * $x;
+        $x: ($x - 1);
+    }
+
+    @return $ret;
+}
+
+/// Greatest Common Divisor calculation (useful for calculating grids and widths).
+/// @group Math
+/// @param {number} $number-1
+/// @param {number} $number-2
+/// @returns {number}
+/// @link http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
+///
+@function gcd($number-1, $number-2) {
+    @if $number-2 != 0 {
+        @return gcd($number-2, ($number-1 % $number-2));
+    } @else {
+        @return abs($number-1);
+    }
+}
+
+/// Find the square root of a value.
+/// @group Math
+/// @param {number} $base
+/// @param {number} $precision [12]
+///
+@function sqrt($base, $precision: 12) {
+    $guess: random(20);
+    $root: $guess;
+
+    @for $i from 1 through $precision {
+        $root: ($root - (pow($root, 2) - $base) / (2 * $root));
+    }
+    @return $root;
+}
+
+/// @alias sqrt
+/// @param $r
+/// @group Math
+///
+@function sqroot($r) {
+    $x0: 1; // initial value
+    $solution: false;
+    $x1: 1;
+
+    @for $i from 1 through 10 {
+        @if abs(2 * $x0) < 0.00000000000001 {
+            // Don't want to divide by a number smaller than this
+            $solution: false;
+        }
+
+        $x1: $x0 - ($x0 * $x0 - abs($r)) / (2 * $x0);
+
+        @if (abs($x1 - $x0) / abs($x1)) < 0.0000001 {
+            // 7 digit accuracy is desired
+            $solution: true;
+        }
+
+        $x0: $x1;
+    }
+
+    @if $solution == true {
+        // If $r is negative, then the output will be multiplied with
+        // [i = √-1](http://en.wikipedia.org/wiki/Imaginary_number)
+        // (√xy = √x√y) => √-$r = √-1√$r
+        @if $r < 0 {
+            @return $x1 #{i};
+        } @else {
+            @return $x1;
+        }
+    } @else {
+        @return "No solution";
+    }
+}
+
+/// Determines the Sine of an angle.
+/// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
+/// @group Math
+/// @param $angle
+/// @returns {number}
+///
+@function sin($angle) {
+    $sin: 0;
+    $angle: rad($angle);
+    // Iterate a bunch of times.
+    @for $i from 0 through 10 {
+        $sin: $sin + pow(-1, $i) * pow($angle, (2 * $i + 1)) / fact(2 * $i + 1);
+    }
+    @return $sin;
+}
+
+/// Use linear interpolation to produce a calc value for a particular screen size.
+/// @group Math
+/// @param {number} $min-screen
+/// @param {number} $min-value
+/// @param {number} $max-screen
+/// @param {number} $max-value
+/// @param {string} $unit [vw]
+/// @returns {string} - Css `calc()` function.
+/// @author Mike Riethmuller
+/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
+///
+@function calc-interpolation(
+    $min-screen,
+    $min-value,
+    $max-screen,
+    $max-value,
+    $unit: vw
+) {
+    $a: ($max-value - $min-value) / ($max-screen - $min-screen);
+    $b: $min-value - $a * $min-screen;
+
+    $sign: "+";
+
+    @if ($b < 0) {
+        $sign: "-";
+        $b: abs($b);
+    }
+
+    @return calc(#{$a * 100}#{$unit} #{$sign} #{$b});
+}
+
+/// This is a crude Sass port webkits cubic-bezier-webkits function.
+/// Will return a "solved" cubic-bezier function for any given `$x`.
+/// @author Mike Riethmuller
+/// @group math
+/// @param {Number} $p1x
+/// @param {Number} $p1y
+/// @param {Number} $p2x
+/// @param {Number} $p2y
+/// @param {Number} $x
+/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
+///
+@function solve-cubic-bezier($p1x, $p1y, $p2x, $p2y, $x) {
+    $cy: 3 * $p1y;
+    $by: 3 * ($p2y - $p1y) - $cy;
+    $ay: 1 - $cy - $by;
+    $t: solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x);
+    @return (($ay * $t + $by) * $t + $cy) * $t;
+}
+
+/// Solves a bezier's `$x` for a given cubic-bezier set.
+/// @author Mike Riethmuller
+/// @group math
+/// @param {Number} $p1x
+/// @param {Number} $p1y
+/// @param {Number} $p2x
+/// @param {Number} $p2y
+/// @param {Number} $x
+///
+@function solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x) {
+    $cx: 3 * $p1x;
+    $bx: 3 * ($p2x - $p1x) - $cx;
+    $ax: 1 - $cx - $bx;
+
+    $t0: 0;
+    $t1: 1;
+    $t2: $x;
+    $x2: 0;
+    $res: 1000;
+
+    @while ($t0 < $t1 or $break) {
+        $x2: (($ax * $t2 + $bx) * $t2 + $cx) * $t2;
+        @if (abs($x2 - $x) < $res) {
+            @return $t2;
+        }
+        @if ($x > $x2) {
+            $t0: $t2;
+        } @else {
+            $t1: $t2;
+        }
+        $t2: ($t1 - $t0) * 0.5 + $t0;
+    }
+
+    @return $t2;
+}
+
+/// Linear interpolation
+/// @link https://en.wikipedia.org/wiki/Linear_interpolation
+/// @group math
+/// @param {number} $a
+/// @param {number} $b
+/// @param {number} $t
+///
+@function lerp($a, $b, $t) {
+    @return $a + ($b - $a) * $t;
+}
+
+/// Get the golden ratio from `$base`.
+/// @group Math
+/// @param {} $base [1]
+/// @returns {number}
+///
+@function golden($base: 1) {
+    @return (1/2 + sqrt(5) / 2) * $base;
+}
+
+/// @param $angle
+/// @group Math
+///
+@function rad($angle) {
+    $unit: unit($angle);
+    $unitless: $angle / ($angle * 0 + 1);
+    // If the angle has 'deg' as unit, convert to radians.
+    @if $unit == deg {
+        $unitless: $unitless / 180 * $pi;
+    }
+    @return $unitless;
+}
+
+/// @alias rad
+/// @param $angle
+/// @group Math
+///
+@function angle-to-rad($angle) {
+    @return rad($angle);
+}
+
+// Unused functions
+// ------------------------------------
+// Hyperbolic sine
+// @param $number
+// @group Math
+// @function sinh($number) {
+//     $top: exponent($e, (2 * $number)) - 1;
+//     $bottom: 2 * exponent($e, $number);
+//     @return  $top / $bottom;
+// }
+
+// Determines the Cosine of an angle.
+// @group Math
+// @param $angle
+// @returns {number}
+// @function cos($angle) {
+//     $cos: 0;
+//     $angle: rad($angle);
+//     // Iterate a bunch of times.
+//     @for $i from 0 through 10 {
+//         $cos: $cos + pow(-1, $i) * pow($angle, 2 * $i) / fact(2 * $i);
+//     }
+//     @return $cos;
+// }
+
+//------------------------------------*\
+//    $COLOR FUNCTIONS
+//------------------------------------*/
+
+/// Index of all colors used in the project. This is the one place colors should be used from. Accessing them should be done via the colors function.
+/// **Note:** `'type'`, `'links'`, and `'bg'` must be defined.
+/// @see {function} colors
+/// @group config
+$base-colors: (
+    'type': (
+        'base': #0a1c2b,
+    ),
+    'links': #0d497b,
+    'bg': #f6f8fb,
+) !default;
+
+// /* SG
+//
+// # Colors/Blending Modes [[dev]]
+//
+// @file tools/_t-blend-modes.scss
+//
+// @priority 1
+//
+// [Taken from Sass Blend Modes](https://github.com/heygrady/scss-blend-modes/blob/master/stylesheets/_blend-modes.scss)
+//
+// ##### `blend-normal()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-multiply()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-lighten()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-darken()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-lineardodge()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-linearburn()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-difference`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-screen()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-exclusion()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// ##### `blend-multiply()`
+// ###### function(`$forground, $background, $amount:0`)
+//
+// */
+
+//Taken from: https://github.com/heygrady/scss-blend-modes/blob/master/stylesheets/_blend-modes.scss
+
+//Mimic blending modes found in photoshop.
+
+@function _color-convert($color-input) {
+    $color-input: invert($color-input);
+    $color-input: invert($color-input);
+    @return $color-input;
+}
+
+//--------------------------------
+// Normal
+//--------------------------------
+@function blend-normal($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $opacity: opacity($foreground);
+    $background-opacity: opacity($background);
+
+    // calculate opacity
+    $bm-red: red($foreground) * $opacity + red($background) *
+        $background-opacity * (1 - $opacity);
+    $bm-green: green($foreground) * $opacity + green($background) *
+        $background-opacity * (1 - $opacity);
+    $bm-blue: blue($foreground) * $opacity + blue($background) *
+        $background-opacity * (1 - $opacity);
+    @return rgb($bm-red, $bm-green, $bm-blue);
+}
+
+//--------------------------------
+// Multiply
+//--------------------------------
+@function blend-multiply($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: red($background) * red($foreground) / 255;
+    $bm-green: green($background) * green($foreground) / 255;
+    $bm-blue: blue($background) * blue($foreground) / 255;
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Lighten
+//--------------------------------
+@function blend-lighten($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-lighten-color(red($foreground), red($background));
+    $bm-green: blend-lighten-color(green($foreground), green($background));
+    $bm-blue: blend-lighten-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+@function blend-lighten-color($foreground, $background) {
+    @if $background > $foreground {
+        $foreground: $background;
+    }
+    @return $foreground;
+}
+
+//--------------------------------
+// Darken
+//--------------------------------
+@function blend-darken($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-darken-color(red($foreground), red($background));
+    $bm-green: blend-darken-color(green($foreground), green($background));
+    $bm-blue: blend-darken-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+@function blend-darken-color($foreground, $background) {
+    @if $background < $foreground {
+        $foreground: $background;
+    }
+    @return $foreground;
+}
+
+//--------------------------------
+// Darker Color
+//--------------------------------
+@function blend-darkercolor($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: red($foreground);
+    $bm-green: green($foreground);
+    $bm-blue: blue($foreground);
+    $background-red: red($background);
+    $background-green: green($background);
+    $background-blue: blue($background);
+
+    @if $background-red *
+        0.3 +
+        $background-green *
+        0.59 +
+        $background-blue *
+        0.11 <=
+        $bm-red *
+        0.3 +
+        $bm-green *
+        0.59 +
+        $bm-blue *
+        0.11
+    {
+        $bm-red: $background-red;
+        $bm-green: $background-green;
+        $bm-blue: $background-blue;
+    }
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Lighter Color
+//--------------------------------
+@function blend-lightercolor($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: red($foreground);
+    $bm-green: green($foreground);
+    $bm-blue: blue($foreground);
+    $background-red: red($background);
+    $background-green: green($background);
+    $background-blue: blue($background);
+
+    @if $background-red *
+        0.3 +
+        $background-green *
+        0.59 +
+        $background-blue *
+        0.11 >
+        $bm-red *
+        0.3 +
+        $bm-green *
+        0.59 +
+        $bm-blue *
+        0.11
+    {
+        $bm-red: $background-red;
+        $bm-green: $background-green;
+        $bm-blue: $background-blue;
+    }
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Linear Dodge
+//--------------------------------
+@function blend-lineardodge($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-lineardodge-color(red($foreground), red($background));
+    $bm-green: blend-lineardodge-color(green($foreground), green($background));
+    $bm-blue: blend-lineardodge-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+@function blend-lineardodge-color($foreground, $background) {
+    @if $background + $foreground > 255 {
+        $foreground: 255;
+    } @else {
+        $foreground: $background + $foreground;
+    }
+    @return $foreground;
+}
+
+//--------------------------------
+// Linear Burn
+//--------------------------------
+@function blend-linearburn-color($foreground, $background) {
+    @if $background + $foreground < 255 {
+        $foreground: 0;
+    } @else {
+        $foreground: $background + $foreground - 255;
+    }
+    @return $foreground;
+}
+
+@function blend-linearburn($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-linearburn-color(red($foreground), red($background));
+    $bm-green: blend-linearburn-color(green($foreground), green($background));
+    $bm-blue: blend-linearburn-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Difference
+//--------------------------------
+@function blend-difference($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: abs(red($background) - red($foreground));
+    $bm-green: abs(green($background) - green($foreground));
+    $bm-blue: abs(blue($background) - blue($foreground));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Screen
+//--------------------------------
+@function blend-screen-color($foreground, $background) {
+    @return (255 - (((255 - $foreground) * (255 - $background)) / 256));
+}
+
+@function blend-screen($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-screen-color(red($foreground), red($background));
+    $bm-green: blend-screen-color(green($foreground), green($background));
+    $bm-blue: blend-screen-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Exclusion
+//--------------------------------
+@function blend-exclusion($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-exclusion-color(red($foreground), red($background));
+    $bm-green: blend-exclusion-color(green($foreground), green($background));
+    $bm-blue: blend-exclusion-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+@function blend-exclusion-color($foreground, $background) {
+    @return $background - ($background * (2 / 255) - 1) * $foreground;
+}
+
+//--------------------------------
+// Overlay
+//--------------------------------
+@function blend-overlay-color($foreground, $background) {
+    $comparison: 255 / 2;
+    @if $background <= $comparison {
+        $foreground: (2 * $background * $foreground) / 255;
+    } @else {
+        $foreground: 255 -
+            (255 - 2 * ($background - (255 / 2))) *
+            (255 - $foreground) /
+            255;
+    }
+    @return $foreground;
+}
+
+@function blend-overlay($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+
+    $bm-red: blend-overlay-color(red($foreground), red($background));
+    $bm-green: blend-overlay-color(green($foreground), green($background));
+    $bm-blue: blend-overlay-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Soft Light
+//--------------------------------
+@function blend-softlight-color($foreground, $background) {
+    @if $background < 128 {
+        $foreground: (($foreground / 2) + 64) * $background * (2 / 255);
+    } @else {
+        $foreground: 255 -
+            (191 - ($foreground / 2)) *
+            (255 - $background) *
+            (2 / 255);
+    }
+    @return $foreground;
+}
+
+@function blend-softlight($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-softlight-color(red($foreground), red($background));
+    $bm-green: blend-softlight-color(green($foreground), green($background));
+    $bm-blue: blend-softlight-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Hard Light
+//--------------------------------
+@function blend-hardlight-color($foreground, $background) {
+    $tmp-blend: $foreground;
+    @if $tmp-blend < 128 {
+        $foreground: $background * $tmp-blend * (2 / 255);
+    } @else {
+        $foreground: 255 - (255 - $background) * (255 - $tmp-blend) * (2 / 255);
+    }
+    @return $foreground;
+}
+
+@function blend-hardlight($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-hardlight-color(red($foreground), red($background));
+    $bm-green: blend-hardlight-color(green($foreground), green($background));
+    $bm-blue: blend-hardlight-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Color Dodge
+//--------------------------------
+@function blend-colordodge-color($foreground, $background) {
+    $comparison: 256 / (255 - $foreground);
+    @if $comparison == Infinity {
+        $comparison: 255;
+    }
+    $tmp: $background * $comparison;
+    @if $tmp > 255 or $foreground == 255 {
+        $foreground: 255;
+    } @else {
+        $foreground: $tmp;
+    }
+    @return $foreground;
+}
+
+@function blend-colordodge($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-colordodge-color(red($foreground), red($background));
+    $bm-green: blend-colordodge-color(green($foreground), green($background));
+    $bm-blue: blend-colordodge-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Color Burn
+//--------------------------------
+@function blend-colorburn-color($foreground, $background) {
+    $tmp: (255 - ((255 - $background) * 255) / $foreground);
+
+    @if $foreground == 0 {
+        $foreground: 255;
+    }
+    @elseif $tmp < 0 {
+        $foreground: 0;
+    } @else {
+        $foreground: $tmp;
+    }
+    @return $foreground;
+}
+
+@function blend-colorburn($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-colorburn-color(red($foreground), red($background));
+    $bm-green: blend-colorburn-color(green($foreground), green($background));
+    $bm-blue: blend-colorburn-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Linear Light
+//--------------------------------
+@function blend-linearlight($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-linearlight-color(red($foreground), red($background));
+    $bm-green: blend-linearlight-color(green($foreground), green($background));
+    $bm-blue: blend-linearlight-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+@function blend-linearlight-color($foreground, $background) {
+    @if $foreground < 128 {
+        $foreground: blend-linearburn-color($background, 2 * $foreground);
+    } @else {
+        $foreground: blend-lineardodge-color(
+            $background,
+            2 * ($foreground - 128)
+        );
+    }
+    @return $foreground;
+}
+
+//--------------------------------
+// Vivid Light
+//--------------------------------
+@function blend-vividlight($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-vividlight-color(red($foreground), red($background));
+    $bm-green: blend-vividlight-color(green($foreground), green($background));
+    $bm-blue: blend-vividlight-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+@function blend-vividlight-color($foreground, $background) {
+    @if $foreground < 128 {
+        $foreground: blend-colorburn-color(2 * $foreground, $background);
+    } @else {
+        $foreground: blend-colordodge-color(
+            2 * ($foreground - 128),
+            $background
+        );
+    }
+    @return $foreground;
+}
+
+//--------------------------------
+// Pin Light
+//--------------------------------
+@function blend-pinlight($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-pinlight-color(red($foreground), red($background));
+    $bm-green: blend-pinlight-color(green($foreground), green($background));
+    $bm-blue: blend-pinlight-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+@function blend-pinlight-color($foreground, $background) {
+    @if $foreground < 128 {
+        $foreground: blend-darken-color($background, 2 * $foreground);
+    } @else {
+        $foreground: blend-lighten-color($background, 2 * ($foreground - 128));
+    }
+    @return $foreground;
+}
+
+//--------------------------------
+// Hard Mix
+//--------------------------------
+@function blend-hardmix($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-hardmix-color(red($foreground), red($background));
+    $bm-green: blend-hardmix-color(green($foreground), green($background));
+    $bm-blue: blend-hardmix-color(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+@function blend-hardmix-color($foreground, $background) {
+    $tmp: blend-vividlight-color($foreground, $background);
+    @if $tmp < 128 {
+        $foreground: 0;
+    } @else {
+        $foreground: 255;
+    }
+    @return $foreground;
+}
+
+// Unique to Photoshop
+
+//--------------------------------
+// Color Blend
+//--------------------------------
+@function blend-colorblend($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $foreground-hsv: color-to-hsv($foreground);
+    $background-hsv: color-to-hsv($background);
+
+    $bm-hsv: nth($foreground-hsv, 1), nth($foreground-hsv, 2),
+        nth($background-hsv, 3);
+    $bm-color: hsv-to-color($bm-hsv);
+
+    @return blend-normal(
+        rgba(
+            red($bm-color),
+            green($bm-color),
+            blue($bm-color),
+            opacity($foreground)
+        ),
+        $background
+    );
+}
+
+//--------------------------------
+// Dissolve
+//--------------------------------
+@function blend-dissolve($foreground, $background, $amount: 0) {
+    // The Dissolve blend mode acts on transparent and partially transparent pixels
+    // it treats transparency as a pixel pattern and applies a diffusion dither pattern.
+    // @see http://photoblogstop.com/photoshop/photoshop-blend-modes-explained
+    @return $foreground;
+}
+
+//--------------------------------
+// Divide
+//--------------------------------
+@function blend-divide($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: blend-divide-colors(red($foreground), red($background));
+    $bm-green: blend-divide-colors(green($foreground), green($background));
+    $bm-blue: blend-divide-colors(blue($foreground), blue($background));
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+@function blend-divide-colors($foreground, $background) {
+    @return min((($background / 255) / ($foreground / 255)) * 255, 255);
+}
+
+//--------------------------------
+// Hue
+//--------------------------------
+@function blend-hue($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $foreground-hsv: color-to-hsv($foreground);
+    $background-hsv: color-to-hsv($background);
+
+    $bm-hsv: nth($foreground-hsv, 1), nth($background-hsv, 2),
+        nth($background-hsv, 3);
+    $bm-color: hsv-to-color($bm-hsv);
+
+    @return blend-normal(
+        rgba(
+            red($bm-color),
+            green($bm-color),
+            blue($bm-color),
+            opacity($foreground)
+        ),
+        $background
+    );
+}
+
+//--------------------------------
+// Luminosity
+//--------------------------------
+@function blend-luminosity($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $foreground-hsv: color-to-hsv($foreground);
+    $background-hsv: color-to-hsv($background);
+
+    $bm-hsv: nth($background-hsv, 1), nth($background-hsv, 2),
+        nth($foreground-hsv, 3);
+    $bm-color: hsv-to-color($bm-hsv);
+
+    @return blend-normal(
+        rgba(
+            red($bm-color),
+            green($bm-color),
+            blue($bm-color),
+            opacity($foreground)
+        ),
+        $background
+    );
+}
+
+//--------------------------------
+// Saturation
+//--------------------------------
+@function blend-saturation($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $foreground-hsv: color-to-hsv($foreground);
+    $background-hsv: color-to-hsv($background);
+
+    $bm-hsv: nth($background-hsv, 1), nth($foreground-hsv, 2),
+        nth($background-hsv, 3);
+    $bm-color: hsv-to-color($bm-hsv);
+
+    @return blend-normal(
+        rgba(
+            red($bm-color),
+            green($bm-color),
+            blue($bm-color),
+            opacity($foreground)
+        ),
+        $background
+    );
+}
+
+//--------------------------------
+// Subtract
+//--------------------------------
+@function blend-subtract($foreground, $background, $amount: 0) {
+    $amount: $amount / 100;
+    $foreground: transparentize($foreground, $amount);
+    $bm-red: max(red($background) - red($foreground), 0);
+    $bm-green: max(green($background) - green($foreground), 0);
+    $bm-blue: max(blue($background) - blue($foreground), 0);
+
+    @return blend-normal(
+        rgba($bm-red, $bm-green, $bm-blue, opacity($foreground)),
+        $background
+    );
+}
+
+//--------------------------------
+// Tints and Shades (adding black or white to a color)
+//--------------------------------
+// Adapted from: https://gist.github.com/benfrain/7545629
+
+// Add percentage of white to a color
+@function blend-tint($color, $percent) {
+    @return mix(white, $color, $percent);
+}
+@function tint($color, $percent) {
+    @return mix(white, $color, $percent);
+}
+
+// Add percentage of black to a color
+@function shade($color, $percent) {
+    @return mix(black, $color, $percent);
+}
+@function blend-shade($color, $percent) {
+    @return mix(black, $color, $percent);
+}
+
+//Shortcut function for blendmodes
+@function blend($mode, $foreground, $background, $amount: 0) {
+    $mode: unquote($mode);
+    $blended-color: null;
+
+    $blended-color: call(
+        safe-get-function(blend-#{$mode}),
+        $foreground,
+        $background,
+        $amount
+    );
+
+    @return $blended-color;
+}
+
+//--------------------------------
+// HSL and HSV
+//--------------------------------
+// @see https://gist.github.com/1069204
+@function hsv-to-hsl($h, $s: 0, $v: 0) {
+    @if type-of($h) == 'list' {
+        $v: nth($h, 3);
+        $s: nth($h, 2);
+        $h: nth($h, 1);
+    }
+
+    @if unit($h) == 'deg' {
+        $h: 3.1415 * 2 * ($h / 360deg);
+    }
+    @if unit($s) == '%' {
+        $s: 0 + ($s / 100%);
+    }
+    @if unit($v) == '%' {
+        $v: 0 + ($v / 100%);
+    }
+
+    $ss: $s * $v;
+    $ll: (2 - $s) * $v;
+
+    @if $ll <= 1 {
+        $ss: $ss / $ll;
+    } @else if ($ll == 2) {
+        $ss: 0;
+    } @else {
+        $ss: $ss / (2 - $ll);
+    }
+
+    $ll: $ll / 2;
+
+    @return 360deg * $h / (3.1415 * 2), percentage(max(0, min(1, $ss))),
+        percentage(max(0, min(1, $ll)));
+}
+
+@function hsl-to-hsv($h, $ss: 0, $ll: 0) {
+    @if type-of($h) == 'list' {
+        $ll: nth($h, 3);
+        $ss: nth($h, 2);
+        $h: nth($h, 1);
+    } @else if type-of($h) == 'color' {
+        $ll: lightness($h);
+        $ss: saturation($h);
+        $h: hue($h);
+    }
+
+    @if unit($h) == 'deg' {
+        $h: 3.1415 * 2 * ($h / 360deg);
+    }
+    @if unit($ss) == '%' {
+        $ss: 0 + ($ss / 100%);
+    }
+    @if unit($ll) == '%' {
+        $ll: 0 + ($ll / 100%);
+    }
+
+    $ll: $ll * 2;
+
+    @if $ll <= 1 {
+        $ss: $ss * $ll;
+    } @else {
+        $ss: $ss * (2 - $ll);
+    }
+
+    $v: ($ll + $ss) / 2;
+    $s: (2 * $ss) / ($ll + $ss);
+
+    @return 360deg * $h / (3.1415 * 2), percentage(max(0, min(1, $s))),
+        percentage(max(0, min(1, $v)));
+}
+
+@function color-to-hsv($color) {
+    @return hsl-to-hsv($color);
+}
+
+@function hsv-to-color($h, $s: 0, $v: 0) {
+    $hsl: hsv-to-hsl($h, $s, $v);
+    @return hsl(nth($hsl, 1), nth($hsl, 2), nth($hsl, 3));
+}
+
+
+/// Get a color value from the global `$base-colors` map. Darker and lighter tones are available by passing a second string.
+/// @example
+///   .foo {
+///      background-color: colors(links, light));
+///   }
+/// @param {string} $color-name - The color you
+/// @param {string} $tone ['base']
+/// @param {number} $opacity [1]
+/// @returns {color}
+///
+/// @group core
+///
+/// @link http://blog.12spokes.com/web-design-development/simple-css-color-management-with-sass/
+/// @see $base-colors
+///
+@function colors($color-name, $tone: 'base', $opacity: 1) {
+    $color-map: $base-colors;
+
+    @if not map-has-key($color-map, $color-name) {
+        @warn "Color '#{$color-name}' not found in $base-colors map. Returning #f00 instead";
+        @return red;
+    }
+    @elseif not map-has-key(map-get($color-map, $color-name), $tone) {
+        @warn "Tone '#{$tone}' not found in #{$color-name}. Returning #f00 instead.";
+        @return red;
+    }
+
+    @if $opacity < 1 {
+        @return rgba(
+            map-get(map-get($color-map, $color-name), $tone),
+            $opacity
+        );
+    }
+
+    @return map-get(map-get($color-map, $color-name), $tone);
+}
+/// @alias colors
+/// @group core
+///
+@function color($color, $tone: 'base', $opacity: 1) {
+    @return colors($color, $tone, $opacity);
+}
+/// @alias colors
+///
+@function clr($color, $tone: 'base', $opacity: 1) {
+    @return colors($color, $tone, $opacity);
+}
+
+/// Change text color based on background-color's darkness.
+/// @param {color} $color
+/// @returns {color}
+///
+/// @example
+///    div {
+///        background-color: #f8cd12;
+///        color: black-or-white(#f8cd12);
+///    }
+///    // Your text color would be black because #f8cd12 and #00000 have more contrast.
+///
+/// @group utils
+///
+@function black-or-white($color) {
+    @if (color-luminance($color) > 0.45) {
+        @return #000;
+    } @else {
+        @return #fff;
+    }
+}
+
+/// @alias black-or-white
+///
+@function set-text-color($color) {
+    @return black-or-white($color);
+}
+
+///
+/// Compares a set of colors against `$base` and returns the color
+/// with the most contrast. `$colors` should be a list.
+/// [Taken from here](https://gist.github.com/voxpelli/6304812)
+///
+/// @group utils
+/// @param $base
+/// @param $colors
+/// @param $tolerance [0]
+///
+/// @example
+///   div {
+///       color: pick_best_color(#f8cd12, (#a0a0c0, #fff, #2c2c2c));
+///   }
+///   // The function would test the colors and find that #2c2c2c is the best.
+///
+/// @returns {color}
+///
+@function pick-best-color($base, $colors, $tolerance: 0) {
+    $contrast: color-contrast($base, nth($colors, 1));
+    $best: nth($colors, 1);
+
+    @for $i from 2 through length($colors) {
+        $current_contrast: color-contrast($base, nth($colors, $i));
+
+        @if ($current_contrast - $contrast > $tolerance) {
+            $contrast: color-contrast($base, nth($colors, $i));
+            $best: nth($colors, $i);
+        }
+    }
+    @return $best;
+}
+
+/// Find the relative luminance of a color. Used by `color-contrast()`. [Adapted from color.js](https://github.com/LeaVerou/contrast-ratio/blob/gh-pages/color.js)
+/// @param $color
+/// @returns {number} 0 - 1
+///
+@function color-luminance($color) {
+    $rgba: red($color), green($color), blue($color);
+    $rgba2: ();
+
+    @for $i from 1 through 3 {
+        $rgb: nth($rgba, $i);
+        $rgb: $rgb / 255;
+
+        $rgb: if(
+            $rgb < 0.03928,
+            $rgb / 12.92,
+            pow(($rgb + 0.055) / 1.055, 2.4)
+        );
+
+        $rgba2: append($rgba2, $rgb);
+    }
+    @return (0.2126 * nth($rgba2, 1)) + (0.7152 * nth($rgba2, 2)) +
+        (0.0722 * nth($rgba2, 3));
+}
+
+/// @alias color-luminance
+///
+@function luma($color) {
+    @return color-luminance($color);
+}
+
+/// Find contrast between two colors.
+/// [Adapted from color.js](https://github.com/LeaVerou/contrast-ratio/blob/gh-pages/color.js)
+/// @requires color-luminance
+/// @returns {number} 0 - 1
+///
+@function color-contrast($color1, $color2) {
+    $luminance1: color-luminance($color1) + 0.05;
+    $luminance2: color-luminance($color2) + 0.05;
+    $ratio: $luminance1 / $luminance2;
+
+    $ratio: round($ratio * 10) / 10;
+
+    @if $luminance2 > $luminance1 {
+        $ratio: 1 / $ratio;
+    }
+
+    @return $ratio;
+}
+
+// /* SG
+// # Colors/Debugging [[dev]]
+//
+// @file tools/_t-color-functions.scss
+//
+// ##### `@color-palette-output()`
+// ###### mixin(`$selector`, `$color-map:` `$base-colors`)
+// Debugging tool that creates a pretty color palette (in columns) using psuedo selectors (nth-child required). Used for "color blocks" output, in style guide.
+//
+// @requires `map-add-depth()`, `black-or-white()`
+//
+// */
+
+@mixin color-palette-output($selector, $color-map: $base-colors) {
+    $color-names: ();
+    $color-subnames: ();
+    $color-fullnames: ();
+    $color-values: ();
+
+    //Store color lengths for selector loop
+    $top-colors-len: length($color-names);
+    $sub-colors-len: length($color-subnames) / $top-colors-len;
+    $color-index: 1;
+    $color-loop: 1;
+
+    //Base styles
+    #{$selector} {
+        float: left;
+        margin-right: 0.95%;
+        padding: 1%;
+        //Width is a percentage of the total top-level colors (minus 1% for margin)
+        width: percentage(1 / $top-colors-len) - 1%;
+        overflow: hidden;
+
+        &:before {
+            display: block;
+            white-space: nowrap;
+            @include rems(font-size, modular-scale(-1));
+        }
+
+        &:after {
+            display: block;
+            @include rems(font-size, modular-scale(-2));
+        }
+    }
+
+    //Loop through the color map,
+    // adding all names, variants, and values to individual lists
+    @each $color, $color-variants in $color-map {
+        //Put color names into a list
+        $color-names: append($color-names, nth($color, 1));
+
+        //Put 'base' at beginning of list
+        @if index(map-keys($color-variants), base) ==
+            length(map-keys($color-variants))
+        {
+            $color-variants: list-reverse($color-variants);
+        }
+
+        //Loop through color variants (light, dark, etc.)
+        @each $color-variant in $color-variants {
+            //Add a non-breaking space before the color name
+            $subname-temp: unquote(' ' + nth($color-variant, 1));
+
+            //Create name by adding the color and color-subname (e.g. blue dark)
+            $fullname-temp: unquote($color + $subname-temp);
+
+            //Add names to lists for later use
+            $color-fullnames: append($color-fullnames, $fullname-temp);
+            $color-subnames: append(
+                $color-subnames,
+                unquote(nth($color-variant, 1))
+            );
+            $color-values: append($color-values, nth($color-variant, 2));
+
+            //Remove 'base' from titles for nicer output
+            @if $subname-temp == ' base' {
+                $subname-temp: unquote('');
+            }
+        }
+    }
+
+    //Loop through all colors
+    @for $i from 1 through length($color-fullnames) {
+        //Grab the current color value and name
+        $current-color-value: nth($color-values, $color-index);
+        $current-color-name: nth($color-fullnames, $color-index);
+
+        //Determine the index of the color to use
+        // This essentially makes the color chosen 1 loop ahead of $i
+        // E.G. if there are 9 top-level colors, $color-index will be 9 ahead of the current $i value
+        $color-index: ($color-index - $color-loop) +
+            ($sub-colors-len + $color-loop);
+
+        //Apply it to the selection based on nth-child (using $i)
+        #{$selector}:nth-child(#{$i}) {
+            background-color: #{$current-color-value};
+            //Determine if black or white should be used for text color
+            color: #{black-or-white($current-color-value)};
+
+            //Describe the color and show its hex value
+            &:before {
+                content: '#{$current-color-name}';
+            }
+            &:after {
+                content: '#{$current-color-value}';
+            }
+
+            //Make first row of colors a little larger
+            @if $i <= $top-colors-len {
+                padding: 2% 1% 2.5%;
+            }
+        }
+
+        // Increase the loop when we've reached the highest value
+        // And reset the color index.
+        @if $color-index > length($color-fullnames) {
+            $color-loop: $color-loop + 1;
+            $color-index: $color-loop;
+        }
+    }
+}
+
+/// Takes all colors in a map and blends them with a secondary color to even them out.
+/// * Should only be used as a tool to create color palletes.
+/// * Shouldn't be used on every compilation since it can make development fairly abstract and difficult to understand.
+///
+/// @group utils
+///
+/// @param {map} $color-list -
+/// @param {string} $blending-mode ['overlay'] - blending mode to use over each color
+/// @param {color} $blending-color [blue] - color to blend with.
+/// @param {percent} $amount [0%] - amount to blend.
+///
+@function harmonize-colors(
+    $color-list,
+    $blending-mode: 'overlay',
+    $blending-color: blue,
+    $amount: 0%
+) {
+    $temp-name-map: ();
+    $temp-top-map: ();
+    $temp-list: ();
+    $return: null;
+
+    //Make sure non-prefixed blending modes
+    // are appended with the correct function namespace
+    $blending-mode:
+        if(
+            str-contains($blending-mode, 'blend'),
+            $blending-mode,
+            'blend-' + $blending-mode
+        );
+
+    @if type-of($color-list) == 'map' {
+        $color-list: map-add-depth($color-list);
+
+        @each $color, $name in $color-list {
+            @each $key, $value in $name {
+                $value: call(safe-get-function($blending-mode), $blending-color, $value, $amount);
+                $temp-key: ($key: $value);
+                $temp-color: ($color: ($temp-key));
+                $temp-name-map: map-merge($temp-name-map, $temp-color);
+                @debug $temp-name-map;
+            }
+            $temp-top-map: map-merge($temp-top-map, $temp-name-map);
+        }
+
+        $return: map-merge($color-list, $temp-top-map);
+
+    }@else {
+        @each $value in $color-list {
+            $value: call(safe-get-function($blending-mode), $blending-color, $value, $amount);
+            $temp-list: append($temp-list, $value);
+        }
+        $return: $temp-list;
+    }
+
+    @return $return;
+}
+
+/// Takes base color values and generates a full color palette. Used by the `$base-colors` map to create a project's palette, accessible via `colors()`.
+///
+/// **Arguments:**
+/// * `$map`: Color map you want to create variations of. Defaults to `$base-colors`.
+/// * `$functions`: color functions used to generate variations (e.g. lighten or darken). Can use any `blend` function, provided `$blending-colors` are provided.
+/// * `$increments`: percentage amount to apply `$function` to each `$variations`.
+/// * `$variations`: actual names for each color tone when `colors()` used.
+/// * `$blending-colors`: used when a function is a `blend`. Can be a list or a single color.
+///
+/// @param $map [$colors],
+/// @param $functions [(tint, tint, tint, shade, shade, shade)],
+/// @param $increments [(20%, 40%, 80%, 20%, 40%, 80%)],
+/// @param $variations [(light, lighter, lightest, dark, darker, darkest)],
+/// @param $blending-colors [null]
+///
+@function generate-color-variations(
+    $map: $base-colors,
+    $functions: (
+        tint,
+        tint,
+        tint,
+        shade,
+        shade,
+        shade
+    ),
+    $increments: (
+        20%,
+        40%,
+        80%,
+        20%,
+        40%,
+        80%
+    ),
+    $variations: (
+        light,
+        lighter,
+        lightest,
+        dark,
+        darker,
+        darkest
+    ),
+    $blending-colors: null
+) {
+    // 1. Loop through the pallets and colors of the map input.
+    // 2a. Store $color map in a list
+    //     (this is required to prevent bugs on colors with names of real colors).
+    // 2b. Define color function increment.
+    // 3.  Get index and find the amount to use with the current color function.
+    // 4a. Divide the loop increment by the number of color functions.
+    // 4b. If the loop is larger than the variation frequency,
+    //	   move to the next color function.
+    // 5a. Get the current color function and current color.
+    // 5b. Add blending mode color if necessary (useful for mixing colors).
+    // 5c. If blending-color is defined, use it to blend colors (use list-value if exists)
+    // 6a. Call the color function, the color(s), and the amount and store that value.
+    // 6b. Create the variation and color definition in map format ("name": color).
+    // 6c. Merge the current base color map with the new variant map.
+    // 7a. Format the previous loop results into a nested map.
+    // 7b. Merge the input map with itself and the new nested map.
+
+    // Determine how often to switch functions.
+    $variation-frequency: (length($variations) / length($functions));
+    // Make sure map is properly formatted.
+    $map: map-add-depth($map, 'base');
+    // Define new map (for easier to understand return value).
+    $new-map: $map;
+    $blend-value: '';
+
+    // Loop through the variation names.
+    @each $palette, $color in $map {
+        $values-list: $color;
+        // 3:
+        $color_fn-i: 1;
+
+        @each $variant in $variations {        	            //[4a]
+            @if not map-has-key($color, $variant) {
+                $i: index($variations, $variant);	        //[4b]
+                $amount: nth($increments, $i);			    //[4b]
+
+                $color_fn_place: $i/$variation-frequency;	//[5a]
+
+                @if $color_fn_place > $color_fn-i{ 			//[5b]
+                    $color_fn-i: $color_fn-i + 1;			//[5b]
+                }
+
+                $curr_fn: nth($functions, $color_fn-i); 		//[6a]
+                $curr_color: map-get($color, base);				//[6b]
+
+                @if $blending-colors != null
+                    or type-of($blending-colors) == 'list'{		//[6c]
+
+                    @if type-of($blending-colors) == 'list' {
+                        $blend-value: nth($blending-colors, $color_fn-i);
+                    }@else {
+                        $blend-value: $blending-colors;
+                    }
+
+                    @if $blend-value == 'self' {
+                        $blend-value: $curr_color;
+                    }
+
+                    @if $blend-value != null {
+                        $amount: 1 - ($amount / 100%); //Invert the amount
+                        $temp-color: $curr_color;
+                        //Use amount to transparency of blending color
+                        $curr_color: transparentize($blend-value, $amount);
+                        //$amount becomes 'background' color we're blending
+                        $amount: $temp-color;
+                    }
+                }
+                //Try to add "blend" to the current function if it's not valid
+                @if not function-exists($curr_fn){
+                    $curr_fn: unquote('blend-') + $curr_fn;
+                }
+
+                $new-color: call(safe-get-function($curr_fn), $curr_color, $amount); 	//[7a]
+                $value: ($variant: $new-color); 					//[7b]
+
+                $values-list: map-merge($value, $values-list);		//[7c]
+            }
+        }
+
+        // Sass maps are formatted
+        // with double parenthesis as they get more nested.
+        // (first-level: ( (second-level: value) ) )
+        $inner-map: ($palette: $values-list);				    //[8a]
+        $new-map: _combine-color-maps($new-map, $inner-map); 	//[8b]
+
+    }
+
+    @return $new-map; //[9]
+}
+
+/// Combines two color maps (or really any double-nested map)
+@function _combine-color-maps($map1, $map2) {
+    @each $pal, $color in $map2 {
+        $value: (
+            $pal: $color
+        );
+        $map1: map-merge($map1, $value);
+    }
+
+    @return $map1;
+}
+
+/// Map of cubic-bezier values representing named easing values (eg. `ease-in`, `ease-out-quart`). Can be "easily" accessed with `easing`.
+/// @see easing
+/// @group core
+///
+$easings: (
+    'linear': (
+        0,
+        0,
+        1,
+        1,
+    ),
+    'ease': (
+        0.25,
+        0.1,
+        0.25,
+        1,
+    ),
+    'ease-in': (
+        0.42,
+        0,
+        1,
+        1,
+    ),
+    'ease-out': (
+        0,
+        0,
+        0.58,
+        1,
+    ),
+    'ease-in-out': (
+        0.42,
+        0,
+        0.58,
+        1,
+    ),
+    'ease-in-sine': (
+        0.47,
+        0,
+        0.745,
+        0.715,
+    ),
+    'ease-out-sine': (
+        0.39,
+        0.575,
+        0.565,
+        1,
+    ),
+    'ease-in-out-sine': (
+        0.445,
+        0.05,
+        0.55,
+        0.9,
+    ),
+    'ease-in-quad': (
+        0.55,
+        0.085,
+        0.68,
+        0.53,
+    ),
+    'ease-out-quad': (
+        0.25,
+        0.46,
+        0.45,
+        0.94,
+    ),
+    'ease-in-out-quad': (
+        0.455,
+        0.03,
+        0.515,
+        0.955,
+    ),
+    'ease-in-cubic': (
+        0.55,
+        0.055,
+        0.675,
+        0.19,
+    ),
+    'ease-out-cubic': (
+        0.215,
+        0.61,
+        0.355,
+        1,
+    ),
+    'ease-in-out-cubic': (
+        0.645,
+        0.045,
+        0.355,
+        1,
+    ),
+    'ease-in-quart': (
+        0.895,
+        0.03,
+        0.685,
+        0.22,
+    ),
+    'ease-out-quart': (
+        0.165,
+        0.84,
+        0.44,
+        1,
+    ),
+    'ease-in-out-quart': (
+        0.77,
+        0,
+        0.175,
+        1,
+    ),
+    'ease-in-quint': (
+        0.755,
+        0.05,
+        0.855,
+        0.06,
+    ),
+    'ease-out-quint': (
+        0.23,
+        1,
+        0.32,
+        1,
+    ),
+    'ease-in-out-quint': (
+        0.86,
+        0,
+        0.07,
+        1,
+    ),
+    'ease-in-expo': (
+        0.95,
+        0.05,
+        0.795,
+        0.035,
+    ),
+    'ease-out-expo': (
+        0.19,
+        1,
+        0.22,
+        1,
+    ),
+    'ease-in-out-expo': (
+        1,
+        0,
+        0,
+        1,
+    ),
+    'ease-in-circ': (
+        0.6,
+        0.04,
+        0.98,
+        0.335,
+    ),
+    'ease-out-circ': (
+        0.075,
+        0.82,
+        0.165,
+        1,
+    ),
+    'ease-in-out-circ': (
+        0.785,
+        0.135,
+        0.15,
+        0.86,
+    ),
+    'ease-in-back': (
+        0.6,
+        -0.28,
+        0.735,
+        0.045,
+    ),
+    'ease-out-back': (
+        0.175,
+        0.885,
+        0.32,
+        1.275,
+    ),
+    'ease-in-out-back': (
+        0.68,
+        -0.55,
+        0.265,
+        1.55,
+    ),
+    'authentic-motion': (
+        0.4,
+        0,
+        0.2,
+        1,
+    ),
+);
+
+/// Takes a string representation of an cubic-bezier easing, and returns its 4-digit list value.
+/// @param {string} $easing ['ease'] - Easing name
+/// @see $easings
+/// @group core
+@function easing($easing: 'ease') {
+    @if not(map-get($easings, $easing)) {
+        @warn 'No easing named #{$easing}. See _t-easings.scss for a list of all available easings';
+        @return map-get($easings, 'ease');
+    }
+
+    @return map-get($easings, $easing);
+}
+
+/// @alias ease
+///
+@function ease($easing: 'ease') {
+    @return easing($easing);
+}
+
+/// Takes a string representation of an cubic-bezier easing, and returns the corresponding cubic-bezier statement.
+/// @param {string} $easing ['ease'] - Easing name
+/// @see $easings
+/// @group core
+///
+@function cubic-easing($easing: 'ease') {
+    @return cubic-bezier(#{easing($easing)});
+}
+
+/// @alias cubic-easing
+///
+@function c-ease($easing: 'ease') {
+    @return cubic-easing($easing);
+}
+
+/// Generates CSS for interpolated length properties. In other words,
+/// it will generate multiple values for a property over multiple media-queries.
+///
+/// It has 5 required parameters, including the target property, initial
+/// screen size, initial value, final screen size and final value.
+///
+/// It has two optional parameters which include an easing property,
+/// which is a string representation of a CSS animation-timing-function,
+/// and finally a number of bending-points that determines how many
+/// interpolations steps are applied along the easing function.
+///
+/// @author Original: Mike Riethmuller, New: Chris Lee
+/// @group core
+///
+/// @param {String} $property - The CSS property to interpolate
+/// @param {Unit} $min-screen - A CSS length unit
+/// @param {Unit} $min-value - A CSS length unit
+/// @param {Unit} $max-screen - Value to be parsed
+/// @param {Unit} $max-value - Value to be parsed
+/// @param {String} $easing - Value to be parsed
+/// @param {Number} $bending-points - Value to be parsed
+/// @link http://codepen.io/MadeByMike/pen/a2249946658b139b7625b2a58cf03a65?editors=0100
+///
+@mixin interpolate(
+    $property,
+    $min-screen,
+    $min-value,
+    $max-screen,
+    $max-value,
+    $easing: 'linear',
+    $bending-points: 2
+) {
+    // Default Easing 'Linear'
+    $p0: 0;
+    $p1: 0;
+    $p2: 1;
+    $p3: 1;
+
+    @if type-of($easing) == 'string' {
+        $easing: map-get($easings, $easing);
+    }
+
+    // Parse Cubic Bezier string
+    // Check easing for cubic-bezier values
+    @if type-of($easing) == list {
+        $p0: nth($easing, 1);
+        $p1: nth($easing, 2);
+        $p2: nth($easing, 3);
+        $p3: nth($easing, 4);
+    }
+
+    #{$property}: $min-value;
+
+    @if ($easing == 'linear' or $bending-points < 1) {
+        @media screen and (min-width: $min-screen) {
+            #{$property}: calc-interpolation(
+                $min-screen,
+                $min-value,
+                $max-screen,
+                $max-value
+            );
+        }
+    } @else {
+        // Loop through bending points
+        $t: 1 / ($bending-points + 1);
+        $i: 1;
+        $prev-screen: $min-screen;
+        $prev-value: $min-value;
+
+        @while $t * $i <= 1 {
+            $bending-point: $t * $i;
+            $value: solve-cubic-bezier($p0, $p1, $p2, $p3, $bending-point);
+            $screen-int: lerp($min-screen, $max-screen, $bending-point);
+            $value-int: lerp($min-value, $max-value, $value);
+
+            @media screen and (min-width: $prev-screen) {
+                #{$property}: calc-interpolation(
+                    $prev-screen,
+                    $prev-value,
+                    $screen-int,
+                    $value-int
+                );
+            }
+
+            $prev-screen: $screen-int;
+            $prev-value: $value-int;
+            $i: $i + 1;
+        }
+    }
+    @media screen and (min-width: $max-screen) {
+        #{$property}: $max-value;
+    }
+}
+
+//------------------------------------
+//      $GRID SYSTEM
+//------------------------------------
+
+//
+// _Note: `[% || .]` denotes a class that is either silent(`%`) or standard CSS(`.`). Based on the `$grid-silent-classes` setting._
+//
+// * `%grid_reset`
+//  Useful for resetting the grid's effects without making full grid items.
+//
+// * `[% || .]grid`
+//  Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
+//
+// * `[% || .]grid_item`
+//  Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
+//
+// * `[% || .]grid_reverse`
+//  Makes grid columns start from the right.
+//
+// * `[% || .]grid_right`
+//  Makes all grid columns align to the right.
+//
+// * `[% || .]grid_center`
+//  Makes all grid columns align to the center.
+//
+// * `[% || .]grid_middle`
+//  Makes all grid columns vertical align to the middle.
+//
+// * `[% || .]grid_bottom`
+//  Makes all grid columns vertical align to the bottom.
+//
+// * `[% || .]grid_full`
+//  Eliminates padding between grid columns.
+//
+// * `[% || .]grid_narrow`
+//  Reduces the padding between grid columns.
+//
+// * `[% || .]grid_wide`
+//  Increases the padding between grid columns.
+//
+//
+
+/// Total columns to base your grid on.
+/// @group config
+$grid-columns: 12 !default;
+/// Space between grid items.
+/// @group config
+$grid-gutter: 32px !default;
+/// Use BEM-style naming for grid classes?
+/// @group config
+$grid-bem-naming: false !default;
+/// Generate silent classes for the grid?
+/// @group config
+$grid-silent-classes: false !default;
+
+/// Use a flex-based grid?
+/// @group config
+$grid-flex: true !default;
+/// Use an inline-block-based grid? Can be used in conjunction with flex as a fallback.
+/// @group config
+$grid-inline-block: true !default;
+/// Use a float-based grid?
+/// @group config
+$grid-floats: false !default;
+/// With inline-block-based grids, we need to "fix" the space between items with a negative letter-spacing value. This value might change based on your project's base font.
+/// @group config
+$grid-letter-space-fix: -0.45em !default;
+
+$grid-markup-fix: false !default;
+
+/// Include push grid classes?
+/// @group config
+$grid-push: true !default;
+
+/// Include pull grid classes?
+/// @group config
+$grid-pull: true !default;
+
+/// String to include before grid width classes.
+/// @group config
+$grid-width-namespace: if($grid-bem-naming, 'w-', '') !default;
+
+/// String to include before grid push classes.
+/// @group config
+$grid-push-namespace: if($grid-bem-naming, 'push--', 'push_') !default;
+
+/// String to include before grid pull classes.
+/// @group config
+$grid-pull-namespace: if($grid-bem-naming, 'pull--', 'pull_') !default;
+
+/// The character used to separate breakpoints when generating responsive classes. For instance `.smalls\@one-fourth`, where `'\\@'` is the namespace character.
+///@group config
+///@type string
+$breakpoint-namespace-character: '\\@' !default;
+
+/// List of media-queries (as defined in `$breakpoints`) that should have width utility classes.
+///@group config
+///@type list
+$breakpoint-has-widths: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
+
+/// List of media-queries (as defined in `$breakpoints`) that should have grid-push utility classes.
+///@group config
+///@type list
+$breakpoint-has-push: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
+
+/// List of media-queries (as defined in `$breakpoints`) that should have grid-pull utility classes.
+///@group config
+///@type list
+$breakpoint-has-pull: ('smalls', 'small', 'bigs', 'lap', 'desk') !default;
+
+//------------------------------------
+//      $WIDTHS
+//------------------------------------
+
+/// Second words used to represent numbers in a fraction; Corresponds to grid interval names (whole, half, third, etc.).
+$_human-readable-numerators: one, two, three, four, five, six, seven, eight,
+    nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen,
+    eighteen, nineteen, twenty;
+
+/// First words used to represent numbers in a fraction; Corresponds to grid interval names (one, two, three, etc.).
+$_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
+    seventh, eighth, ninth, tenth, eleventh, twelfth, thirteenth, fourteenth,
+    fifteenth, sixteenth, seventeenth, eighteenth, nineteenth, twentieth,
+    twentyfirst, twentysecond, twentythird, twentyfourth, twentyfifth,
+    twentysixth, twentyseventh, twentyeigth, twentyninth;
+
+/// Creates a percentage based on the `$size / $context` while allowing for a contextual calculations (`($total/$context) * ($columns/$total)`).
+///
+/// For instance, if you have a grid of 12 columns and you've created an item that is 7 columns wide, its children would then be in a 7/12 context. In order to maintain the grid and calculate the width of a child that spans 4 columns, it would have to be 1 quarter of 7/12.
+/// @example
+///    .parent {
+///       width: grid-size(7, 12);
+///    }
+///    .child {
+///       width: grid-size(4, 7, 12);
+///    }
+/// @group grid
+/// @param {number} $columns - Column span
+/// @param {number} $context [$grid-columns] - Out of how many columns?
+/// @param {number} $total-columns [$grid-columns] -
+/// @returns {number} percentage
+///
+@function grid-size(
+    $columns,
+    $context: $grid-columns,
+    $total-columns: $grid-columns
+) {
+    //Correct for nested columns() calls
+    @if (unit($context) == '%') {
+        $context: ($context / ($context * 0 + 1)) / 100;
+        $context: $total-columns * $context;
+    }
+    $context: ($total-columns / $context);
+    $columns: ($columns / $total-columns);
+
+    @return percentage($context * $columns);
+}
+
+/// @alias grid-size
+/// @group grid
+@function columns(
+    $columns,
+    $context: $grid-columns,
+    $total-columns: $grid-columns
+) {
+    @return grid-size($columns, $context, $total-columns);
+}
+
+/// Creates a width property with a percentage based on the `$columns / $total`. Also includes flex-based properties if `$grid-flex` is enabled.
+/// @group grid
+/// @param {number} $columns - Column span.
+/// @param {number} $total [$grid-columns]
+///
+@mixin grid-width($columns, $total: $grid-columns) {
+    width: #{grid-size($columns, $total)};
+    @if $grid-flex {
+        flex-basis: #{grid-size($columns, $grid-columns)};
+        max-width: #{grid-size($columns, $grid-columns)};
+    }
+}
+
+/// @alias grid-width
+/// @group grid
+///
+@mixin width($columns, $total: $grid-columns) {
+    @include grid-width($columns, $total);
+}
+
+/// Uses `$_human-readable-numerators` and `$_human-readable-denominators` to create percentages based on `$grid-columns`. `$property` accepts any property, as well as lists of properties.
+/// @group grid
+/// @param {string} $namespace [""] - String to put before grid classes.
+/// @param {boolean} $silent [$grid-silent-classes] - Use silent classes?
+/// @param {string} $property ["width"] - What property should these widths applied to?
+/// @param {boolean} $important [false] - Should `!important` be applied to properties?
+/// @param {string} $property ["width"] - What property should these widths applied to?
+
+@mixin width-setup(
+    $namespace: '',
+    $silent: $grid-silent-classes,
+    $property: 'width',
+    $important: false,
+    $columns: $grid-columns,
+    $space: if($grid-bem-naming, '-', '_')
+) {
+    // [1] Loop through the $grid-columns.
+    // [2] Loop through $divisor (same number as $grid-columns). This acts as the second number in our column fraction.
+    // [3a]Loop through $divisor before it decreases by 1 from the previous loop.
+    // [3b]After widths are defined, subtract 1 from $divisor.
+    // [4] Assign the numerator and denominator of our fraction to human-readable versions (e.g. three, four, third, quarter, etc.).
+    // [5] Check if the numerator equals 1 (one). If so, we keep our singular human-readable numerators and denominators (e.g. one_twelfth).
+    // [6] If the numerator is larger than 1(one), add an 's' to our selector (e.g. two_eighths).
+    //
+    // Same system used for pushes and pulls.
+    $class-type: if($silent, '%', '.');
+    $divisor: $columns;
+    $class-name-list: ();
+    $prefix: '#{$class-type}#{$namespace}';
+    $important: if($important, '!important', '');
+
+    //To prevent stuff like 12/12 (five-fifths, etc.), we need to declare 1/1 here
+    #{$prefix}one#{$space}whole {
+        @each $type in $property {
+            #{$type}: 100% #{$important};
+        }
+    }
+
+    @for $i from 1 through $columns {
+        // [1]
+
+        @while $divisor > 0 {
+            // [2]
+
+            @for $dividen from 1 to $divisor {
+                // [3a]
+                //Create numerator (first number, e.g. 'two').
+                $numerator: nth($_human-readable-numerators, $dividen); // [4]
+
+                //Create denominator (second number, e.g. 'thirds').
+                $denominator: nth($_human-readable-denominators, $divisor);
+
+                //Divide first number(numerator) by second number(denominator).
+                $size: grid-size($dividen, $divisor);
+
+                //Create class name
+                $class-name: '#{$prefix}#{$numerator}#{$space}#{$denominator}';
+
+                //Pluralize anything other than ratios with a numerator of 1
+                @if $numerator != 'one' {
+                    // [5]
+                    $class-name: '#{$class-name}s'; // [6]
+                }
+
+                #{$class-name} {
+                    @each $type in $property {
+                        @if index('top' 'right' 'bottom' 'left', $type) != null
+                        {
+                            position: relative;
+                        }
+                        #{$type}: $size #{$important};
+                    }
+                }
+
+                @if $grid-silent-classes and $debug-silent-classes {
+                    $class-name-list: map-merge(
+                        $class-name-list,
+                        (
+                            $class-name: $size,
+                        )
+                    );
+                }
+            }
+
+            $divisor: $divisor - 1; //[3b]
+        }
+    }
+
+    //Allow for fourths as an alias to quarters
+    #{$prefix}one#{$space}fourth {
+        @extend #{$prefix}one#{$space}quarter;
+    }
+
+    #{$prefix}two#{$space}fourths {
+        @extend #{$prefix}two#{$space}quarters;
+    }
+
+    #{$prefix}three#{$space}fourths {
+        @extend #{$prefix}three#{$space}quarters;
+    }
+
+    @if $silent and $debug-silent-classes {
+        $class-name-list: map-merge(
+            $class-name-list,
+            (#{$prefix}one#{$space}whole: 100%)
+        );
+        $_silent-class-registry: silents-register(
+            $class-name-list,
+            $type
+        ) !global;
+    }
+}
+
+/// Add clearfix to a class
+/// @param {boolean} $important - make properties `!important`.
+///
+@mixin clearfix($important: false) {
+    $important: if($important, '!important', '');
+    *zoom: 1 #{$important};
+
+    &:before,
+    &:after {
+        content: ' ';
+        display: table #{$important};
+    }
+    &:after {
+        clear: both #{$important};
+        width: 0 #{$important};
+        height: 0 #{$important};
+    }
+}
+
+
+/// Generates basic grid classes based on passed in options.
+/// @group grid
+/// @param {boolean} $silent  [$grid-silent-classes] - Make all classes silent?
+/// @param {number}  $gutter  [$grid-gutter] - Gutter size between grid items.
+/// @param {boolean} $flex    [$grid-flex] - Use flexbox?
+/// @param {boolean} $inline-block  [$grid-inline-block] - Use inline-block?
+/// @param {boolean} $floats  [$grid-floats] - Use floats?
+/// @param {boolean} $bem     [$grid-bem-naming] - Use BEM naming? `false` will result in snake-case names.
+@mixin grid-setup(
+    $silent: $grid-silent-classes,
+    $gutter: $grid-gutter,
+    $flex: $grid-flex,
+    $inline-block: $grid-inline-block,
+    $floats: $grid-floats,
+    $bem: $grid-bem-naming
+) {
+    // Allow for BEM naming instead of snake-case
+    $child: '_';
+    $mod: '_';
+
+    @if $bem {
+        $child: '__';
+        $mod: '--';
+    }
+
+    $class-type: if($silent, '%', '.');
+
+    %grid_reset,
+    %grid--reset {
+        word-spacing: normal;
+        letter-spacing: normal;
+    }
+
+    %grid_clearfix,
+    %grid--clearfix {
+        @include clearfix;
+    }
+
+    //*------------------------------------
+    //    $GRID SETUP
+    //*------------------------------------
+
+    #{$class-type}grid {
+        @include grid-row();
+    }
+
+    #{$class-type}grid#{$child}item {
+        @include grid-item(12, 12);
+    }
+
+    // Special class for grid items that need to behave like both grids and grid__items.
+    #{$class-type}grid#{$child}item#{$mod}reset,
+    #{$class-type}grid#{$mod}reset#{$child}item {
+        @include grid-row();
+        margin-left: 0;
+        width: 100%;
+        @include type-space(padding-left, 1, $unit: $gutter);
+    }
+
+    //
+    // Reversed grids allow you to structure your source in the opposite order to
+    // how your rendered layout will appear. Extends `.grid`.
+    //
+    #{$class-type}grid#{$mod}reverse {
+        @if $floats {
+            @extend %grid--clearfix;
+
+            & > #{$class-type}grid#{$child}item {
+                float: right;
+            }
+        }
+        @if $inline-block or $flex {
+            direction: rtl;
+            text-align: left;
+
+            & > #{$class-type}grid#{$child}item {
+                direction: ltr;
+                text-align: left;
+            }
+        }
+    }
+
+    //
+    // Align the entire grid to the right. Extends `.grid`.
+    //
+    #{$class-type}grid#{$mod}right {
+        @if $inline-block {
+            text-align: right;
+
+            & > #{$class-type}grid#{$child}item {
+                text-align: left;
+            }
+        }
+        @if $flex {
+            justify-content: flex-end;
+        }
+    }
+    //
+    // Centered grids align grid items centrally without needing to use push or pull
+    // classes. Extends `.grid`.
+    //
+    #{$class-type}grid#{$mod}center {
+        @if $flex {
+            justify-content: center;
+        }
+
+        @if $inline-block {
+            text-align: center;
+
+            & > #{$class-type}grid#{$child}item {
+                text-align: left;
+            }
+        }
+    }
+    //
+    //
+    // Align grid cells vertically (`.grid--middle` or `.grid--bottom`). Extends
+    // `.grid`.
+    //
+    #{$class-type}grid#{$mod}middle {
+        & > #{$class-type}grid#{$child}item {
+            @if $flex {
+                align-self: center;
+            }
+            vertical-align: middle;
+        }
+    }
+
+    #{$class-type}grid#{$mod}bottom {
+        & > #{$class-type}grid#{$child}item {
+            @if $flex {
+                align-self: flex-end;
+            }
+            vertical-align: bottom;
+        }
+    }
+
+    // Gutterless grids have all the properties of regular grids, minus any spacing.
+    // Extends `.grid`.
+
+    #{$class-type}grid#{$mod}full {
+        margin-left: 0;
+
+        > #{$class-type}grid#{$child}item {
+            padding-left: 0;
+        }
+    }
+
+    //
+    // Create grids with narrower gutters. Extends `.grid`.
+    //
+    #{$class-type}grid#{$mod}narrow {
+        @include type-space(margin-left, -0.5, $unit: $gutter);
+
+        > #{$class-type}grid#{$child}item {
+            @include type-space(padding-left, 0.5, $unit: $gutter);
+        }
+    }
+
+    //
+    // Create grids with wider gutters. Extends `.grid`.
+    //
+    #{$class-type}grid#{$mod}wide {
+        @include type-space(margin-left, -2, $unit: $gutter);
+
+        > #{$class-type}grid#{$child}item {
+            @include type-space(padding-left, 2, $unit: $gutter);
+        }
+    }
+
+    //
+    // Cause layout items to take up a non-explicit amount of width.
+    //
+    #{$class-type}grid#{$mod}auto {
+        @if $inline-block {
+            text-align: justify;
+
+            &:after {
+                content: ' ';
+                display: inline-block;
+                width: 100%;
+                height: 1px;
+            }
+        }
+
+        & > #{$class-type}grid#{$child}item,
+        #{$class-type}grid#{$child}item#{$mod}auto {
+            width: auto;
+
+            @if $inline-block {
+                text-align: left;
+            }
+
+            @if $flex {
+                flex-basis: auto;
+                flex-grow: 1;
+            }
+        }
+    }
+}
+
+/// Creates a grid container (row) based on your grid configuration.
+/// @group grid
+@mixin grid-row(
+    $gutter: $grid-gutter,
+    $letter-spacing: $grid-letter-space-fix
+) {
+    margin: 0; // [2]
+    padding: 0; // [2]
+    // 1. Allow the grid system to be used on lists.
+    // 2. Remove any margins and paddings that might affect the grid system.
+    // 3. Apply a negative `margin-left` to negate the columns’ gutters.
+
+    list-style: none; // [1]
+    @include type-space(margin-left, -1, $unit: $gutter);
+
+    @if $grid-inline-block and $letter-spacing {
+        letter-spacing: $letter-spacing;
+
+        // Opera hack
+        .opera:-o-prefocus,
+        & {
+            word-spacing: $letter-spacing;
+        }
+    }
+
+    @if $grid-flex {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    @if $grid-floats {
+        @include clearfix;
+    }
+}
+
+/// Creates a grid item (column) based on your grid configuration set to a width based on the `$columns` passed in.
+/// @group grid
+/// @param {number} $columns [$grid-columns] - Number of columns the item should span.
+/// @param {number} $total-columns [$grid-columns] - Number of columns in total grid space. Only necessary to change if you are nesting grids within grids.
+/// @see grid-width
+@mixin grid-item(
+    $columns: $grid-columns,
+    $total-columns: $grid-columns,
+    $gutter: $grid-gutter,
+    $inline-block: $grid-inline-block,
+    $flex: $grid-flex,
+    $floats: $grid-floats,
+    $markup-fix: $grid-markup-fix,
+    $letter-spacing: $grid-letter-space-fix
+) {
+    // 1. Space columns apart.
+    // 2. Cause columns to stack side-by-side.
+    // 3. Align columns to the tops of each other.
+    // 4. Required to combine fluid widths and fixed gutters.
+
+    @include type-space(padding-left, 1, $unit: $gutter); // [1]
+    width: 100%;
+    min-height: 1px; // IE 11 fix
+
+    @if $inline-block {
+        display: inline-block; // [2]
+        vertical-align: top; // [3]
+
+        @if $markup-fix != true and $letter-spacing {
+            word-spacing: normal;
+            // [5]
+            letter-spacing: normal;
+        }
+    }
+
+    @if $floats {
+        float: left; // [2]
+    }
+
+    @if $flex {
+        flex: 0 0 #{percentage($columns/$total-columns)};
+
+        //Forces flex grid to behave like inline-block
+        @if $inline-block != true {
+            flex-grow: 1;
+        }
+    }
+
+    @include grid-width($columns, $total-columns);
+}
+
+/// Creates responsive grid classes by running through all the grid-setup mixins. Uses the media-queries defined in the `$breakpoint-has-` variables to create media-query-scoped classes.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
+@mixin grid-init($silent: $grid-silent-classes, $important: false) {
+    @if (
+        $grid-inline-block !=
+            true and
+            $grid-floats !=
+            true and
+            $grid-flex !=
+            true
+    ) {
+        @warn 'No grid type selected. Please make sure to set $grid-inline-block, -floats, or -flex to true.';
+    }
+
+    @include grid-classes($silent);
+
+    @include width-classes($silent, $important);
+
+    @if $grid-push {
+        @include push-classes($silent, $important);
+    }
+
+    @if $grid-pull {
+        @include pull-classes($silent, $important);
+    }
+}
+
+/// @alias grid-setup
+/// @group grid
+@mixin grid-classes($silent: $grid-silent-classes) {
+    @include grid-setup($silent);
+}
+
+/// Creates responsive width classes (using `width-setup` mixin). Loops across all breakpoints in `$breakpoint-has-widths`. Creates classes with `width` property values (`flex-basis` and `max-width` for flex-based grids) based on the grid.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
+@mixin width-classes($silent: $grid-silent-classes, $important: false) {
+    //Include flex-basis (and max-width) for flex-box grids
+
+    $column-props: if($grid-flex, ('width' 'max-width' 'flex-basis'), 'width');
+
+    @include width-setup('', $silent, $column-props, $important);
+
+    // Our responsive classes, if we have enabled them.
+    @each $name in $breakpoint-has-widths {
+        @include media-query($name) {
+            @include width-setup(
+                '#{$name}#{$breakpoint-namespace-character}',
+                $silent,
+                $column-props,
+                $important
+            );
+        }
+    }
+}
+
+/// Creates responsive grid-push classes. Loops across all breakpoints in breakpoints in `$breakpoint-has-push`. Creates classes with `left` property values based on the grid.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
+@mixin push-classes($silent: $grid-silent-classes, $important: false) {
+    @include width-setup($grid-push-namespace, $silent, 'left', $important);
+
+    @each $name in $breakpoint-has-push {
+        @include media-query($name) {
+            @include width-setup(
+                '#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}',
+                $silent,
+                'left',
+                $important
+            );
+        }
+    }
+}
+
+/// Creates responsive grid-pull classes. Loops across all breakpoints in `$breakpoint-has-pull`. Creates classes with `right` property values based on the grid.
+/// @group grid
+/// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
+/// @param {boolean} $important [false] - make them `!important`?
+@mixin pull-classes($silent: $grid-silent-classes, $important: false) {
+    @include width-setup($grid-pull-namespace, $silent, 'right', $important);
+
+    @each $name in $breakpoint-has-pull {
+        @include media-query($name) {
+            @include width-setup(
+                '#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}',
+                $silent,
+                'right',
+                $important
+            );
+        }
+    }
+}
+
+/// Allows creating many border properties at once. Works like the standard border shorthand style but allows varied styles on different border directions.
+///
+/// @param {list} $border
+/// @example
+///     //scss
+///     .foo {
+///         @include border(2px 3px solid dashed dotted blue currentColor yellow);
+///     }
+///
+///     //css
+///     .foo {
+///         border-width: 2px 3px;
+///         border-style: solid dashed dotted;
+///         border-color: blue currentColor yellow;
+///     }
+///
+@mixin border($border) {
+    $border-width: ();
+    $border-style: ();
+    $border-color: ();
+
+    //Make sure border isn't empty
+    @if $border != null {
+        @each $property in $border {
+            //Grab first argument, take the key value in case we're given a map
+            $property: nth($property, -1);
+            $prop-type: type-of($property);
+
+            //Check property types for types and store them into separate list values
+            //Numbers (width), colors (color), or strings (style)
+            @if ($prop-type == 'number') {
+                $border-width: append($border-width, $property);
+            }
+            @elseif (($prop-type == 'color') or ($property == 'currentColor')) {
+                $border-color: append($border-color, $property);
+            }
+            @elseif ($prop-type == 'string') {
+                $border-style: append($border-style, $property);
+            }
+        }
+    }
+
+    //If this is just a the typical shorthand (width style color)
+    // with all values in the correct place, just output the shorthand
+    @if length($border-width) ==
+        1 and
+        length($border-style) ==
+        1 and
+        length($border-color) ==
+        1
+    {
+        border: $border-width $border-style $border-color;
+    } @else {
+        //Else, put them into nested properties and let sass handle the rest
+        border: {
+            width: $border-width;
+            style: $border-style;
+            color: $border-color;
+        }
+    }
+}
+
+/// Specificity increaser. Useful for increasing specificity of a selector instead of using `!important`.
+/// @param {number} $specificity [1]
+/// @example
+/// .class {
+///     @include specificity(2) {
+///         color: red;
+///     }
+/// }
+///
+/// //css
+/// .class.class {
+///     color: red;
+/// }
+///
+@mixin specificity($specificity: 1) {
+    $selector: unquote('&');
+
+    @if $specificity > 1 {
+        @for $i from 1 to $specificity {
+            $selector: $selector + unquote('&');
+        }
+        @at-root #{$selector} {
+            @content;
+        }
+    } @else {
+        @content;
+    }
+}
+
+/// Cross-browser (including IE8-) opacity.
+@mixin opacity($opacity) {
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$opacity * 100})';
+    opacity: $opacity;
+}
+
+//------------------------------------
+//    $LISTS
+//------------------------------------
+// http://compass-style.org/reference/compass/typography/lists/
+// Turn off the bullet for an element of a list
+
+/// Turn off the bullet for an element of a list
+@mixin no-bullet {
+    margin-left: 0;
+    list-style-type: none;
+    list-style-image: none;
+}
+
+/// Turns off the bullets for an entire list
+@mixin no-bullets {
+    list-style: none;
+    > li {
+        @include no-bullet;
+    }
+}
+
+//------------------------------------
+//	$MEDIA QUERIES
+//------------------------------------
+
+//Accepted media-query expression types
+$media-query-expressions: (
+    'device-width',
+    'orientation',
+    'aspect-ratio',
+    'device-aspect-ratio',
+    'color',
+    'color-index',
+    'monochrome',
+    'resolution',
+    'scan',
+    'grid'
+);
+
+//Accepted media-query device types
+$media-query-devices: (
+    'screen',
+    'all',
+    'print',
+    'tv',
+    'handheld',
+    'braille',
+    'embossed',
+    'projection',
+    'speech',
+    'tty'
+);
+
+//Accepted media-query operator arguments
+$media-query-operators: (
+    'max-width',
+    'max-height',
+    'min-width',
+    'min-height',
+    'device-width',
+    'min-device-width',
+    'max-device-width',
+    'min-device-height',
+    'max-device-height',
+    'aspect-ratio',
+    'device-aspect-ratio',
+    'resolution'
+);
+
+//Used to switch a media-query from one type to another
+$media-query-switch: ('max', 'min', 'height', 'width', 'landscape', 'portrait');
+
+//Values to increase media-queries by
+$media-query-intervals: (
+    'px': 1,
+    'em': 0.01,
+    'rem': 0.01,
+    'vh': 0.01,
+    'vw': 0.01,
+);
+
+/// @group config
+$max-site-width: 1360px !default;
+
+/// @group config
+$max-content-width: 690px !default;
+
+/// @group config
+$max-wide-content-width: 910px !default;
+
+/// Breakpoint strings to use with `media-query` mixin.
+/// @see {mixin} media-query
+/// @group config
+$breakpoints: (
+    // Mostly phones
+        'smalls': '(max-width:#{ems($max-wide-content-width)})',
+    // Small Phones
+        'small': '(max-width: #{ems($max-content-width)})',
+    // Large (Modern) phones/phablets
+        'smallish': '(min-width: #{ems($max-content-width+1px)})' +
+        ' and (max-width: #{ems($max-wide-content-width)})',
+    // Tablets, Desktops and larger
+        'bigs': '(min-width: #{ems($max-wide-content-width+1px)})',
+    // Mostly Tablets and small laptops. Overrides Bigs
+        'lap': '(min-width: #{ems($max-wide-content-width + 1px)})' +
+        ' and (max-width: #{ems($max-site-width)})',
+    // Large Tablets and Desktops. Overrides Bigs.
+        'desk': '(min-width: #{ems($max-site-width)})'
+) !default;
+
+
+/// Enclose a block of code with a media query as named in `$breakpoints`. To create more consolodated code, most (if not all) media queries should be called through this mixin. Multiple media-queries can be defined, separated by a comma. This will place your content into multiple separate media-queries at once (useful if you need the same css at different breakpoints).
+/// **Alternative Uses:**
+/// * Passing multiple media queries separated by an `'and'` (quoted) to combine them, compiles to something like `@media screen and (min-width: 500px) and (max-width: 900px){}`.
+/// * Passing a value like `min-width 1200px` or `max-height 300px` allows for arbitrary breakpoints.
+/// * Passing `max 1200px 'and' smalls` will create a combined media-query with a predefined one from `$breakpoints`.
+/// * Passing `height smalls` will replace `width` with `height` within the `smalls` breakpoint. Similarly, using `min smalls` would replace 'max' with 'min'.
+/// @group core
+/// @param {List} $mq... - Can be a reference to a `$breakpoints` key, a pixel value, or a media value.
+///
+@mixin media-query($mq...) {
+    //Stored for switching on and off
+    $rem-px-default: $rem-px-fallback;
+
+    //format arglist into maps with key-value pairs
+    //Should return (1:(operator:...,value:...,'device':...), 2:(...));
+    $arguments-map: _mq-arglist-to-map($mq);
+
+    //Use a string storage for multiple media-queries
+    $media-query-string: '';
+
+    //Turn off px-fallback inside media-queries
+    // since 99% of mobile browsers support rems
+    $rem-px-fallback: false !global;
+
+    @each $mq-id, $mq-group in $arguments-map {
+        //Extract each value from the arguments map
+        $operator: map-get($mq-group, 'operator');
+
+        $value: map-get($mq-group, 'value');
+
+        $device: map-get($mq-group, 'device');
+
+        $device: if(
+            $device,
+            $device,
+            'screen'
+        ); //Default to screen if no device specified
+
+        $logical-operator: unquote('#{$operator}#{$value}');
+
+        //Multiple media-queries in the map indicates an 'or' media-query
+        // So let's concatenate those media-queries together
+        @if length($arguments-map) > 1 {
+            $media-query-string: $media-query-string +
+                '#{$device} and #{$logical-operator}';
+
+            //Use the IDs assigned to each media-query as a way to compare length
+            // (Libsass has an issue with indexes in maps)
+            @if $mq-id != length($arguments-map) {
+                //Add a comma to the end of all but the last query
+                $media-query-string: $media-query-string + ', ';
+            } @else {
+                @media only #{$media-query-string} {
+                    @content;
+                }
+            }
+        } @else {
+            @if $operator {
+                //Only output media-queries with operators
+
+                @media only #{$device} and #{$logical-operator} {
+                    @content;
+                }
+            } @else {
+                @warn "the media-query mixin requires a logical-operator" +
+                " and a value ('min-width', 2px). You will have to write" +
+                " your own media query if you'd like something else";
+            }
+        }
+    }
+
+    //Change back to user setting
+    $rem-px-fallback: $rem-px-default !global;
+}
+
+//Aliases: Same as above, but shorter
+/// @alias media-query
+///
+@mixin media($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
+/// @alias media-query
+///
+@mixin mq($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
+/// @alias media-query
+///
+@mixin breakpoint($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
+/// @alias media-query
+///
+@mixin bp($mq...) {
+    @include media-query($mq...) {
+        @content;
+    }
+}
+
+//-------------------------
+// Private media-query functions
+//-------------------------
+
+//Check for proper media-query arguments
+// Converting them to proper CSS values
+@function _mq-arglist-to-map($arguments-list) {
+    $stored: ();
+    $arg-map: ();
+    $structure: ();
+
+    //For loop used because each loops produce different results in Ruby and LibSass
+    @for $i from 1 through length($arguments-list) {
+        $argument: nth($arguments-list, $i);
+
+        //Check all values in the argument for valid media-query arguments
+        $structure: map-merge($structure, _mq-parse-query-args($argument));
+
+        //Since value should be last, we can assume the grouping is done
+        @if (map-get($structure, 'value')) {
+            //Wrap arguments into an array-object-like structure (1:(key:value, key:value))
+            $key: $i * 1;
+            $arg-map: map-merge(
+                $arg-map,
+                ($key: $structure),
+            );
+            //Empty the map so we can rewrite it
+            $structure: ();
+        }
+    }
+
+    @return $arg-map;
+}
+
+// Test each argument for its type and match it up to a proper map key
+@function _mq-parse-query-args($argument, $call: 0, $check: null) {
+    $query-map: ();
+    //Check global $breakpoints config variable for matches
+    @if (map-get($breakpoints, $argument)) {
+        $query-map: map-merge(
+            $query-map,
+            (
+                'operator': map-get($breakpoints, $argument)
+            )
+        );
+        //Also set value to nothing since we already have it
+        $query-map: map-merge(
+            $query-map,
+            (
+                'value': ''
+            )
+        );
+    }
+    //Check operators for matches
+    @elseif (index($media-query-operators, $argument)) {
+        //Format operator as the beginning of a parenthesis
+        $query-map: map-merge(
+            $query-map,
+            (
+                'operator': '(#{$argument}'
+            )
+        );
+    }
+    //If its a number, assume its a value
+    @elseif (type-of($argument) == number) {
+        //Format value with a colon and closing parenthesis
+        $query-map: map-merge(
+            $query-map,
+            (
+                'value': ':#{$argument})'
+            )
+        );
+    }
+    //Check devices for matches
+    @elseif (index($media-query-devices, $argument)) {
+        $query-map: map-merge(
+            $query-map,
+            (
+                'device': $argument
+            )
+        );
+    } @else {
+        //if not a device, $breakpoint, value, or operator, it's probably a nested list
+        //We'll need to loop through that list and re-call this function until we get to the bottom
+        @for $i from 1 through length($argument) {
+            $arg: nth($argument, $i);
+            //Set a reasonable number so we don't loop forever
+            //Only set if nothing has been set before
+            $check: if($check, $check, length($argument));
+            //If we've looped through this more times than the length of the argument,
+            //we can assume an error and return nothing.
+            @if $call > ($check + 1) {
+                @warn "#{$arg} is not valid argument for media-query mixin";
+                @return ();
+            }
+            //Add to the loop count
+            $call: $call + 1;
+            //Re-run this function through all arguments
+            $query-map: map-merge(
+                $query-map,
+                _mq-parse-query-args($arg, $call, $check)
+            );
+        }
+    }
+
+    @return $query-map;
+}
+
+//------------------------------------
+//	$OVERRIDES
+//------------------------------------
+
+/// Whether to show console outputs of line-heights that are automatically calculated.
+/// @group config
+$debug-fonts: false !default;
+
+/// Stores all auto-generated silent classes into a map that is then output as a comment at the end of the final css. Useful for getting an overview of values that are stored by the framework.
+/// @group config
+$debug-silent-classes: false !default;
+
+/// Outputs all known auto-generated silent classes as a JSON-style list.
+/// @param {boolean} $console [false] - output to the console or as a comment
+@mixin output-silent-classes($console: false) {
+    $string: '#{map-inspect(_$silent-class-registry)}';
+
+    @if $console {
+        @debug $string;
+    } @else {
+        /* DEBUG: Silent Classes
+            "#{$string}"
+        */
+    }
+}
+
+//------------------------------------
+//    $DISPLAY UTILITIES
+//------------------------------------
+
+$display-classes: (
+    'show': 'block',
+    'hide': 'none',
+) !default;
+
+/// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
+/// @param $namespace
+/// @param $silent
+/// @param $important
+/// @param $class-list
+///
+@mixin _output-display-classes(
+    $namespace: '',
+    $silent: false,
+    $important: true,
+    $class-list: $display-classes
+) {
+    $classtype: if($silent, unquote('%'), unquote('.'));
+    $important_str: if($important, ' !important', '');
+    $display-lookup: null;
+    $display-registry: ();
+    $class-name-list: ();
+
+    @each $name, $display in $class-list {
+        $display-class: #{$classtype}#{$namespace}#{$name};
+        // Check for existence of a previous class using the same display
+        $display-lookup: index($display-registry, $display);
+        // If it exists, look it up in the map and extend that value.
+        @if $display-lookup != null {
+            $extender: nth(nth($class-list, $display-lookup), 1);
+
+            #{$display-class} {
+                @extend #{$classtype}#{$namespace}#{$extender};
+            }
+        } @else {
+            #{$display-class} {
+                display: #{$display}#{$important_str};
+            }
+        }
+
+        // Keep track of display values so we can extend if necessary
+        @if index($display-registry, '#{$display}') != null {
+            @if $silent and $debug-silent-classes {
+                $class-name-list: map-merge(
+                    $class-name-list,
+                    (
+                        $display-class: $display,
+                    )
+                );
+            }
+
+            //Make sure duplicate values get a uniqueID so it's not extended
+            $display: $display + '' + length($display-registry);
+        }
+        $display-registry: append($display-registry, '#{$display}', comma);
+    }
+
+    //Register silent class names for debugging
+    @if $silent and $debug-silent-classes {
+        $_silent-class-registry: silents-register(
+            $class-name-list,
+            'display'
+        ) !global;
+    }
+}
+
+$_default-display-classes: (
+    'show': 'block',
+    'bl': 'block',
+    'il_bl': 'inline-block',
+    'tbl': 'table',
+    'tbl_cl': 'table-cell',
+    'hide': 'none',
+    'flex': 'flex',
+    'block': 'block',
+    'inline_block': 'inline-block',
+    'table_cell': 'table-cell',
+    'table': 'table',
+);
+
+/// The responsive component to `_output-display-classes`. Invokes `_output-display-classes`
+/// while looping through a set of media-queries defined in `$breakpoints`.
+/// This is most useful for creating responsive display classes.
+///
+/// @group core
+///
+/// @param {list} $breakpoints [$_all-breakpoints] - list of breakpoint names to loop over
+/// @param {string} $namespace [''] - String to prepend to classes.
+/// @param {boolean} $silent [false] - Generate silent classes?
+/// @param {boolean} $important [false] - Add `!important` to declarations?
+///
+@mixin display-classes(
+    $breakpoints: map-keys($breakpoints),
+    $namespace: '',
+    $silent: false,
+    $important: false
+) {
+    $classes: $display-classes;
+
+    @if $silent {
+        //Merge user-defined classes with defaults
+        // (so we have a wide-array of silent classes)
+        $classes: map-extend($display-classes, $_default-display-classes, true);
+    }
+
+    @include _output-display-classes($namespace, $silent, $important, $classes);
+
+    @each $name in $breakpoints {
+        @include media-query($name) {
+            $name: $namespace + $name;
+
+            @include _output-display-classes(
+                '#{$name}#{$breakpoint-namespace-character}',
+                $silent,
+                $important,
+                $classes
+            );
+        }
+    }
+}
+
+/// @alias display-classes
+///
+@mixin display-utilities-init(
+    $breakpoints: $_all-breakpoints,
+    $namespace: '',
+    $silent: false,
+    $important: false
+) {
+    @include display-classes($breakpoints, $namespace, $silent, $important);
+}
+
+//------------------------------------
+//      $SPACING UTILITIES
+//------------------------------------
+
+$_default-spacing-classes-config: (
+    silent: true,
+    important: false,
+    directions: (
+        '': '',
+    ),
+    amounts: (
+        '': 1,
+    ),
+    properties: (
+        'pad': padding,
+    ),
+    unit: 'auto',
+);
+
+$spacing-classes: $_default-spacing-classes-config !default;
+
+/// Generates responsive spacing and padding classes. The `$namespace` argument is the media query's name, which will be appended to all generated classes. The `$config` argument is a map that allows JS-style arguments. Outputs class name as: `breakpoint_prefix_direction_amount`.
+///
+/// **`$config` Keys:**
+/// * `directions:` names and directions to append to class names .`('-t': 'top')`
+/// * `amounts:` Names and values to multiply by each `unit`. `('-2': 2)`
+/// * `properties:` Class names for each property. `('pad': padding)`
+/// * `silent:` boolean for outputting silent/non-silent classes.
+/// * `important:` Whether to output `!important` after each declaration.
+/// * `unit`: What unit to multiply each 'amounts'.
+///
+/// @param {string} $namespace [""] - a string to prepend to all spacing classes. Usually used for the media query's name that is calling this mixin.
+/// @param {map} $config [()]
+/// @param {map} $config.directions [('': null)]
+/// @param {map} $config.amounts [('': 1)]
+/// @param {map} $config.properties [('pad': padding)]
+/// @param {boolean} $config.important [false]
+/// @param {boolean} $config.silent [true]
+/// @param {boolean} $config.unit ['auto']
+///
+@mixin _output-spacing-classes($namespace: '', $config: ()) {
+    //Merge the passed map with default values
+    $config: map-extend($_default-spacing-classes-config, $config);
+
+    //Convert map values to variables for simpler parsing
+    $classtype: if(map-get($config, silent), unquote('%'), unquote('.'));
+    $properties: map-get($config, properties);
+    $directions: map-get($config, directions);
+    $amounts: map-get($config, amounts);
+    // Allow for legacy 'units' config property
+    $amounts: if(_is-set($amounts), $amounts, map-get($config, units));
+    $important: map-get($config, important);
+    $unit: map-get($config, unit);
+
+    // Check for null properties, set reasonable defaults
+    $properties: if(
+        _is-set($properties),
+        $properties,
+        (
+            'pad': 'padding',
+        )
+    );
+    $directions: if(
+        _is-set($directions),
+        $directions,
+        (
+            '': '',
+        )
+    );
+    $amounts: if(
+        _is-set($amounts),
+        $amounts,
+        (
+            '': 1,
+        )
+    );
+
+    $class-name-list: ();
+    $class-cache: ();
+
+    //Loop through base names, then amounts, then directions.
+    @each $given-name, $base-property in $properties {
+        @each $amount_name, $amount in $amounts {
+            @each $direction_name, $property-directions in $directions {
+                $class_name: unquote(
+                    '#{$classtype}#{$namespace}#{$given-name}'+'#{$direction_name}#{$amount_name}'
+                );
+
+                //Skip if the padding is a negative value.
+                @if not(($base-property == 'padding') and ($amount < 0)) {
+                    $class-name-list: map-merge(
+                        $class-name-list,
+                        (
+                            $class_name: $amount,
+                        )
+                    );
+                    #{$class_name} {
+                        //multi-direction
+                        @each $direction in $property-directions {
+                            $property: $base-property;
+
+                            $property-amount: '#{$property+$amount}';
+
+                            @if ($direction) and ($direction != '') {
+                                $property: $property + '-' + $direction;
+                            }
+
+                            @if map-get($class-cache, $property-amount) {
+                                @extend #{map-get(
+                                    $class-cache, $property-amount
+                                )};
+                            } @else {
+                                $class-cache: map-merge(
+                                    $class-cache,
+                                    (
+                                        $property-amount: $class_name,
+                                    )
+                                );
+                                //Using type-space mixin,
+                                // output the REM-based value
+                                @include type-space(
+                                    $property,
+                                    $amount,
+                                    $important,
+                                    $unit
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Register silent classes for debugging.
+    @if map-get($config, silent) and $debug-silent-classes {
+        $_silent-class-registry: silents-register(
+            $class-name-list,
+            'spacing'
+        ) !global;
+    }
+}
+
+/// The responsive component to `_output-spacing-classes`. Invokes `spacing-utilites`
+/// that loops through a set of media-queries defined in `$breakpoints`.
+/// This is most useful for creating responsive spacing classes.
+///
+/// @group core
+///
+/// @param {map} $breakpoints [$_all-breakpoints] - breakpoints to loop over.
+/// @param {string} $namespace [""] - string to prepend to all classes.
+/// @param {map} $config [(silent: false)] - Passed to `_output-spacing-classes` mixin.
+///
+@mixin spacing-classes(
+    $breakpoints: map-keys($breakpoints),
+    $namespace: '',
+    $config: (
+        silent: false,
+    )
+) {
+    $config: map-extend($config, $spacing-classes);
+    @include _output-spacing-classes($namespace, $config);
+
+    @each $name in $breakpoints {
+        @include media-query($name) {
+            $name: $namespace + $name;
+            @include _output-spacing-classes(
+                '#{$name}#{$breakpoint-namespace-character}',
+                $config
+            );
+        }
+    }
+}
+
+/// @alias spacing-classes
+///
+@mixin spacing-utilities-init(
+    $breakpoints: $_all-breakpoints,
+    $namespace: '',
+    $config: (
+        silent: false,
+    )
+) {
+    @include spacing-classes($breakpoints, $namespace, $config);
+}
+
+@function _is-set($value) {
+    @if $value == null or length($value) == 0 {
+        @return false;
+    }
+
+    @return true;
+}
+
+/// Add clearfix to a class
+/// @param {boolean} $important - make properties `!important`.
+///
+@mixin clearfix($important: false) {
+    $important: if($important, '!important', '');
+    *zoom: 1 #{$important};
+
+    &:before,
+    &:after {
+        content: ' ';
+        display: table #{$important};
+    }
+    &:after {
+        clear: both #{$important};
+        width: 0 #{$important};
+        height: 0 #{$important};
+    }
+}
+
+
+/// Takes a map of class names and style properties and outputs utility (override) classes over a specified number of breakpoints. Useful for creating a number of single-use classes over multiple breakpoints. Always makes property declarations `!important`.
+///
+/// @group core
+///
+/// @example
+///  //SCSS
+///  @include creat-overrides(
+///      (
+///          "class-name": (
+///              "property": "value",
+///          ),
+///          "float-right, align_right": (
+///              "float": "right"
+///          )
+///      ),
+///      ('smalls', 'bigs')
+///  );
+///
+///  //CSS
+///  .float-left {
+///      float: left !important;
+///   }
+///  .float-right, .align_right {
+///      float: right !important;
+///  }
+///  @media (max-width: 600px) { // "smalls"
+///      .smalls-float-left {
+///          float: left !important;
+///      }
+///      .smalls-float-right, .smalls-align_right {
+///          float: right !important;
+///      }
+///  }
+///  @media (min-width: 601px) { // "bigs"
+///      ...
+///  }
+///
+/// @param {map} $map - map of class names, properties and their values.
+/// @param {List} $breakpoints [] - List of breakpoints to create classes for.
+/// @param {string} $namespace [""] - Value to put before each class.
+/// @param {string} $separator [$breakpoint-namespace-character] - string to place between breakpoint names and the classes.
+///
+@mixin create-overrides(
+    $map,
+    $breakpoints,
+    $namespace: '',
+    $separator: $breakpoint-namespace-character
+) {
+    //create non-responsive classes first
+    @include _override-output($map, $namespace);
+
+    //create responsive classes
+    @each $breakpoint-name in $breakpoints {
+        @include media-query($breakpoint-name) {
+            $name: $namespace + $breakpoint-name + $separator;
+            @include _override-output($map, $name);
+        }
+    }
+}
+
+/// Used exclusively by `create-overrides` to iterate through a map of classes, properties, and values to create responsive classes.
+@mixin _override-output($map, $namespace) {
+    @each $class-name in map-keys($map) {
+        $properties: map-keys(map-get($map, $class-name));
+        $values: map-values(map-get($map, $class-name));
+        $class-name: str-replace($class-name, ',', ', .#{$namespace}');
+        $class-name: str-replace($class-name, ' ', '');
+
+        .#{$namespace}#{$class-name} {
+            @for $i from 1 through length($properties) {
+                #{nth($properties, $i)}: #{nth($values, $i)} !important;
+            }
+        }
+    }
+}
+
+/// Automatically scale type values?
+/// @group config
+/// @type boolean
+///
+$auto-scale-type: false !default;
+
+/// Modular scale ratio
+/// @group config
+/// @type number
+///
+$scale-ratio: 1.125 !default;
+
+/// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$scale-ratio` value)
+/// @param {number} $scale
+/// @param {number | list} $ratio [$scale-ratio]
+///
+@function modular-scale($scale, $ratio: $scale-ratio) {
+    $modular-scale: $ratio;
+
+    $ratio: cache(_normalize-ratio, $ratio);
+
+    $font-size: strip-units($base-font-size);
+    $pow: pow($modular-scale, $scale);
+    @return ($font-size * $pow) * 1px;
+}
+
+/// Convert list ratios into single values, allowing for larger values first
+/// and then normalizing those by reversing the division logic.
+/// Always returns a value with a decimal (float).
+///
+/// @returns {number}
+///
+@function _normalize-ratio($ratio) {
+    @if length($ratio) == 2 {
+        // Making sure we don't have a ratio below 1.
+        @if nth($ratio, 1) < nth($ratio, 2) {
+            @return (nth($ratio, 2) / nth($scale-ratio, 1));
+        } @else {
+            @return (nth($scale-ratio, 1) / nth($scale-ratio, 2));
+        }
+    }
+
+    @return $scale-ratio;
+}
+
+/// Font size all other values will use for calculation. Will be converted to `rems`.
+/// @group config
+$base-font-size: 16px !default;
+/// Line-height for base font-size. Essentially determines the baseline grid for alignment.
+/// @see {function} type-space
+/// @group config
+$base-line-height: 24px !default;
+
+/// A rough estimate of how loose line-heights should be calculated against their font-sizes (when automatically generated).
+/// @group config
+$font-looseness: 15% !default;
+
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h1-size: modular-scale(7) !default;
+
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h2-size: modular-scale(5) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h3-size: modular-scale(4) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h4-size: modular-scale(3) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h5-size: modular-scale(2) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-h6-size: modular-scale(1) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-p-size: ($base-font-size, $base-line-height) !default;
+/// @group config
+/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+$type-small-size: modular-scale(-1) !default;
+
+/// Font-stack for using the user's operating system's native font.
+/// @group core
+$system-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    Roboto, 'Helvetica Neue', sans-serif;
+
+/// Reference for the project's main font-stack.
+/// @group config
+$primary-font-stack: $system-font-stack !default;
+
+/// Reference for the project's monospaced font-stack.
+/// @group config
+$monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas,
+    'DejaVu Sans Mono', Menlo, monospace !default;
+
+/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
+/// @group config
+$rem-px-fallback: false !default;
+
+/// Description of weights, styles and formats for the project's web fonts. The root key value determines the name, while each inner key determines the weights, styles, and formats.
+/// @type map
+/// @prop font-name - name of the font family
+/// @prop {list|number} font-name.weights - font-weights to include
+/// @prop {list|number} font-name.italics - include italics for weights
+/// @prop {list|string} font-name.formats - file formats to include
+/// @group config
+$web-fonts: (
+    'system': (
+        'weights': (
+            400,
+            700,
+        ),
+        'italics': (
+            400,
+            700,
+        ),
+        'formats': (
+            'woff',
+        ),
+    ),
+) !default;
+
+/// Relative path to fonts from CSS file
+/// @type String
+/// @group config
+$font-file-location: '' !default;
+
+/// The base vertical unit. Used in `type-space` and grid functions.
+/// @see type-space
+/// @group config
+$vertical-space: $base-line-height !default;
+
+/// The base horizontal unit. Used in `type-space` and grid functions.
+/// @group config
+/// @see type-space
+$horizontal-space: $base-line-height !default;
+
+$_headings-use: 0;
+
+/// Takes a pixel value and creates a property with a `rem` value. If `$rem-px-fallback` is `true`, a pixel fallback is also included.
+/// @group core
+/// @param {Property} $property - CSS property value to output
+/// @param {List | Pixel} $sizes - Pixel value(s) to be converted. A list results in a each value being processed. Can also be 'auto' or 'normal' (which avoid conversion).
+/// @param {Boolean} $important [false] - Whether to add `!important` to the end of the output.
+/// @param {Pixel} $base-font [$base-font-size] - The base value at which the pixels should be calculated against. Usually not necessary to change.
+///
+@mixin px-to-rems(
+    $property,
+    $sizes,
+    $important: false,
+    $base-font: $base-font-size
+) {
+    $important-val: if($important, ' !important', '');
+    $rem-sizes: ();
+    $px-sizes: ();
+    $is-all-zero: true;
+
+    //Loop through sizes, combining them into single lists
+    @each $size in $sizes {
+        // Remove units from 0 values
+        @if $size == 0px {
+            $size: 0;
+        } @else {
+            $is-all-zero: false;
+        }
+        // Allow for blank values
+        @if $size == '' or $size == null {
+            $size: null;
+            $px-sizes: join($px-sizes, $size, space);
+        } @else if $size == 'auto' or $size == 'normal' {
+            // Do not conver auto or normal values
+            $px-sizes: join($px-sizes, $size, space);
+        } @else {
+            // Store px values
+            $px-sizes: join($px-sizes, $size, space);
+            // Convert size to rem
+            $size: if($size, px-to-rems($size, $base-font), '');
+        }
+
+        $rem-sizes: join($rem-sizes, $size, space);
+    }
+
+    @if $is-all-zero == false and $rem-px-fallback {
+        #{$property}: #{$px-sizes}#{$important-val};
+    }
+
+    #{$property}: #{$rem-sizes}#{$important-val};
+}
+
+/// @alias px-to-rems
+///
+@mixin rems($property, $sizes, $important: false, $base-font: $base-font-size) {
+    @include px-to-rems($property, $sizes, $important, $base-font);
+}
+
+/// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
+/// @group core
+/// @param {Number} $pixels
+///
+@function px-to-rems($pixels, $base-size: $base-font-size) {
+    @if $pixels == 'auto' or $pixels == 'normal' {
+        @return $pixels;
+    }
+
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include units
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $base-size) * 1rem;
+
+    @return $pixels;
+}
+
+/// @alias px-to-rems
+///
+@function rems($pixels, $base-size: $base-font-size) {
+    @return px-to-rems($pixels, $base-size);
+}
+
+/// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
+/// @group core
+/// @param {Number} $pixels
+/// @param {Number} $context [$base-font-size]
+///
+@function px-to-ems($pixels, $context: $base-font-size) {
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include rems
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $context) * 1em;
+
+    @return $pixels;
+}
+
+/// @alias px-to-ems
+///
+@function ems($pixels, $context: $base-font-size) {
+    @return px-to-ems($pixels, $context);
+}
+
+//------------------------------------
+//      $FONT FACE TOOL
+//------------------------------------
+
+/// A wrapper function for `@font-face()`. Takes a configuration map and passes the keys to `@font-face()`. Loops through each font-name's (root map keys) weight and style.
+///
+/// Font file names must be the same as their CSS font-family values. Example: arial font, 400 weight would be arial-400.ttf and the CSS value would be font-family: 'arial'; font-weight: 400.
+/// @group core
+/// @param {map} $font-map [$web-fonts]
+/// @see $web-fonts
+@mixin web-fonts($font-map: $web-fonts) {
+    @each $name in map-keys($font-map) {
+        $inner-map: map-get($font-map, $name);
+
+        $weights: map-get($inner-map, 'weights');
+        $italics: map-get($inner-map, 'italics');
+        $formats: map-get($inner-map, 'formats');
+        $path: map-get($inner-map, 'path') or $font-file-location;
+
+        @each $weight in $weights {
+            @include _font-weights($name, $path, $weight, $formats);
+        }
+        @each $weight in $italics {
+            @include _font-weights($name, $path, $weight, $formats, italic);
+        }
+    }
+}
+/// @alias web-fonts
+/// @deprecated
+@mixin include-web-fonts($font-map: $web-fonts) {
+    @include web-fonts($font-map);
+}
+
+/// Formats fonts taken from `$web-fonts` and creates their equivilent weight (with correct font-style) output.
+@mixin _font-weights($name, $path, $weight, $formats, $style: '') {
+    $style-string: if($style != '', '-#{$style}', '');
+    $svg-id: ('##{$name}#{$weight}#{$style}');
+    $font-name: #{$path}/#{unquote('#{$name}-#{$weight}#{$style-string}')};
+    $style: if($style == '', 'normal', $style);
+
+    $fonts: _join-font-formats($font-name, $formats, $svg-id);
+
+    $eot: map-get($fonts, 'eot');
+    $font-files: map-get($fonts, 'font-files');
+
+    @include font-face($name, $font-files, $weight, $style, $eot);
+}
+
+/// Generates cross-browser font-face declarations when called.
+/// `$name` is required, arbitrary, and what you will use in font stacks.
+/// @param {} $name
+/// @param {} $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
+/// @param {} $eot is required by IE, and is a relative location of the eot file.
+/// @param {} $weight shows if the font is bold, defaults to normal
+/// @param {} $style defaults to normal, might be also italic
+@mixin font-face(
+    $name,
+    $font-files,
+    $weight: false,
+    $style: false,
+    $eot: null
+) {
+    $iefont: unquote("'#{$eot}?#iefix'");
+    @font-face {
+        font-family: quote($name);
+        src: #{$font-files};
+        @if $eot {
+            $font-files: url($iefont) unquote("format('embedded-opentype')"),
+                $font-files;
+            src: unquote("'#{$eot}'");
+        }
+        @if $weight {
+            font-weight: #{$weight};
+        }
+        @if $style {
+            font-style: #{$style};
+        }
+    }
+}
+
+@function _join-font-formats($font-name, $formats, $svg-id) {
+    $font-files: ();
+    $eot: null;
+
+    @each $format in $formats {
+        $extension: if($format == 'svg', 'svg#{$svg-id}', $format);
+
+        @if $format == 'eot' {
+            $eot: '#{$font-name}.eot';
+        } @else {
+            $font-files: join(
+                unquote(
+                    'url("#{$font-name}.#{$extension}") format("#{$format}")'
+                ),
+                $font-files,
+                comma
+            );
+        }
+    }
+
+    @return ('font-files': $font-files, 'eot': $eot);
+}
+
+/// Output `rem` values using the typographic grid. This is the prefered method of adding padding and margins because it enforces consistent spacing around all elements.
+/// @param {Property} $property -
+/// Can be any `CSS` property that accepts a length value (e.g. `rem`). Also accepts multiple properties as a nested list (e.g. `(padding-left, padding-right)`).
+/// @param {List | Number} $multipliers -
+/// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
+/// @param {Boolean | String} $important [false] - `'!important'` is allowed as well as `true` or `false`.
+/// @example
+/// // SCSS input
+/// .foo {
+///     @include type-space(padding, 1 .25 .5 auto, '!important');
+/// }
+///
+/// // CSS output
+/// .foo {
+///     padding: 24px 8px 12px auto !important;
+///     padding: 1.5rem .375rem .75rem auto !important;
+/// }
+/// @group core
+/// @requires $horizontal-space
+/// @requires $vertical-space
+/// @see {function} type-space
+
+@mixin type-space($properties, $multipliers, $important: false, $unit: 'auto') {
+    $multiplier: nth($multipliers, 1);
+    $m-length: length($multipliers);
+    $important: if(
+        $important,
+        true,
+        false
+    ); //Allow for strings, convert to boolean
+
+    @each $property in $properties {
+        $values: null;
+        $multiple-index: 1;
+
+        @each $multiple in $multipliers {
+            @if $multiple == 'auto' {
+                $values: append($values, 'auto');
+                $multiple-index: $multiple-index + 1;
+            } @else {
+                $value: $unit;
+
+                @if $unit == 'auto' {
+                    $value: $vertical-space;
+
+                    //If value is the second or fourth value in a list,
+                    // or is a left, right, or width value,
+                    // multiply by the $horizontal-space
+                    @if ($multiple-index % 2 == 0) or
+                        (
+                            str-contains($property, 'right') or
+                                str-contains($property, 'left') or
+                                str-contains($property, 'width')
+                        )
+                    {
+                        $value: $horizontal-space;
+                    }
+                }
+
+                $value: $value * $multiple;
+                $values: append($values, $value);
+                $multiple-index: $multiple-index + 1;
+            }
+        }
+
+        @include px-to-rems($property, $values, $important);
+    }
+}
+
+/// @alias type-space
+@mixin space(
+    $properties,
+    $multipliers,
+    $important: false,
+    $unit: $vertical-space
+) {
+    @include type-space($properties, $multipliers, $important, $unit);
+}
+
+/// A functional version of the `type-space` mixin.
+/// @group core
+/// @param {List | Number} $multipliers -
+/// Accepts unitless values that get converted to `rem` units which are a multiple of the typographic grid. Can be multiple values, **separated by spaces**, in the case of `margin` or `padding`. `'auto'` is also an acceptable value.
+@function type-space($multipliers) {
+    $base: $horizontal-space;
+    $values: ();
+    $multiple-index: 1;
+
+    @each $multiple in $multipliers {
+        // determine if horizontal or vertical
+        $base: if($multiple-index % 2 == 0, $horizontal-space, $vertical-space);
+        // Multiply space-type by multiple
+        $pixel: if($multiple == 'auto', $multiple, $base * $multiple);
+        // Convert to rems
+        $multiple: px-to-rems($pixel);
+        // Move value into list
+        $values: join($values, $multiple, space);
+        // Increase index
+        $multiple-index: $multiple-index + 1;
+    }
+
+    @return $values;
+}
+
+
+/// Quickly generate a font-size in rems (with a pixel fallback if `$rem-px-fallback = true`). Optionally calculates baseline-aligned line-height a using `$base-line-height` and the `baseline-calc` function.
+/// @param {Pixel} $font-size - Pixel value to be converted.
+/// @param {Boolean | String | Number} $line-height ['auto'] -
+/// * `'auto'` or `true` will automatically create a line-height that is aligned to the `$base-line-height`.
+/// * Pixel values will be converted to a unitless value.
+/// * Unitless numbers will be passed straight through.
+/// * `false` will result in no line-height declaration.
+/// @group core
+/// @param {Boolean} $important [false] - Whether to add `!important` after the font-size.
+/// @param {Pixel} $base-font [$base-font-size]
+/// @requires {function} baseline-calc
+/// @requires {function} cache
+///
+@mixin font-size(
+    $font-size,
+    $line-height: 'auto',
+    $important: false,
+    $base-font: $base-font-size
+) {
+    @if type-of($important) == 'number' {
+        $base-font: $important;
+        $important: false;
+    }
+    //Create REM-based font-size
+    @include px-to-rems('font-size', $font-size, $important, $base-font);
+
+    @if $line-height == true or $line-height == 'auto' {
+        line-height: #{cache(baseline-calc, $font-size)};
+    } @else if type-of($line-height) == 'number' {
+        //Convert to unitless
+        @if not unitless($line-height) {
+            @if unit($line-height) == 'px' {
+                $line-height: $line-height / $font-size;
+            } @else {
+                @warn 'Line-height for #{$font-size} must be unitless or in pixel values';
+            }
+        }
+
+        line-height: $line-height;
+    } @else if $line-height == 'inherit' or $line-height == 'normal' {
+        line-height: $line-height;
+    }
+}
+
+/// @alias font-size
+@mixin type-font-size(
+    $font-size,
+    $line-height: 'auto',
+    $important: false,
+    $base-font: $base-font-size
+) {
+    @include font-size($font-size, $line-height, $important, $base-font);
+}
+
+/// @alias font-size
+@mixin fs(
+    $font-size,
+    $line-height: 'auto',
+    $important: false,
+    $base-font: $base-font-size
+) {
+    @include font-size($font-size, $line-height, $important, $base-font);
+}
+
+/// Aligns a font-size to a baseline (`$baseline`). Returns a unitless value relative to the font-size (equivilent to ems). An optional multiple can be used to make a variation on the given baseline (using decimals will divide the the baseline).
+/// @param {number} $font-size - Font size to calculate against.
+/// @param {number} $baseline [$base-line-height] - Pixel value of the base line-height.
+/// @param {number} $multiple [1]
+/// @param {boolean} $floor [false] - Calculate the lowest possible number? Rarely useful.
+/// @returns {number}
+///
+@function baseline(
+    $font-size,
+    $baseline: $base-line-height,
+    $multiple: 1,
+    $floor: false
+) {
+    @if ($floor) {
+        @return floor($font-size / ($baseline * $multiple)) *
+            ($baseline * $multiple) / $font-size;
+    }
+    @return ceil($font-size / ($baseline * $multiple)) * ($baseline * $multiple) /
+        $font-size;
+}
+
+/// Calculates a where a number(`$x`) sits along a parabolic arc (curve). Change the curve's severity by changing its `$accel`.
+/// An `$accel` of 1 is a smooth arc.
+/// Uses this formula: ` y = (sqrt((x^1)+x) - sqrt(x^1)) / .4142135623730951 `
+///  ( [Visual](https://www.desmos.com/calculator/qswvc6q9kt) )
+///
+/// @param {number} $x - Find the equivilent number on the curve.
+/// @param {number} $accel [1] - Accepts any number between -2 and 2.35. A negative will invert the curve. 1 is a smooth curve.
+///
+@function _baseline-curve($x, $accel: 1) {
+    //Cache this exponent since it uses a decimal and requires a lot of computation
+    $x2: cache(pow, $x, $accel);
+    $x3: $x2 + $x;
+    $x3-root: sqrt($x3);
+    $x2-root: sqrt($x2);
+    $const: $SQRT2 - 1; // value used by logarithm (.4142135623730951)
+
+    $curve: ($x3-root - $x2-root) / $const;
+
+    @return min(1, $curve);
+}
+
+$__font-index: ();
+$__font-warn: false;
+
+/// **TL;DR:** Automatically calculate the baseline of any particular font-size.
+///
+/// Creates unitless line-heights that align to the baseline grid with consideration to the aesthetics of a given font size. Essentially makes sure larger font-sizes have smaller line-heights, while smaller font-sizes have larger ones.
+/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
+/// Depends on `baseline()` for calculation and `_baseline-curve()` to determine the deviance from the upper and lower constraints.
+/// @group core
+/// @param {number} $font-size [$base-font-size] - font-size in need of a baseline
+/// @param {number} $baseline-slack [$font-looseness] - Percentage.
+/// @returns {number}
+///
+@function baseline-calc(
+    $font-size: $base-font-size,
+    $baseline-slack: $font-looseness
+) {
+    @if type-of($font-size) != 'number' {
+        @warn "Font-size: #{$font-size} must be a number, not a #{type-of($font-size)}.";
+    }
+    $smallest-size: if(
+        length($type-small-size) > 1,
+        nth($type-small-size, 1),
+        $type-small-size
+    );
+    $smallest-size: max(10px, $smallest-size);
+    $largest-size: if(
+        length($type-h1-size) > 1,
+        nth($type-h1-size, 1),
+        $type-h1-size
+    );
+    $i: 0;
+
+    //Make sure baseline-slack is a percentage
+    @if unit($baseline-slack) != '%' {
+        @warn "Baseline-slack/font-looseness should be a percentage.";
+        $basline-slack: strip-units($baseline-slack);
+        $baseline-slack: percentage($baseline-slack);
+    }
+
+    $slack: ($baseline-slack / 100%);
+
+    //Base Highest and lowest line-height multiples
+    $base-lh-upper-bound: 1.9;
+    $base-lh-lower-bound: 1.1;
+
+    //smallest font-size's highest/lowest line-height multiple
+    // Use global settings to help determine, where possible
+    $sm-lh-upper-bound: 2 + ($slack / 2);
+    $sm-lh-lower-bound: 1 + ($slack / 2);
+
+    //Largest font-size's highest/lowest line-height multiple
+    // Use baseline slack to determine constraints
+    $lg-lh-upper-bound: 1.02 + ($slack / 2);
+    $lg-lh-lower-bound: 0.91 + ($slack / 2);
+
+    //Smallest/Largest font sizes to calculate against
+    $sm-font-size: 9 + ($slack * 10);
+    $lg-font-size: 95 + ($slack * 50);
+
+    //_baseline-curve progress percentages
+    $percent-along-current: 0;
+    $percent-along-upper: 0;
+    $percent-along-lower: 0;
+
+    //Non-adjusted placement of the font-size between largest and smallest font sizes
+    $true-percent-along: (
+        ($font-size - $sm-font-size) / ($lg-font-size - $sm-font-size)
+    );
+    $true-percent-along: strip-units($true-percent-along);
+
+    //Make sure handle fonts larger than our initial assumptions
+    @if $font-size <= $sm-font-size {
+        //Set progress to 0%
+        $base-lh-lower-bound: 1;
+        $base-lh-upper-bound: $sm-lh-upper-bound;
+
+        @if $font-size > $smallest-size {
+            $true-percent-along: ($slack / 10);
+        } @else {
+            $true-percent-along: 0.001;
+        }
+    } @else if $font-size >= $lg-font-size {
+        //Set progress to 100%
+        $percent-along-current: 1;
+        $percent-along-lower: 1;
+        $percent-along-upper: 1;
+        $base-lh-lower-bound: $lg-lh-lower-bound;
+        $base-lh-upper-bound: $lg-lh-upper-bound;
+        $lg-font-size: $font-size + ($slack * 50);
+    }
+    // Determine where we're at on the curve
+    @else {
+        //Standard curve
+        $percent-along-current: cache(_baseline-curve, $true-percent-along, 1);
+        //Upper boundary curve
+        $percent-along-upper: cache(_baseline-curve, $true-percent-along, 1.3);
+        //Lower boundary curve
+        $percent-along-lower: cache(_baseline-curve, $true-percent-along, 1.9);
+    }
+
+    $upper-boundary: ($sm-lh-upper-bound - $lg-lh-upper-bound);
+    $lower-boundary: ($sm-lh-lower-bound - $lg-lh-lower-bound);
+
+    //Adjust percentages to line-height values
+    $base-lh-upper-bound: (
+        $sm-lh-upper-bound - ($percent-along-upper * $upper-boundary)
+    );
+    $base-lh-lower-bound: (
+        $sm-lh-lower-bound - ($percent-along-lower * $lower-boundary)
+    );
+
+    // stylelint-disable
+    @if $debug-fonts {
+        @if index($__font-index, $font-size) == null {
+            @debug '\A'+ 'font-size: #{$font-size}\A' + '        %: #{percentage($true-percent-along)} \A' +
+                '       %u: #{percentage($percent-along-upper)}\A' + '       %l: #{percentage($percent-along-lower)}\A' +
+                '       ub: #{$base-lh-upper-bound} (#{$font-size * $base-lh-upper-bound}),' +
+                '\A' + '       lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})' +
+                '\A' + ' sm-lh-ub: #{$sm-lh-upper-bound}, sm-lh-lb: #{$sm-lh-lower-bound}\A' +
+                ' lg-lh-ub: #{$lg-lh-upper-bound}, lg-lh-lb: #{$lg-lh-lower-bound}\A' +
+                '    slack: #{$slack}';
+        }
+    }
+    // stylelint-enable
+
+    //If the lower bound is somehow higher than the upper bound,
+    // let's just reset the bounds to simple values
+    @if $base-lh-lower-bound > $base-lh-upper-bound {
+        $base-lh-lower-bound: 1;
+        $base-lh-upper-bound: 2;
+    }
+
+    //First attempt
+    $baseline: $base-line-height;
+    $line-height: baseline($font-size, $baseline);
+
+    //Second attempt
+    @if ($line-height < $base-lh-lower-bound) or
+        ($line-height > $base-lh-upper-bound)
+    {
+        //Attempt using a negative line-height for very large sizes
+        @if ($true-percent-along > 0.9) {
+            $line-height: baseline($font-size, $baseline, 0.5, $floor: true);
+        } @else if $font-size < $base-font-size {
+            $line-height: baseline($font-size, $baseline, 1.5);
+        } @else {
+            $line-height: baseline($font-size, $baseline, 0.5);
+        }
+    }
+
+    //Set up while loop
+    $quit: false;
+
+    //Test baselines until we find a match
+    @while (
+        (
+                $line-height <
+                    $base-lh-lower-bound or
+                    $line-height >
+                    $base-lh-upper-bound
+            ) and
+            (not $quit)
+    ) {
+        $i: $i + 0.5;
+        //Try baselines in half increments
+        $line-height: baseline($font-size, $baseline, $i);
+
+        // Bail-out function to prevent infinite loops
+        // Set quit to true so we can escape this hellish loop
+        @if $i > (($font-size / 1px) / 2) {
+            @if (not $__font-warn) and ($debug-fonts) {
+                @warn ""+
+                "Your font-looseness might be too high or low," +
+                    " watch for weird baselines and slow compile times.\A"+
+                "FS: #{$font-size} / LH: #{$line-height}\A"+
+                "Tolerances: #{$base-lh-upper-bound} / #{$base-lh-lower-bound}\A"+
+                "loops: #{$i * 2}\A";
+                $__font-warn: true !global; //Prevent seeing this warning multiple times
+            }
+
+            //default to normal calculated line-height
+            $line-height: baseline($font-size, $baseline);
+            $quit: true;
+        }
+    }
+
+    @if $debug-fonts {
+        @if index($__font-index, $font-size) == null {
+            $__font-index: append($__font-index, $font-size) !global;
+            // stylelint-disable
+            @debug ''+ '\A        lh: #{$line-height * $font-size} / #{$line-height} '+
+                '\A     loops: #{$i * 2}' + '\A  --------\A';
+            // stylelint-enable
+        }
+    }
+
+    @return $line-height;
+}
+
+/// Style any number of headings all at once.
+/// @param {Number} $from [1] - Starting heading number
+/// @param {Number} $to [6] - Ending heading number
+/// @example
+///    @include headings(1, 3){color:#BADA55;}
+///    // outputs:
+///    h1, h2, h3 {color:#BADA55;}
+@mixin headings($from: 1, $to: 6, $class-type: null) {
+    //Used for multiple calls to this mixin.
+    // Ensures no double extends.
+    $_headings-use: $_headings-use + 1 !global;
+
+    %base-headings#{$_headings-use} {
+        @content;
+    }
+
+    @if $from >= 1 and $to <= 6 {
+        @for $i from $from through $to {
+            $selector: '#{$class-type}h#{$i}';
+            #{$selector} {
+                @extend %base-headings#{$_headings-use};
+            }
+        }
+    } @else {
+        @warn 'You need to supply numbers between 1 and 6' +
+            ' for headings mixin to work';
+    }
+}
+
+/// Checks if a type-size is declared as larger than 1, then either extracts the second value or calculates a line-height.
+/// @param {List|Number} $type-size
+/// @returns {number} The line-height
+///
+@function _extract-line-height($type-size) {
+    $line-height: if(
+        length($type-size) > 1,
+        nth($type-size, 2),
+        baseline-calc($type-size)
+    );
+
+    @if not unitless($line-height) {
+        $line-height: ($line-height / nth($type-size, 1));
+    }
+
+    @return $line-height;
+}
+
 
 // Initialization & Globalization
-@import 'lib/init';
+/// **Important: This must be called in order to use any of the tools.**
+/// ---
+/// Pulls together config variables and routes them into structures expected by the framework, then makes them global.
+/// For instance, the `$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
+/// @group core
+///
+@mixin init {
+    @include _set-global-typography-variables();
+
+    //Expand color map if necessary
+    $base-colors: _verify-color-map-depth($base-colors) !global;
+
+    /// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
+    /// @type Number
+    /// @group core
+    $type-base-unit: $base-line-height !global;
+
+    @if $base-font-size >= $type-base-unit {
+        $type-base-unit: baseline-calc($base-font-size) *
+            $base-font-size !global;
+    }
+
+    /// Ratio used to calculate the difference between font sizes and spacing units.
+    /// @type Number
+    /// @group core
+    $type-base-ratio: ($type-base-unit / $base-font-size) !global;
+
+    /// Used for defining automatic headings functions.
+    /// @type List | Number
+    $type-headings: 6, 5, 4, 3, 2, 1 !global;
+
+    /// Spacing variable for simple inclusion.
+    $type-space: 2 * $type-base-ratio !global;
+
+    /// Silent class registry.
+    /// Holds all auto-generated silent classes for debugging.
+    $_silent-class-registry: () !global;
+
+    /// All breakpoint names
+    $_all-breakpoints: map-keys($breakpoints);
+
+    /// Grabs the first `$_all-breakpoints` name, allowing for abstraction.
+    $breakpoint-smallest: nth($_all-breakpoints, 1) !global;
+
+    /// Grabs the last `$_all-breakpoints` name, allowing for abstraction.
+    $breakpoint-largest: nth(
+        $_all-breakpoints,
+        length($_all-breakpoints)
+    ) !global;
+
+    //------------------------------------
+    //        $SANITIZE
+    //------------------------------------
+
+    $root-background-color: colors('bg') !global;
+    $root-color: colors('type') !global;
+    $root-font-family: $primary-font-stack !global;
+    $root-font-size: percentage($base-font-size/16px) !global;
+    $root-line-height: $type-base-ratio !global;
+    $root-text-rendering: optimizeLegibility !global;
+    $root-cursor: inherit !global;
+
+    $anchor-text-decoration: none !global;
+    $background-repeat: no-repeat !global;
+    $form-element-min-height: $base-line-height !global;
+    $textarea-resize: vertical !global;
+    $media-element-vertical-align: middle !global;
+    $monospace-font-family: $monospace-font-stack !global;
+    $nav-list-style: none !global;
+    $selection-background-color: mix(color('links'), color('bg'), 80%) !global;
+    $selection-color: black-or-white($selection-background-color) !global;
+    $selection-text-shadow: none !global;
+    $table-border-collapse: collapse !global;
+    $table-border-spacing: 0 !global;
+}
+
+/// Makes sure color map contains the necessary depth to be used by `colors` function
+/// @param $color-map
+///
+@function _verify-color-map-depth($color-map) {
+    $is-deep-enough: true;
+
+    @if map-depth($color-map) {
+        $is-deep-enough: false;
+    } @else {
+        $i: 1;
+        $map-length: length($color-map);
+
+        @while ($i <= $map-length and $is-deep-enough) {
+            $name: nth(nth($color-map, $i), 1);
+
+            @if (type-of(map-get($color-map, $name) != 'map')) {
+                $is-deep-enough: false;
+            }
+
+            $i: $i + 1;
+        }
+    }
+
+    @if ($is-deep-enough == false) {
+        $color-map: generate-color-variations($color-map);
+    }
+
+    @return $color-map;
+}
+
+/// Pulls typography variables apart and puts them into easier to use pieces.
+/// For instance `$type-h1-size` starts as a list and becomes a single value, while adding `$type-h1-lh` (line-height) to the global scope for use.
+@mixin _set-global-typography-variables() {
+    @if $auto-scale-type {
+        $type-h1-size: modular-scale(7) !global;
+        $type-h2-size: modular-scale(5) !global;
+        $type-h3-size: modular-scale(4) !global;
+        $type-h4-size: modular-scale(3) !global;
+        $type-h5-size: modular-scale(2) !global;
+        $type-h6-size: modular-scale(1) !global;
+        $type-p-size: modular-scale(0) !global;
+        $type-small-size: modular-scale(-1) !global;
+    }
+
+    //Check for existence of line-height override, and store it
+
+    /// H1 font-size
+    /// @group core
+    $h1-fs: nth($type-h1-size, 1) !global;
+    /// H1 line-height
+    /// @group core
+    $h1-lh: _extract-line-height($type-h1-size) !global;
+    @debug 'init';
+    /// @group core
+    $h2-fs: nth($type-h2-size, 1) !global;
+    /// @group core
+    $h2-lh: _extract-line-height($type-h2-size) !global;
+    /// @group core
+    $h3-fs: nth($type-h3-size, 1) !global;
+    /// @group core
+    $h3-lh: _extract-line-height($type-h3-size) !global;
+    /// @group core
+    $h4-fs: nth($type-h4-size, 1) !global;
+    /// @group core
+    $h4-lh: _extract-line-height($type-h4-size) !global;
+    /// @group core
+    $h5-fs: nth($type-h5-size, 1) !global;
+    /// @group core
+    $h5-lh: _extract-line-height($type-h5-size) !global;
+    /// @type Number (pixel)
+    $h6-fs: nth($type-h6-size, 1) !global;
+    /// @group core
+    $h6-lh: _extract-line-height($type-h6-size) !global;
+    /// @group core
+    $p-fs: nth($type-p-size, 1) !global;
+    /// @group core
+    $p-lh: _extract-line-height($type-p-size) !global;
+    /// @group core
+    $small-fs: nth($type-small-size, 1) !global;
+    /// @group core
+    $small-lh: _extract-line-height($type-small-size) !global;
+
+    /// @alias h1-lh
+    $type-h1-lh: $h1-lh !global;
+    $type-h1-size: $h1-fs !global;
+    /// @alias h2-lh
+    $type-h2-lh: $h2-lh !global;
+    $type-h2-size: $h2-fs !global;
+    /// @alias h3-lh
+    $type-h3-lh: $h3-lh !global;
+    $type-h3-size: $h3-fs !global;
+    /// @alias h4-lh
+    $type-h4-lh: $h4-lh !global;
+    $type-h4-size: $h4-fs !global;
+    /// @alias h5-lh
+    $type-h5-lh: $h5-lh !global;
+    $type-h5-size: $h5-fs !global;
+    /// @alias h6-lh
+    $type-h6-lh: $h6-lh !global;
+    $type-h6-size: $h6-fs !global;
+    /// @alias p-lh
+    $type-p-lh: $p-lh !global;
+    $type-p-size: $p-fs !global;
+    /// @alias small-lh
+    $type-small-lh: $small-lh !global;
+    $type-small-size: $small-fs !global;
+}
+
+/// @alias init
+/// @group core
+///
+@mixin globalize-config {
+    @include init;
+}
+
