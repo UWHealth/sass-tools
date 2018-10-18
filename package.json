@@ -10,15 +10,25 @@
   "scripts": {
     "patch": "npm version patch && npm publish",
     "minor": "npm version minor && npm publish",
+    "prepublishOnly": "scss-bundle -c scss-bundle.config.json",
     "postversion": "git push origin HEAD v$npm_package_version",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@uwhealth/linter-configs": "^1.2.0",
     "browser-sync": "^2.24.5",
     "gulp": "4.0.0",
     "gulp-cli": "^2.0.1",
     "gulp-sass": "^4.0.1",
-    "sassdoc": "^2.5.0"
+    "prettier": "^1.14.2",
+    "sassdoc": "^2.5.0",
+    "scss-bundle": "^2.4.0",
+    "stylelint": "^9.5.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "stylelint": {
+    "extends": [
+      "./node_modules/@uwhealth/linter-configs/stylelint.js"
+    ]
+  }
 }
