@@ -1,0 +1,130 @@
+//------------------------------------
+//      EXAMPLE CONFIG
+//------------------------------------
+//      See the docs for details
+//------------------------------------
+
+// Colors
+// https://uwhealth.github.io/sass-tools/#config-variable-base-colors
+$base-colors: (
+    'type': (
+        'base': #0a1c2b,
+    ),
+    'links': #0d497b,
+    'bg': #f6f8fb,
+);
+
+// Unit conversion
+$rem-px-fallback: false;
+
+// Typography
+$auto-scale-type: false;
+$auto-scale-type-ratio: 1.125;
+
+$base-font-size: 16px;
+$base-line-height: 24px;
+$auto-line-height-looseness: 15%;
+
+$type-h1-size: modular-scale(7);
+$type-h2-size: modular-scale(5);
+$type-h3-size: modular-scale(4);
+$type-h4-size: modular-scale(3);
+$type-h5-size: modular-scale(2);
+$type-h6-size: modular-scale(1);
+$type-p-size: ($base-font-size, $base-line-height);
+$type-small-size: modular-scale(-1);
+
+$primary-font-stack: $system-font-stack;
+$monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas,
+    'DejaVu Sans Mono', Menlo, monospace;
+
+// Web fonts
+$web-fonts: (
+    'system': (
+        'weights': (
+            400,
+            700,
+        ),
+        'italics': (
+            400,
+            700,
+        ),
+        'formats': (
+            'woff',
+        ),
+    ),
+);
+
+$web-fonts-path: 'fonts/';
+
+// Layout and responsive
+// https://uwhealth.github.io/sass-tools/#config-variable-breakpoints
+$max-site-width: 1360px;
+$max-content-width: 690px;
+$max-wide-content-width: 910px;
+
+$breakpoints: (
+    'smalls': '(max-width:#{ems($max-wide-content-width)})',
+    'small': '(max-width: #{ems($max-content-width)})',
+    'smallish': '(min-width: #{ems($max-content-width+1px)})' +
+        ' and (max-width: #{ems($max-wide-content-width)})',
+    'bigs': '(min-width: #{ems($max-wide-content-width+1px)})',
+    'lap': '(min-width: #{ems($max-wide-content-width + 1px)})' +
+        ' and (max-width: #{ems($max-site-width)})',
+    'desk': '(min-width: #{ems($max-site-width)})',
+);
+
+$breakpoint-namespace-character: '\\@';
+
+// Spacing
+$vertical-space: $base-line-height;
+$horizontal-space: $base-line-height;
+
+// This map doesn't do anything upon initialization,
+// but can be passed to the spacing-classes mixin
+// https://uwhealth.github.io/sass-tools/#core-mixin-spacing-classes
+// A similar configuration can be set up for display-classes
+// $spacing-classes: (
+//     silent: true,
+//     important: false,
+//     directions: (
+//         '': '',
+//     ),
+//     amounts: (
+//         '': 1,
+//     ),
+//     properties: (
+//         'pad': padding,
+//     ),
+//     unit: 'auto',
+// );
+
+// Grid
+// https://uwhealth.github.io/sass-tools/#config-variable-grid-columns
+$grid-bem-naming: false;
+$grid-silent-classes: false;
+
+$grid-columns: 12;
+$grid-gutter: 32px;
+
+$grid-flex: true;
+$grid-floats: false;
+
+$grid-inline-block: true;
+$grid-letter-space-fix: -0.45em;
+$grid-markup-fix: false;
+
+$grid-push: true;
+$grid-pull: true;
+
+$grid-width-namespace: 'w-';
+$grid-push-namespace: 'push-';
+$grid-pull-namespace: 'pull-';
+
+$breakpoint-has-widths: ('smalls', 'small', 'bigs', 'lap', 'desk');
+$breakpoint-has-push: ('smalls', 'small', 'bigs', 'lap', 'desk');
+$breakpoint-has-pull: ('smalls', 'small', 'bigs', 'lap', 'desk');
+
+// Debug
+$debug-fonts: false;
+$debug-silent-classes: false;
