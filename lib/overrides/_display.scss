@@ -2,10 +2,25 @@
 //    $DISPLAY UTILITIES
 //------------------------------------
 
-$display-classes: (
+$_default-display-classes: (
     'show': 'block',
+    'bl': 'block',
+    'ilbl': 'inline-block',
+    'tbl': 'table',
+    'tblcl': 'table-cell',
     'hide': 'none',
-) !default;
+    'flex': 'flex',
+    'block': 'block',
+    'inline_block': 'inline-block',
+    'table_cell': 'table-cell',
+    'table': 'table',
+);
+
+/// A description of class names and their associated `display` value. Used for generating utility classes via `display-classes` mixin.
+/// @group config
+/// @type map
+///
+$display-classes: $_default-display-classes !default;
 
 /// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
 /// @param $namespace
@@ -26,18 +41,18 @@ $display-classes: (
     $class-name-list: ();
 
     @each $name, $display in $class-list {
-        $display-class: #{$classtype}#{$namespace}#{$name};
+        $class-name: #{$classtype}#{$namespace}#{$name};
         // Check for existence of a previous class using the same display
         $display-lookup: index($display-registry, $display);
         // If it exists, look it up in the map and extend that value.
         @if $display-lookup != null {
             $extender: nth(nth($class-list, $display-lookup), 1);
 
-            #{$display-class} {
+            #{$class-name} {
                 @extend #{$classtype}#{$namespace}#{$extender};
             }
         } @else {
-            #{$display-class} {
+            #{$class-name} {
                 display: #{$display}#{$important_str};
             }
         }
@@ -48,7 +63,7 @@ $display-classes: (
                 $class-name-list: map-merge(
                     $class-name-list,
                     (
-                        $display-class: $display,
+                        $class-name: $display,
                     )
                 );
             }
@@ -67,20 +82,6 @@ $display-classes: (
         ) !global;
     }
 }
-
-$_default-display-classes: (
-    'show': 'block',
-    'bl': 'block',
-    'il_bl': 'inline-block',
-    'tbl': 'table',
-    'tbl_cl': 'table-cell',
-    'hide': 'none',
-    'flex': 'flex',
-    'block': 'block',
-    'inline_block': 'inline-block',
-    'table_cell': 'table-cell',
-    'table': 'table',
-);
 
 /// The responsive component to `_output-display-classes`. Invokes `_output-display-classes`
 /// while looping through a set of media-queries defined in `$breakpoints`.
@@ -104,7 +105,7 @@ $_default-display-classes: (
     @if $silent {
         //Merge user-defined classes with defaults
         // (so we have a wide-array of silent classes)
-        $classes: map-extend($display-classes, $_default-display-classes, true);
+        $classes: map-extend($_default-display-classes, $display-classes, true);
     }
 
     @include _output-display-classes($namespace, $silent, $important, $classes);
@@ -126,7 +127,7 @@ $_default-display-classes: (
 /// @alias display-classes
 ///
 @mixin display-utilities-init(
-    $breakpoints: $_all-breakpoints,
+    $breakpoints: map-keys($breakpoints),
     $namespace: '',
     $silent: false,
     $important: false

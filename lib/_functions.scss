@@ -1,9 +1,18 @@
+//stylelint-disable
+@function _legacy-check($new-var, $old-var, $default) {
+    @if ($old-var != $default) {
+        @return $old-var;
+    }
+    @return $new-var;
+}
+
 /// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
 /// @param {string} $name - function name
 /// @link https://github.com/kaelig/sass-safe-get-function
 /// @group utils
+///
 @function safe-get-function($name) {
-    @if function-exists("get-function") {
+    @if function-exists('get-function') {
         @return get-function($name);
     } @else {
         @return $name;
@@ -14,6 +23,7 @@
 /// @param {string} $name - function name
 /// @param {any} $args... - function arguments
 /// @group utils
+///
 @function safe-call($name, $args...) {
     @return call(safe-get-function($name), $args...);
 }
@@ -27,11 +37,12 @@ $_cached-values: ();
 /// @param {string} $function-name
 /// @param {} $args... - Arguments to be passed to the function
 /// @group utils
+///
 @function cache($function-name, $args...) {
-    $cache-map: "#{$function-name}, #{$args}";
+    $cache-map: '#{$function-name}, #{$args}';
     $value: map-get($_cached-values, $cache-map);
 
-    @if $value != null and $value != "" {
+    @if $value != null and $value != '' {
         @return $value;
     } @else {
         $result: call(safe-get-function(#{$function-name}), $args...);
@@ -55,6 +66,7 @@ $_cached-values: ();
 /// Changes percent value to decimal.
 /// @param {Number} $percentage
 /// @group utils
+///
 @function percentage-to-decimal($percentage) {
     @if unit($percentage) == "%" {
         $percentage: ($percentage/100%);
@@ -62,10 +74,66 @@ $_cached-values: ();
     @return $percentage;
 }
 
+/// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
+/// @group core
+/// @param {Number} $pixels
+///
+@function px-to-rems($pixels, $base-size: $base-font-size) {
+    @if $pixels == 'auto' or $pixels == 'normal' {
+        @return $pixels;
+    }
+
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include units
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $base-size) * 1rem;
+
+    @return $pixels;
+}
+
+/// @alias px-to-rems
+///
+@function rems($pixels, $base-size: $base-font-size) {
+    @return px-to-rems($pixels, $base-size);
+}
+
+/// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
+/// @group core
+/// @param {Number} $pixels
+/// @param {Number} $context [$base-font-size]
+///
+@function px-to-ems($pixels, $context: $base-font-size) {
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include rems
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $context) * 1em;
+
+    @return $pixels;
+}
+
+/// @alias px-to-ems
+///
+@function ems($pixels, $context: $base-font-size) {
+    @return px-to-ems($pixels, $context);
+}
+
 /// Converts pixel dimensions to viewport width (vw) dimensions.
 /// @param {number} $pixels
 /// @returns {number}
 /// @group utils
+///
 @function px-to-vw($pixels) {
     $vw-context: ($max-site-width * 0.01) * 1px;
     @return ($pixels / $vw-context) * 1vw;
@@ -76,6 +144,7 @@ $_cached-values: ();
 /// @param {string} $separator [',']
 /// @returns {string}
 /// @group utils
+///
 @function list-to-str($list, $separator: ",") {
     $string: "";
 
@@ -506,10 +575,8 @@ $_cached-values: ();
             // If in deep mode, loop through all tuples in current map
             @each $key, $value in $current {
                 // If value is a nested map and same key from map is a nested map as well
-                @if type-of($value) ==
-                    "map" and
-                    type-of(map-get($map, $key)) ==
-                    "map"
+                @if type-of($value) == "map" and
+                    type-of(map-get($map, $key)) == "map"
                 {
                     // Recursive extend
                     $value: map-extend(map-get($map, $key), $value, true);
@@ -1082,3 +1149,61 @@ $golden_ratio: golden();
 //     }
 //     @return $cos;
 // }
+
+// @function _template-string($formatting, $values) {
+//     $_return: $string;
+//
+//     @each $val in $values {
+//         @if str-index($_return, '%s') {
+//             $_return: str-replace($_return, '%s', $val);
+//         }
+//     }
+//
+//     @return $_return;
+// }
+//
+// @function _str-template-extract($template) {
+//     $_sliced-string: $template;
+//     $_word-list: ();
+//     $_index-map: ();
+//     $_loops: 0;
+//
+//     @while (str-index($_sliced-string, '{%')) and ($_loops < 10) {
+//         $_first-index: str-index($_sliced-string, '{%');
+//         $_replacement: str-slice($_sliced-string, $_first-index + 1);
+//         $_second-index: str-index($_replacement, '%}') + $_first-index;
+//
+//         $_word: str-slice($_sliced-string, $_first-index + 1, $_second-index - 1);
+//         $_word-list: append($_word-list, $_word);
+//         $_index-map: map-merge(
+//             $_index-map,
+//             ('#{$_word}': $_first-index $_second-index)
+//         );
+//
+//         $temp-string: str-slice($_sliced-string, 1, $_first-index - 1) + str-slice($_sliced-string, $_second-index + 1);
+//
+//         $_sliced-string: $temp-string;
+//         $_loops: $_loops + 1;
+//     }
+//
+//     // Need this format ('replacement': value);
+//     @return $_word-list;
+// }
+
+@function format-class-names($string, $values-map) {
+    $_return: $string;
+
+    @each $word, $value in $values-map {
+        @if ($_return) and (str-index($_return, '{%#{$word}%}')) {
+            $_return: str-replace($_return, '{%#{$word}%}', '#{$value}');
+        }
+    }
+
+    @return $_return;
+}
+
+// $class-name: 'grid';
+//
+// @debug format-class-names('.u-%class%\\@%breakpoint%', ('class': $class-name, 'breakpoint': 'sm'));
+
+// '.u-%class%\\@%breakpoint%', ('class': $class, 'breakpoint': $breakpoint)
