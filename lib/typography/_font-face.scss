@@ -15,7 +15,9 @@
         $weights: map-get($inner-map, 'weights');
         $italics: map-get($inner-map, 'italics');
         $formats: map-get($inner-map, 'formats');
-        $path: map-get($inner-map, 'path') or $font-file-location;
+        $path: map-get($inner-map, 'path') or
+            $web-fonts-path or
+            $font-file-location;
 
         @each $weight in $weights {
             @include _font-weights($name, $path, $weight, $formats);

@@ -8,13 +8,20 @@ $auto-scale-type: false !default;
 /// @group config
 /// @type number
 ///
+$auto-scale-type-ratio: 1.125 !default;
+
+/// @alias auto-scale-type-ratio
+///
 $scale-ratio: 1.125 !default;
 
-/// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$scale-ratio` value)
+/// Generates a pixel value that is an exponent of a ratio
+/// (`$ratio` defaults to `$scale-ratio` value)
 /// @param {number} $scale
 /// @param {number | list} $ratio [$scale-ratio]
 ///
-@function modular-scale($scale, $ratio: $scale-ratio) {
+@function modular-scale($scale, $ratio: $auto-scale-type-ratio) {
+    // allow for legacy $scale-ratio config
+    $ratio: _legacy-check($auto-scale-type-ratio, $scale-ratio, 1.125);
     $modular-scale: $ratio;
 
     $ratio: cache(_normalize-ratio, $ratio);
@@ -34,11 +41,11 @@ $scale-ratio: 1.125 !default;
     @if length($ratio) == 2 {
         // Making sure we don't have a ratio below 1.
         @if nth($ratio, 1) < nth($ratio, 2) {
-            @return (nth($ratio, 2) / nth($scale-ratio, 1));
+            @return (nth($ratio, 2) / nth($ratio, 1));
         } @else {
-            @return (nth($scale-ratio, 1) / nth($scale-ratio, 2));
+            @return (nth($ratio, 1) / nth($ratio, 2));
         }
     }
 
-    @return $scale-ratio;
+    @return $ratio;
 }

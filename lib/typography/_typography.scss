@@ -23,6 +23,7 @@
     $important: false,
     $base-font: $base-font-size
 ) {
+    // Allow for base-font to be declared as third argument
     @if type-of($important) == 'number' {
         $base-font: $important;
         $important: false;
@@ -49,6 +50,7 @@
 }
 
 /// @alias font-size
+///
 @mixin type-font-size(
     $font-size,
     $line-height: 'auto',
@@ -59,6 +61,7 @@
 }
 
 /// @alias font-size
+///
 @mixin fs(
     $font-size,
     $line-height: 'auto',
@@ -116,16 +119,19 @@ $__font-warn: false;
 /// **TL;DR:** Automatically calculate the baseline of any particular font-size.
 ///
 /// Creates unitless line-heights that align to the baseline grid with consideration to the aesthetics of a given font size. Essentially makes sure larger font-sizes have smaller line-heights, while smaller font-sizes have larger ones.
-/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
+/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$baseline-slack` increases the upper constraints, allowing for taller line-heights on larger font sizes.
+///
+/// The rate of change from large to small line-height is mostly a logarithmic curve.
+///
 /// Depends on `baseline()` for calculation and `_baseline-curve()` to determine the deviance from the upper and lower constraints.
 /// @group core
 /// @param {number} $font-size [$base-font-size] - font-size in need of a baseline
-/// @param {number} $baseline-slack [$font-looseness] - Percentage.
+/// @param {number} $baseline-slack [$auto-line-height-looseness] - Percentage.
 /// @returns {number}
 ///
 @function baseline-calc(
     $font-size: $base-font-size,
-    $baseline-slack: $font-looseness
+    $baseline-slack: $auto-line-height-looseness
 ) {
     @if type-of($font-size) != 'number' {
         @warn "Font-size: #{$font-size} must be a number, not a #{type-of($font-size)}.";
@@ -145,12 +151,16 @@ $__font-warn: false;
 
     //Make sure baseline-slack is a percentage
     @if unit($baseline-slack) != '%' {
-        @warn "Baseline-slack/font-looseness should be a percentage.";
+        @warn "Baseline-slack ($auto-line-height-looseness) should be a percentage.";
         $basline-slack: strip-units($baseline-slack);
         $baseline-slack: percentage($baseline-slack);
     }
 
     $slack: ($baseline-slack / 100%);
+
+    //Smallest/Largest font sizes to calculate against
+    $sm-font-size: 9 + ($slack * 10);
+    $lg-font-size: 72 + ($slack * 50);
 
     //Base Highest and lowest line-height multiples
     $base-lh-upper-bound: 1.9;
@@ -163,12 +173,8 @@ $__font-warn: false;
 
     //Largest font-size's highest/lowest line-height multiple
     // Use baseline slack to determine constraints
-    $lg-lh-upper-bound: 1.02 + ($slack / 2);
-    $lg-lh-lower-bound: 0.91 + ($slack / 2);
-
-    //Smallest/Largest font sizes to calculate against
-    $sm-font-size: 9 + ($slack * 10);
-    $lg-font-size: 95 + ($slack * 50);
+    $lg-lh-upper-bound: 1.05 + ($slack / 2);
+    $lg-lh-lower-bound: 0.8 + ($slack / 2);
 
     //_baseline-curve progress percentages
     $percent-along-current: 0;
@@ -225,18 +231,23 @@ $__font-warn: false;
     // stylelint-disable
     @if $debug-fonts {
         @if index($__font-index, $font-size) == null {
-            @debug '\A'+ 'font-size: #{$font-size}\A' + '        %: #{percentage($true-percent-along)} \A' +
-                '       %u: #{percentage($percent-along-upper)}\A' + '       %l: #{percentage($percent-along-lower)}\A' +
-                '       ub: #{$base-lh-upper-bound} (#{$font-size * $base-lh-upper-bound}),' +
-                '\A' + '       lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})' +
-                '\A' + ' sm-lh-ub: #{$sm-lh-upper-bound}, sm-lh-lb: #{$sm-lh-lower-bound}\A' +
-                ' lg-lh-ub: #{$lg-lh-upper-bound}, lg-lh-lb: #{$lg-lh-lower-bound}\A' +
-                '    slack: #{$slack}';
+            @debug '\A'+ 'font-size: #{$font-size}\A' +
+                '    true%: #{percentage($true-percent-along)} \A' +
+                '       %u: #{percentage($percent-along-upper)}\A' +
+                '       %l: #{percentage($percent-along-lower)}\A' +
+                '       ub: #{$base-lh-upper-bound} (#{$font-size * $base-lh-upper-bound}) ' +
+                '\A' +
+                '       lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})' +
+                '\A' +
+                ' sm-lh-ub: #{$sm-lh-upper-bound} | sm-lh-lb: #{$sm-lh-lower-bound}\A' +
+                ' lg-lh-ub: #{$lg-lh-upper-bound} | lg-lh-lb: #{$lg-lh-lower-bound}\A' +
+                '    slack: #{$slack}\A' +
+                '  base-lh: #{$base-line-height} | base-fs: #{$base-font-size}';
         }
     }
     // stylelint-enable
 
-    //If the lower bound is somehow higher than the upper bound,
+    // If the lower bound is somehow higher than the upper bound,
     // let's just reset the bounds to simple values
     @if $base-lh-lower-bound > $base-lh-upper-bound {
         $base-lh-lower-bound: 1;
@@ -244,7 +255,7 @@ $__font-warn: false;
     }
 
     //First attempt
-    $baseline: $base-line-height;
+    $baseline: $base-line-height or 24px;
     $line-height: baseline($font-size, $baseline);
 
     //Second attempt
@@ -252,7 +263,7 @@ $__font-warn: false;
         ($line-height > $base-lh-upper-bound)
     {
         //Attempt using a negative line-height for very large sizes
-        @if ($true-percent-along > 0.9) {
+        @if ($true-percent-along > 0.8) {
             $line-height: baseline($font-size, $baseline, 0.5, $floor: true);
         } @else if $font-size < $base-font-size {
             $line-height: baseline($font-size, $baseline, 1.5);
@@ -279,7 +290,7 @@ $__font-warn: false;
         $line-height: baseline($font-size, $baseline, $i);
 
         // Bail-out function to prevent infinite loops
-        // Set quit to true so we can escape this hellish loop
+        // Set $quit to true so we can escape this hellish loop
         @if $i > (($font-size / 1px) / 2) {
             @if (not $__font-warn) and ($debug-fonts) {
                 @warn ""+

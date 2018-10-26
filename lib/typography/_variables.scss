@@ -1,3 +1,7 @@
+/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
+/// @group config
+$rem-px-fallback: false !default;
+
 /// Font size all other values will use for calculation. Will be converted to `rems`.
 /// @group config
 $base-font-size: 16px !default;
@@ -8,7 +12,11 @@ $base-line-height: 24px !default;
 
 /// A rough estimate of how loose line-heights should be calculated against their font-sizes (when automatically generated).
 /// @group config
-$font-looseness: 15% !default;
+$auto-line-height-looseness: 15% !default;
+
+/// @alias auto-line-height-looseness
+/// @deprecated
+$font-looseness: $auto-line-height-looseness !default;
 
 /// @group config
 /// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
@@ -50,10 +58,6 @@ $primary-font-stack: $system-font-stack !default;
 $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas,
     'DejaVu Sans Mono', Menlo, monospace !default;
 
-/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
-/// @group config
-$rem-px-fallback: false !default;
-
 /// Description of weights, styles and formats for the project's web fonts. The root key value determines the name, while each inner key determines the weights, styles, and formats.
 /// @type map
 /// @prop font-name - name of the font family
@@ -80,6 +84,10 @@ $web-fonts: (
 /// Relative path to fonts from CSS file
 /// @type String
 /// @group config
+$web-fonts-path: '' !default;
+
+/// @alias web-fonts-path
+/// @deprecated
 $font-file-location: '' !default;
 
 /// The base vertical unit. Used in `type-space` and grid functions.
