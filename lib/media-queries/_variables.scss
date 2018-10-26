@@ -1,3 +1,32 @@
+/// @group config
+$max-site-width: 1360px !default;
+
+/// @group config
+$max-content-width: 690px !default;
+
+/// @group config
+$max-wide-content-width: 910px !default;
+
+/// Breakpoint strings to use with `media-query` mixin.
+/// @see {mixin} media-query
+/// @group config
+$breakpoints: (
+    // Mostly phones
+        'smalls': '(max-width:#{($max-wide-content-width/16px) * 1em})',
+    // Small Phones
+        'small': '(max-width: #{($max-content-width/16px) * 1em})',
+    // Large (Modern) phones/phablets
+        'smallish': '(min-width: #{(($max-content-width + 1)/16px) * 1em})' +
+        ' and (max-width: #{($max-wide-content-width/16px) * 1em})',
+    // Tablets, Desktops and larger
+        'bigs': '(min-width: #{($max-wide-content-width/16px) * 1em})',
+    // Mostly Tablets and small laptops. Overrides Bigs
+        'lap': '(min-width: #{($max-wide-content-width/16px) * 1em})' +
+        ' and (max-width: #{($max-site-width/16px) * 1em})',
+    // Large Tablets and Desktops. Overrides Bigs.
+        'desk': '(min-width: #{($max-site-width/16px) * 1em})'
+) !default;
+
 //Accepted media-query expression types
 $media-query-expressions: (
     'device-width',
@@ -53,32 +82,3 @@ $media-query-intervals: (
     'vh': 0.01,
     'vw': 0.01,
 );
-
-/// @group config
-$max-site-width: 1360px !default;
-
-/// @group config
-$max-content-width: 690px !default;
-
-/// @group config
-$max-wide-content-width: 910px !default;
-
-/// Breakpoint strings to use with `media-query` mixin.
-/// @see {mixin} media-query
-/// @group config
-$breakpoints: (
-    // Mostly phones
-        'smalls': '(max-width:#{ems($max-wide-content-width)})',
-    // Small Phones
-        'small': '(max-width: #{ems($max-content-width)})',
-    // Large (Modern) phones/phablets
-        'smallish': '(min-width: #{ems($max-content-width+1px)})' +
-        ' and (max-width: #{ems($max-wide-content-width)})',
-    // Tablets, Desktops and larger
-        'bigs': '(min-width: #{ems($max-wide-content-width+1px)})',
-    // Mostly Tablets and small laptops. Overrides Bigs
-        'lap': '(min-width: #{ems($max-wide-content-width + 1px)})' +
-        ' and (max-width: #{ems($max-site-width)})',
-    // Large Tablets and Desktops. Overrides Bigs.
-        'desk': '(min-width: #{ems($max-site-width)})'
-) !default;
