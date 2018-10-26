@@ -29,6 +29,10 @@
   "stylelint": {
     "extends": [
       "./node_modules/@uwhealth/linter-configs/stylelint.js"
+    ],
+    "ignoreFiles": [
+        "./**/*.css",
+        "node_modules/**/*"
     ]
   }
 }

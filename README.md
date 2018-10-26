@@ -7,7 +7,10 @@ Central location for framework sass tools
 
 ```cli
 # Yarn (preferred)
-yarn add @uwhealth/sass-tools
+yarn add @uwhealth/sass-tools --dev
+
+# NPM
+npm install @uwhealth/sass-tools --save-dev
 ```
 
 ## Usage
@@ -19,31 +22,37 @@ Before using sass-tools, you need to import the main entry point (`index.scss`) 
 
 // Set configuration variables
 // Docs here: https://uwhealth.github.io/sass-tools/#config
+// Example config here: https://github.com/UWHealth/sass-tools/blob/master/example-config.scss
 // ...
 
 // Initialize (populates configuration)
 @include init;
 
 ```
+**[An example configuration](https://github.com/UWHealth/sass-tools/blob/master/example-config.scss) — for easy copy-and-paste — can be found at the root of this repo.**
 
 ## Deployment (publishing to npm)
 
 Since these tools are relied on by other UW Health projects, they are available on [npm](https://www.npmjs.com/package/@uwhealth/sass-tools).
-To make new versions available to npm, your new changes must be pushed to the master branch and then published. Once your changes are pushed, use one of the following commands:
+To make new versions available to npm, your new changes must be pushed to the master branch before publishing to npm.
 
-** Maintenance updates (patches) **
+Once your changes are pushed, you can use one of the following commands to ease the publishing/tagging process:
+
+_NOTE: You must be logged in to github and npm prior to running these commands or they will fail._
+
+**Maintenance updates (patches)**
 
 ```cli
 npm run patch
 ```
 
-** Minor updates (new functionality) **
+**Minor updates (new functionality)**
 
 ```cli
 npm run minor
 ```
 
-** Major updates (breaking changes) **
+**Major updates (breaking changes)**
 
 ```cli
 npm version major && npm publish
