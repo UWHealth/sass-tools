@@ -1,10 +1,6 @@
-@import '../index.scss';
+@import '../lib/index.scss';
 @import 'test-config.scss';
 @include init;
-
-@function root-ems($size) {
-    @return px-to-ems($size, 16px);
-}
 
 html {
     background-color: color('bg', 'dark');
@@ -13,10 +9,10 @@ html {
     font-family: 'Asap', sans-serif;
     @include interpolate(
         'font-size',
-        $min-screen: ems(600px),
-        $min-value: ems(12px),
-        $max-screen: ems(1200px),
-        $max-value: ems(28px),
+        $min-screen: ems(600px, 16px),
+        $min-value: ems(12px, 16px),
+        $max-screen: ems(1200px, 16px),
+        $max-value: ems(28px, 16px),
         $easing: 'ease-in'
     );
 }
@@ -58,6 +54,10 @@ h1 {
     line-height: $type-h1-lh;
     color: color('type', light);
     font-size: rems($type-h1-size);
+
+    sup {
+        line-height: 0;
+    }
 }
 
 h2 {

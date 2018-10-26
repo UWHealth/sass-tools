@@ -1,4 +1,4 @@
-@import '../index.scss';
+@import '../lib/index.scss';
 
 $display-classes: (
     'show': block,
@@ -34,6 +34,7 @@ $spacing-classes: (
         'pad': padding,
         'space': margin,
     ),
+    silent: false,
 );
 
 $breakpoint-has-spacing-classes: ('smalls', 'bigs', 'desk');
