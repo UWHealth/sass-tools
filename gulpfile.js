@@ -15,7 +15,7 @@ gulp.task('sass', () => {
         .pipe(gulp.dest('./tests'))
 });
 
-gulp.task('test' series('sass'));
+gulp.task('test', series('sass'));
 
 gulp.task('docs', (done) => {
     const sassdoc = require('sassdoc');
