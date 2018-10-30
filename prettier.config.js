@@ -1,4 +1,4 @@
 module.exports = Object.assign({},
-    require('@uwhealth/linter-configs/prettier.js'),
+    require('@uwhealth/prettier-config'),
     { trailingComma: "none" }
 );
