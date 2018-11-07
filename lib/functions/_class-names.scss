@@ -1,0 +1,160 @@
+/// Interpolates strings to generate dynamic class names.
+/// Using a specific format and a set of placeholders provided by functions, a class name can be generated in a more flexible fashion.
+/// Will also filter out optional strings if they appear at the beginning or end of a string (such as values between two placeholders).
+///
+/// **Format Syntax**
+/// * `{%key%}` - Expects to be replaced by a value provided by a map.
+/// * `{_}` - Optional spacing value. Can be filtered out if not surrounded by values.
+///
+/// @param {String} $string [] - The string to format.
+/// @param {Map} $values [] - map with keys cooresponding to the names in placeholders.
+///
+/// @group core
+///
+/// @example scss - Simple example
+///  $class-format: '.{%breakpoint%}-hidden';
+///  format-class-name($class-format, ('breakpoint': 'small'));
+///  // Out: '.small-hidden'
+///
+/// @example scss - Complex with optional values left blank
+///  $class-format: '.{%breakpoint%}{-}{%display%}';
+///  format-class-name(
+///    $class-format,
+///    ('display': 'flex', 'breakpoint': '')
+///  );
+/// // Out: '.flex'
+///
+///
+@function format-class-name($string, $values) {
+    // Interpolate known class values included in the map
+    // Replaces {%value%} with ('value': value)
+    $class-interp: _interpolate-class-name($string, $values);
+
+    // Only remove namespaces if all values are processed
+    @if (
+        (str-index($class-interp, '%') == null) and
+            (str-index($class-interp, '{') > 1)
+    ) {
+        // Interpolate variable spacing units
+        // Replaces {_} with _ if surrounded by values
+        @return _format-class-namespaces($class-interp);
+    }
+
+    @return $class-interp;
+}
+
+/// @alias format-class-name
+///
+@function _class($args...) {
+    @return format-class-name($args...);
+}
+
+@function _is-not-blank($value, $args...) {
+    @return ($value != '' and $value != null);
+}
+
+@function _interpolate-class-name($string, $values-map) {
+    $_return: $string;
+
+    @each $word, $value in $values-map {
+        @if ($_return) and (str-index($_return, '{%#{$word}%}')) {
+            $_return: str-replace($_return, '{%#{$word}%}', '#{$value}');
+        }
+    }
+
+    @return $_return;
+}
+
+@function _interpolate-namespaces($string, $reverse: true) {
+    $list: $string;
+
+    // If we recieved a string, we know this is from a user,
+    // A list will only be received by another function,
+    // In which case, we do not need to do the following process
+    @if type-of($list) == 'string' {
+        @if (str-index($list, '{') == null) {
+            @return $list;
+        }
+        // Change '{}' to '|> |'
+        // so we can split by one character,
+        // while also maintaining a variable indicator
+        $string: str-replace($string, '{', '|>');
+        $string: str-replace($string, '}', '|');
+        @if (str-index($string, '%')) {
+            $string: str-replace($string, '|>%', '{%');
+            $string: str-replace($string, '%|', '%}');
+        }
+        $list: str-split($string, '|');
+        // Filter out blank values
+        // and reverse (list-filter returns a reversed list)
+        $list: list-reverse(list-filter($list, _is-not-blank));
+    }
+
+    $_return: ();
+    $start-i: if($reverse, 1, length($list));
+    $end-i: if($reverse, length($list), 1);
+
+    @for $i from $start-i through $end-i {
+        $item: nth($list, $i);
+
+        // We only need to process items that start with a '>'
+        // since this indicates that it's a variable value
+        @if (str-index($item, '>')) {
+            $next-index: index($list, $item) + 1;
+
+            @if $reverse {
+                $next-index: max(1, $next-index - 2);
+            }
+            $next-index: min(length($list), $next-index);
+            $next-item: nth($list, $next-index);
+            //@debug 'comparison: #{$item} vs #{$next-item}';
+
+            // Only allow values surrounded by a variable,
+            // or has other qualifications
+            @if (str-index($next-item, '%')) or
+                (_namespace-is-needed($item, $next-item))
+            {
+                $_return: join($_return, $item);
+            }
+        } @else {
+            // Non-variables
+            $_return: join($_return, $item);
+        }
+    }
+
+    @return list-reverse($_return);
+}
+
+@function _format-class-namespaces($string) {
+    @if type-of($string) == 'list' {
+        $string: list-to-str($string, '');
+    }
+
+    // Evaluate from right to left
+    // Then evaluate from left to right
+    // Catches dependencies in either direction
+    $split-str: _interpolate-namespaces($string, true);
+    $split-str: _interpolate-namespaces($split-str, false);
+    $merged-list: list-to-str($split-str, '');
+
+    // Remove remaining >
+    @return str-replace($merged-list, '>', '');
+}
+
+@function _is-variable($string) {
+    @return (str-index($string, '%'));
+}
+
+// A series of checks to see if a namespace character is needed based on its surroundings
+@function _namespace-is-needed($namespace-character, $next-character) {
+    $is-not-blank: ($namespace-character != '');
+    $is-not-the-same: ($namespace-character != $next-character);
+    $is-not-null: _is-not-blank($next-character);
+    $is-not-variable: (str-index('#{$next-character}', '>') == null);
+
+    //@debug "(#{$namespace-character}|#{$next-character}): #{$is-not-blank} #{$is-not-the-same} #{$is-not-null} #{$is-not-variable}";
+
+    @return (
+        $is-not-blank and $is-not-the-same and $is-not-null and $is-not-variable
+    );
+}
