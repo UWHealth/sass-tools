@@ -1,6 +1,6 @@
 /// Map of cubic-bezier values representing named easing values (eg. `ease-in`, `ease-out-quart`). Can be "easily" accessed with `easing`.
 /// @see easing
-/// @group core
+/// @group utils
 ///
 $easings: (
     'linear': (
