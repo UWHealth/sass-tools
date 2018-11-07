@@ -1,3 +1,7 @@
+@import './math';
+@import './unit-conversion';
+@import './class-names';
+
 //stylelint-disable
 @function _legacy-check($new-var, $old-var, $default) {
     @if ($old-var != $default) {
@@ -28,7 +32,7 @@
     @return call(safe-get-function($name), $args...);
 }
 
-/// Holds all cached function calls.
+/// Holds all cached function calls and their results.
 /// @type Map
 $_cached-values: ();
 
@@ -63,82 +67,6 @@ $_cached-values: ();
     @return $value / ($value * 0 + 1);
 }
 
-/// Changes percent value to decimal.
-/// @param {Number} $percentage
-/// @group utils
-///
-@function percentage-to-decimal($percentage) {
-    @if unit($percentage) == "%" {
-        $percentage: ($percentage/100%);
-    }
-    @return $percentage;
-}
-
-/// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
-/// @group core
-/// @param {Number} $pixels
-///
-@function px-to-rems($pixels, $base-size: $base-font-size) {
-    @if $pixels == 'auto' or $pixels == 'normal' {
-        @return $pixels;
-    }
-
-    @if (unitless($pixels)) {
-        $pixels: $pixels * 1px;
-    }
-
-    //If 0, don't include units
-    @if $pixels == 0px {
-        @return 0;
-    }
-
-    $pixels: ($pixels / $base-size) * 1rem;
-
-    @return $pixels;
-}
-
-/// @alias px-to-rems
-///
-@function rems($pixels, $base-size: $base-font-size) {
-    @return px-to-rems($pixels, $base-size);
-}
-
-/// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
-/// @group core
-/// @param {Number} $pixels
-/// @param {Number} $context [$base-font-size]
-///
-@function px-to-ems($pixels, $context: $base-font-size) {
-    @if (unitless($pixels)) {
-        $pixels: $pixels * 1px;
-    }
-
-    //If 0, don't include rems
-    @if $pixels == 0px {
-        @return 0;
-    }
-
-    $pixels: ($pixels / $context) * 1em;
-
-    @return $pixels;
-}
-
-/// @alias px-to-ems
-///
-@function ems($pixels, $context: $base-font-size) {
-    @return px-to-ems($pixels, $context);
-}
-
-/// Converts pixel dimensions to viewport width (vw) dimensions.
-/// @param {number} $pixels
-/// @returns {number}
-/// @group utils
-///
-@function px-to-vw($pixels) {
-    $vw-context: ($max-site-width * 0.01) * 1px;
-    @return ($pixels / $vw-context) * 1vw;
-}
-
 /// Converts a list to a string with an optional separator.
 /// @param {list} $list
 /// @param {string} $separator [',']
@@ -157,6 +85,25 @@ $_cached-values: ();
     }
 
     @return $string;
+}
+
+@function list-filter($list, $predicate) {
+    $index: 1;
+    $length: length($list);
+    $result: ();
+
+    @while ($index <= $length) {
+        $value: nth($list, $index);
+        $iteration: call(safe-get-function($predicate), $value, $index, $list);
+
+        @if ($iteration) {
+            $result: append($result, $value);
+        }
+
+        $index: $index + 1;
+    }
+
+    @return $result;
 }
 
 /// Casts a string into a number.
@@ -344,6 +291,33 @@ $_cached-values: ();
     @return $string;
 }
 
+/// splits a String into a list of strings by separating the string into substrings, using a specified separator string to determine where to make each split.
+/// @param {String} $string - string to split.
+/// @param {String} $separator - string points at which each split should occur.
+/// @returns {List}
+///
+@function str-split($string, $separator) {
+    // empty array/list
+    $split-arr: ();
+    // first index of separator in string
+    $index : str-index($string, $separator);
+    // loop through string
+    @while $index != null {
+        // get the substring from the first character to the separator
+        $item: str-slice($string, 1, $index - 1);
+        // push item to array
+        $split-arr: append($split-arr, $item);
+        // remove item and separator from string
+        $string: str-slice($string, $index + 1);
+        // find new index of separator
+        $index: str-index($string, $separator);
+    }
+    // add the remaining string to list (the last item)
+    $split-arr: append($split-arr, $string);
+
+    @return $split-arr;
+}
+
 /// Split a string into a list of strings
 /// @link https://gist.github.com/danielpchen/3677421ea15dcf2579ff
 /// @param {string} $string - the string to be split
@@ -386,8 +360,8 @@ $_cached-values: ();
 /// @alias str-to-list
 /// @group utils
 ///
-@function explode($string, $delimiter) {
-    @return str-to-list($string, $delimiter);
+@function explode($args...) {
+    @return str-to-list($args...);
 }
 
 /// Check if a list contains a value
@@ -714,441 +688,42 @@ $_cached-values: ();
     }
 }
 
-// Global math constants
-/// @group Math
-$PI: 3.1415926535897932384626433832795028841971693993751;
-$π: $PI;
-$pi: $PI;
-/// @group Math
-$E: 2.71828182845904523536028747135266249775724709369995;
-$e: $E;
-/// @group Math
-$LN2: 0.6931471805599453;
-/// @group Math
-$SQRT2: 1.4142135623730951;
 
-/// @group Math
-/// @alias golden
-$PHI: golden();
 
-$golden_ratio: golden();
 
-// MATH FUNCTIONS
+// @debug _interpolate-class-namespaces(
+//     format-class-names(
+//         '{%breakpoint%}{\\@}{%property%}{__}{%direction%}{-}{%amount%}',
+//         ('breakpoint': 'small', 'property': 'pad', 'amount': '2')
+//     )
+// );
+
 //
-// Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
+// @debug str-replace(
+//     list-to-str(
+//     _format-class-namespaces(
+//     interpolate-class-names(
+//         '{%breakpoint%}{\\@}{%property%}{__}{%direction%}{-}{%amount%}',
+//         ('breakpoint': 'bigs', 'property': 'pad', 'direction': '', 'amount': '2')
+//     )
+//     )
+//     ,''),
+// '>', '');
 
-/// A robust exponent multiplication which allows for decimal-based exponents.
-/// This **fully** replaces Compass' pow() function (allows for float-based exponents).
-/// @group Math
-/// @param {number} $base
-/// @param {number} $exp
-/// @link https://gist.github.com/nathancrank/7539155
-///
-@function pow($base, $exp) {
-    @if $exp == floor($exp) {
-        $r: 1;
-        $s: 0;
-        @if $exp < 0 {
-            $exp: $exp * -1;
-            $s: 1;
-        }
-        @while $exp > 0 {
-            @if $exp % 2 == 1 {
-                $r: $r * $base;
-            }
-            $exp: floor($exp * 0.5);
-            $base: $base * $base;
-        }
-        @return if($s != 0, 1 / $r, $r);
-    } @else if $base == 0 and $exp > 0 {
-        @return 0;
-    } @else {
-        $log: log($base);
-        $exp: ($log * $exp);
-        $exp: cache(_exp, $exp);
-        @return $exp;
-    }
-}
-
-/// @alias pow
-/// @group Math
-///
-@function exponent($base, $exponent) {
-    @return pow($base, $exponent);
-}
-
-/// A good approximation for $x close to 0. Used with `pow`.
-///
-@function _exp($x) {
-    $ret: 0;
-    $i: 1;
-    @for $n from 0 to 24 {
-        $ret: $ret + $i;
-        $i: $i * $x / ($n + 1);
-    }
-    @return $ret;
-}
-
-/// Returns the natural logarithm of a number.
-/// @param {number} $x
-/// @example
-///     $value:   log(2)  // 0.69315
-///     $value2:  log(10) // 2.30259
-/// @returns {number}
-/// @group Math
-///
-@function log($x, $b: null) {
-    @if $b != null {
-        @return log($x) / log($b);
-    }
-
-    @if $x <= 0 {
-        @return 0 / 0;
-    }
-    $k: nth(frexp($x / $SQRT2), 2);
-    $x: $x / ldexp(1, $k);
-    $x: ($x - 1) / ($x + 1);
-    $x2: $x * $x;
-    $i: 1;
-    $s: $x;
-    $sp: null;
-    @while $sp != $s {
-        $x: $x * $x2;
-        $i: $i + 2;
-        $sp: $s;
-        $s: $s + $x / $i;
-    }
-    @return 2 * $s;
-
-    @debug #{$LN2 * $k + _log($x)};
-    @return $LN2 * $k + _log($x);
-}
-
-/// A good aproximation for $x close to 1
-///
-/// @group math
-///
-@function _log($x) {
-    $x: ($x - 1) / ($x + 1);
-    $x2: $x * $x;
-    $i: 1;
-    $s: $x;
-    $sp: null;
-    @while $sp != $s {
-        $x: $x * $x2;
-        $i: $i + 2;
-        $sp: $s;
-        $s: $s + $x / $i;
-    }
-    @return 2 * $s;
-}
-
-/// Returns a two-element list containing the normalized fraction and exponent of number.
-///
-/// @group Math
-///
-/// @param $x
-/// @returns {list} (fraction, exponent)
-///
-@function frexp($x) {
-    $exp: 0;
-    @if $x < 0 {
-        $x: $x * -1;
-    }
-    @if $x < 0.5 {
-        @while $x < 0.5 {
-            $x: $x * 2;
-            $exp: $exp - 1;
-        }
-    } @else if $x >= 1 {
-        @while $x >= 1 {
-            $x: $x / 2;
-            $exp: $exp + 1;
-        }
-    }
-    @return ($x, $exp);
-}
-
-/// Returns `$x * 2^$exp`
-/// @param {number} $x
-/// @param {number} $exp
-/// @group Math
-///
-@function ldexp($x, $exp) {
-    $b: if($exp >= 0, 2, 1 / 2);
-    @if $exp < 0 {
-        $exp: $exp * -1;
-    }
-    @while $exp > 0 {
-        @if $exp % 2 == 1 {
-            $x: $x * $b;
-        }
-        $b: $b * $b;
-        $exp: floor($exp * 0.5);
-    }
-    @return $x;
-}
-
-/// Returns the factorial of a non-negative integer.
-/// @param {number} $x
-/// @group Math
-/// @example
-///     $value:  fact(0) // 1
-///     $value2: fact(8) // 40320
-/// @return {Number}
-///
-@function fact($x) {
-    @if $x < 0 or $x != floor($x) {
-        @warn "Argument for `fact()` must be a positive integer.";
-        @return null;
-    }
-
-    $ret: 1;
-
-    @while $x > 0 {
-        $ret: $ret * $x;
-        $x: ($x - 1);
-    }
-
-    @return $ret;
-}
-
-/// Greatest Common Divisor calculation (useful for calculating grids and widths).
-/// @group Math
-/// @param {number} $number-1
-/// @param {number} $number-2
-/// @returns {number}
-/// @link http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
-///
-@function gcd($number-1, $number-2) {
-    @if $number-2 != 0 {
-        @return gcd($number-2, ($number-1 % $number-2));
-    } @else {
-        @return abs($number-1);
-    }
-}
-
-/// Find the square root of a value.
-/// @group Math
-/// @param {number} $base
-/// @param {number} $precision [12]
-///
-@function sqrt($base, $precision: 12) {
-    $guess: random(20);
-    $root: $guess;
-
-    @for $i from 1 through $precision {
-        $root: ($root - (pow($root, 2) - $base) / (2 * $root));
-    }
-    @return $root;
-}
-
-/// @alias sqrt
-/// @param $r
-/// @group Math
-///
-@function sqroot($r) {
-    $x0: 1; // initial value
-    $solution: false;
-    $x1: 1;
-
-    @for $i from 1 through 10 {
-        @if abs(2 * $x0) < 0.00000000000001 {
-            // Don't want to divide by a number smaller than this
-            $solution: false;
+@function insert-nth($list, $index, $value) {
+    $result: ();
+    @for $i from 1 through length($list) {
+        @if $i == $index {
+            $result: append($result, $value);
         }
 
-        $x1: $x0 - ($x0 * $x0 - abs($r)) / (2 * $x0);
-
-        @if (abs($x1 - $x0) / abs($x1)) < 0.0000001 {
-            // 7 digit accuracy is desired
-            $solution: true;
-        }
-
-        $x0: $x1;
+      $result: append($result, nth($list, $i));
     }
-
-    @if $solution == true {
-        // If $r is negative, then the output will be multiplied with
-        // [i = √-1](http://en.wikipedia.org/wiki/Imaginary_number)
-        // (√xy = √x√y) => √-$r = √-1√$r
-        @if $r < 0 {
-            @return $x1 #{i};
-        } @else {
-            @return $x1;
-        }
-    } @else {
-        @return "No solution";
-    }
+    @return $result;
 }
 
-/// Determines the Sine of an angle.
-/// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
-/// @group Math
-/// @param $angle
-/// @returns {number}
-///
-@function sin($angle) {
-    $sin: 0;
-    $angle: rad($angle);
-    // Iterate a bunch of times.
-    @for $i from 0 through 10 {
-        $sin: $sin + pow(-1, $i) * pow($angle, (2 * $i + 1)) / fact(2 * $i + 1);
-    }
-    @return $sin;
-}
 
-/// Use linear interpolation to produce a calc value for a particular screen size.
-/// @group Math
-/// @param {number} $min-screen
-/// @param {number} $min-value
-/// @param {number} $max-screen
-/// @param {number} $max-value
-/// @param {string} $unit [vw]
-/// @returns {string} - Css `calc()` function.
-/// @author Mike Riethmuller
-/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
-///
-@function calc-interpolation(
-    $min-screen,
-    $min-value,
-    $max-screen,
-    $max-value,
-    $unit: vw
-) {
-    $a: ($max-value - $min-value) / ($max-screen - $min-screen);
-    $b: $min-value - $a * $min-screen;
 
-    $sign: "+";
-
-    @if ($b < 0) {
-        $sign: "-";
-        $b: abs($b);
-    }
-
-    @return calc(#{$a * 100}#{$unit} #{$sign} #{$b});
-}
-
-/// This is a crude Sass port webkits cubic-bezier-webkits function.
-/// Will return a "solved" cubic-bezier function for any given `$x`.
-/// @author Mike Riethmuller
-/// @group math
-/// @param {Number} $p1x
-/// @param {Number} $p1y
-/// @param {Number} $p2x
-/// @param {Number} $p2y
-/// @param {Number} $x
-/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
-///
-@function solve-cubic-bezier($p1x, $p1y, $p2x, $p2y, $x) {
-    $cy: 3 * $p1y;
-    $by: 3 * ($p2y - $p1y) - $cy;
-    $ay: 1 - $cy - $by;
-    $t: solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x);
-    @return (($ay * $t + $by) * $t + $cy) * $t;
-}
-
-/// Solves a bezier's `$x` for a given cubic-bezier set.
-/// @author Mike Riethmuller
-/// @group math
-/// @param {Number} $p1x
-/// @param {Number} $p1y
-/// @param {Number} $p2x
-/// @param {Number} $p2y
-/// @param {Number} $x
-///
-@function solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x) {
-    $cx: 3 * $p1x;
-    $bx: 3 * ($p2x - $p1x) - $cx;
-    $ax: 1 - $cx - $bx;
-
-    $t0: 0;
-    $t1: 1;
-    $t2: $x;
-    $x2: 0;
-    $res: 1000;
-
-    @while ($t0 < $t1 or $break) {
-        $x2: (($ax * $t2 + $bx) * $t2 + $cx) * $t2;
-        @if (abs($x2 - $x) < $res) {
-            @return $t2;
-        }
-        @if ($x > $x2) {
-            $t0: $t2;
-        } @else {
-            $t1: $t2;
-        }
-        $t2: ($t1 - $t0) * 0.5 + $t0;
-    }
-
-    @return $t2;
-}
-
-/// Linear interpolation
-/// @link https://en.wikipedia.org/wiki/Linear_interpolation
-/// @group math
-/// @param {number} $a
-/// @param {number} $b
-/// @param {number} $t
-///
-@function lerp($a, $b, $t) {
-    @return $a + ($b - $a) * $t;
-}
-
-/// Get the golden ratio from `$base`.
-/// @group Math
-/// @param {} $base [1]
-/// @returns {number}
-///
-@function golden($base: 1) {
-    @return (1/2 + sqrt(5) / 2) * $base;
-}
-
-/// @param $angle
-/// @group Math
-///
-@function rad($angle) {
-    $unit: unit($angle);
-    $unitless: $angle / ($angle * 0 + 1);
-    // If the angle has 'deg' as unit, convert to radians.
-    @if $unit == deg {
-        $unitless: $unitless / 180 * $pi;
-    }
-    @return $unitless;
-}
-
-/// @alias rad
-/// @param $angle
-/// @group Math
-///
-@function angle-to-rad($angle) {
-    @return rad($angle);
-}
-
-// Unused functions
-// ------------------------------------
-// Hyperbolic sine
-// @param $number
-// @group Math
-// @function sinh($number) {
-//     $top: exponent($e, (2 * $number)) - 1;
-//     $bottom: 2 * exponent($e, $number);
-//     @return  $top / $bottom;
-// }
-
-// Determines the Cosine of an angle.
-// @group Math
-// @param $angle
-// @returns {number}
-// @function cos($angle) {
-//     $cos: 0;
-//     $angle: rad($angle);
-//     // Iterate a bunch of times.
-//     @for $i from 0 through 10 {
-//         $cos: $cos + pow(-1, $i) * pow($angle, 2 * $i) / fact(2 * $i);
-//     }
-//     @return $cos;
-// }
 
 // @function _template-string($formatting, $values) {
 //     $_return: $string;
@@ -1161,46 +736,71 @@ $golden_ratio: golden();
 //
 //     @return $_return;
 // }
+
+// @debug format-class-names(
+//     '{%breakpoint%}{\\@}{%property%}{-}{%direction%}{__}{%amount%}',
+//     ('breakpoint': '', 'property': 'pad', 'direction':'', 'amount': '2')
+// );
+
+// @function placeholder-filter($list, $ltr: false) {
+//     $split-str: if($ltr, $list, list-reverse($list));
+//     $_word-list: ('');
+//     $_i: 1;
+//     @debug '\A\A========================[ I N P U T ]======================== \A #{list-print($split-str)} \A';
+//     @each $split in $split-str {
+//         $_current: if($split != '', '{' + $split, $split);
+//         $second-split: str-split($split, '}');
+//         $_is-split: (type-of($second-split) == 'list' and length($second-split) > 1);
+//         @if $split != '' and length($second-split) > 1 {
+//             @debug "#{list-print($second-split)}";
+//             $second-split: if($ltr, $second-split, list-reverse($second-split));
+//             $_previous-index: max(1, $_i - 1);
+//             //@debug length($second-split);
+//             $_current: nth($second-split, 1);
+//             $_previous: nth($split-str, $_previous-index);
 //
-// @function _str-template-extract($template) {
-//     $_sliced-string: $template;
-//     $_word-list: ();
-//     $_index-map: ();
-//     $_loops: 0;
+//             $_next-index: min(length($split-str), $_i + 1);
+//             $_next: nth($second-split, 2);
 //
-//     @while (str-index($_sliced-string, '{%')) and ($_loops < 10) {
-//         $_first-index: str-index($_sliced-string, '{%');
-//         $_replacement: str-slice($_sliced-string, $_first-index + 1);
-//         $_second-index: str-index($_replacement, '%}') + $_first-index;
-//
-//         $_word: str-slice($_sliced-string, $_first-index + 1, $_second-index - 1);
-//         $_word-list: append($_word-list, $_word);
-//         $_index-map: map-merge(
-//             $_index-map,
-//             ('#{$_word}': $_first-index $_second-index)
-//         );
-//
-//         $temp-string: str-slice($_sliced-string, 1, $_first-index - 1) + str-slice($_sliced-string, $_second-index + 1);
-//
-//         $_sliced-string: $temp-string;
-//         $_loops: $_loops + 1;
+//             @if str-index($_current, '}') == null {
+//                 @if (
+//                     _namespace-is-needed($_current, $_next)
+//                 ){
+//                     // @debug '#{$_current} made it through';
+//                     // $_current: if($ltr,
+//                     //     str-slice($_current, 2, -1),
+//                     //     str-slice($_current, 1, -1)
+//                     // );
+//                     $_current: ('#{$_current}}', $_next);
+//                 }
+//                 @else {
+//                     @debug 'Not qualified: ' + $_current;
+//                     $_current: if($_is-split, $_next, "");
+//                 }
+//             }
+//             @else {
+//                 $_current: if(
+//                     str-index($_current, '%') > 1,
+//                     '{#{$_current}}',
+//                     '#{$_current}}'
+//                 );
+//             }
+//         }
+//         $_word-list: if($_current != '', join($_word-list, $_current), $_word-list);
+//         // @debug $_word-list;
+//         $_i: $_i + 1;
 //     }
-//
-//     // Need this format ('replacement': value);
-//     @return $_word-list;
+//     @debug "OUT: #{list-reverse($_word-list)}";
+//     @return if($ltr, $_word-list, list-reverse($_word-list));
 // }
 
-@function format-class-names($string, $values-map) {
-    $_return: $string;
+// @function _add-brackets($check) {
+//     @return if(str-index($check, '}') > 1, '{#{$check}');
+// }
 
-    @each $word, $value in $values-map {
-        @if ($_return) and (str-index($_return, '{%#{$word}%}')) {
-            $_return: str-replace($_return, '{%#{$word}%}', '#{$value}');
-        }
-    }
 
-    @return $_return;
-}
+
+
 
 // $class-name: 'grid';
 //

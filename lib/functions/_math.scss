@@ -1,0 +1,435 @@
+// Global math constants
+/// @group Math
+$PI: 3.1415926535897932384626433832795028841971693993751;
+$π: $PI;
+$pi: $PI;
+/// @group Math
+$E: 2.71828182845904523536028747135266249775724709369995;
+$e: $E;
+/// @group Math
+$LN2: 0.6931471805599453;
+/// @group Math
+$SQRT2: 1.4142135623730951;
+
+/// @group Math
+/// @alias golden
+$PHI: golden();
+
+$golden_ratio: golden();
+
+// MATH FUNCTIONS
+//
+// Most functions taken from [Sassy Math](https://github.com/Team-Sass/Sassy-math/blob/master/sass/math.scss).
+
+/// A robust exponent multiplication which allows for decimal-based exponents.
+/// This **fully** replaces Compass' pow() function (allows for float-based exponents).
+/// @group Math
+/// @param {number} $base
+/// @param {number} $exp
+/// @link https://gist.github.com/nathancrank/7539155
+///
+@function pow($base, $exp) {
+    @if $exp == floor($exp) {
+        $r: 1;
+        $s: 0;
+        @if $exp < 0 {
+            $exp: $exp * -1;
+            $s: 1;
+        }
+        @while $exp > 0 {
+            @if $exp % 2 == 1 {
+                $r: $r * $base;
+            }
+            $exp: floor($exp * 0.5);
+            $base: $base * $base;
+        }
+        @return if($s != 0, 1 / $r, $r);
+    } @else if $base == 0 and $exp > 0 {
+        @return 0;
+    } @else {
+        $log: log($base);
+        $exp: ($log * $exp);
+        $exp: cache(_exp, $exp);
+        @return $exp;
+    }
+}
+
+/// @alias pow
+/// @group Math
+///
+@function exponent($base, $exponent) {
+    @return pow($base, $exponent);
+}
+
+/// A good approximation for $x close to 0. Used with `pow`.
+///
+@function _exp($x) {
+    $ret: 0;
+    $i: 1;
+    @for $n from 0 to 24 {
+        $ret: $ret + $i;
+        $i: $i * $x / ($n + 1);
+    }
+    @return $ret;
+}
+
+/// Returns the natural logarithm of a number.
+/// @param {number} $x
+/// @example
+///     $value:   log(2)  // 0.69315
+///     $value2:  log(10) // 2.30259
+/// @returns {number}
+/// @group Math
+///
+@function log($x, $b: null) {
+    @if $b != null {
+        @return log($x) / log($b);
+    }
+
+    @if $x <= 0 {
+        @return 0 / 0;
+    }
+    $k: nth(frexp($x / $SQRT2), 2);
+    $x: $x / ldexp(1, $k);
+    $x: ($x - 1) / ($x + 1);
+    $x2: $x * $x;
+    $i: 1;
+    $s: $x;
+    $sp: null;
+    @while $sp != $s {
+        $x: $x * $x2;
+        $i: $i + 2;
+        $sp: $s;
+        $s: $s + $x / $i;
+    }
+    @return 2 * $s;
+
+    @debug #{$LN2 * $k + _log($x)};
+    @return $LN2 * $k + _log($x);
+}
+
+/// A good aproximation for $x close to 1
+///
+/// @group math
+///
+@function _log($x) {
+    $x: ($x - 1) / ($x + 1);
+    $x2: $x * $x;
+    $i: 1;
+    $s: $x;
+    $sp: null;
+    @while $sp != $s {
+        $x: $x * $x2;
+        $i: $i + 2;
+        $sp: $s;
+        $s: $s + $x / $i;
+    }
+    @return 2 * $s;
+}
+
+/// Returns a two-element list containing the normalized fraction and exponent of number.
+///
+/// @group Math
+///
+/// @param $x
+/// @returns {list} (fraction, exponent)
+///
+@function frexp($x) {
+    $exp: 0;
+    @if $x < 0 {
+        $x: $x * -1;
+    }
+    @if $x < 0.5 {
+        @while $x < 0.5 {
+            $x: $x * 2;
+            $exp: $exp - 1;
+        }
+    } @else if $x >= 1 {
+        @while $x >= 1 {
+            $x: $x / 2;
+            $exp: $exp + 1;
+        }
+    }
+    @return ($x, $exp);
+}
+
+/// Returns `$x * 2^$exp`
+/// @param {number} $x
+/// @param {number} $exp
+/// @group Math
+///
+@function ldexp($x, $exp) {
+    $b: if($exp >= 0, 2, 1 / 2);
+    @if $exp < 0 {
+        $exp: $exp * -1;
+    }
+    @while $exp > 0 {
+        @if $exp % 2 == 1 {
+            $x: $x * $b;
+        }
+        $b: $b * $b;
+        $exp: floor($exp * 0.5);
+    }
+    @return $x;
+}
+
+/// Returns the factorial of a non-negative integer.
+/// @param {number} $x
+/// @group Math
+/// @example
+///     $value:  fact(0) // 1
+///     $value2: fact(8) // 40320
+/// @return {Number}
+///
+@function fact($x) {
+    @if $x < 0 or $x != floor($x) {
+        @warn "Argument for `fact()` must be a positive integer.";
+        @return null;
+    }
+
+    $ret: 1;
+
+    @while $x > 0 {
+        $ret: $ret * $x;
+        $x: ($x - 1);
+    }
+
+    @return $ret;
+}
+
+/// Greatest Common Divisor calculation (useful for calculating grids and widths).
+/// @group Math
+/// @param {number} $number-1
+/// @param {number} $number-2
+/// @returns {number}
+/// @link http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
+///
+@function gcd($number-1, $number-2) {
+    @if $number-2 != 0 {
+        @return gcd($number-2, ($number-1 % $number-2));
+    } @else {
+        @return abs($number-1);
+    }
+}
+
+/// Find the square root of a value.
+/// @group Math
+/// @param {number} $base
+/// @param {number} $precision [12]
+///
+@function sqrt($base, $precision: 12) {
+    $guess: random(20);
+    $root: $guess;
+
+    @for $i from 1 through $precision {
+        $root: ($root - (pow($root, 2) - $base) / (2 * $root));
+    }
+    @return $root;
+}
+
+/// @alias sqrt
+/// @param $r
+/// @group Math
+///
+@function sqroot($r) {
+    $x0: 1; // initial value
+    $solution: false;
+    $x1: 1;
+
+    @for $i from 1 through 10 {
+        @if abs(2 * $x0) < 0.00000000000001 {
+            // Don't want to divide by a number smaller than this
+            $solution: false;
+        }
+
+        $x1: $x0 - ($x0 * $x0 - abs($r)) / (2 * $x0);
+
+        @if (abs($x1 - $x0) / abs($x1)) < 0.0000001 {
+            // 7 digit accuracy is desired
+            $solution: true;
+        }
+
+        $x0: $x1;
+    }
+
+    @if $solution == true {
+        // If $r is negative, then the output will be multiplied with
+        // [i = √-1](http://en.wikipedia.org/wiki/Imaginary_number)
+        // (√xy = √x√y) => √-$r = √-1√$r
+        @if $r < 0 {
+            @return $x1 #{i};
+        } @else {
+            @return $x1;
+        }
+    } @else {
+        @return "No solution";
+    }
+}
+
+/// Determines the Sine of an angle.
+/// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
+/// @group Math
+/// @param $angle
+/// @returns {number}
+///
+@function sin($angle) {
+    $sin: 0;
+    $angle: rad($angle);
+    // Iterate a bunch of times.
+    @for $i from 0 through 10 {
+        $sin: $sin + pow(-1, $i) * pow($angle, (2 * $i + 1)) / fact(2 * $i + 1);
+    }
+    @return $sin;
+}
+
+/// Use linear interpolation to produce a calc value for a particular screen size.
+/// @group Math
+/// @param {number} $min-screen
+/// @param {number} $min-value
+/// @param {number} $max-screen
+/// @param {number} $max-value
+/// @param {string} $unit [vw]
+/// @returns {string} - Css `calc()` function.
+/// @author Mike Riethmuller
+/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
+///
+@function calc-interpolation(
+    $min-screen,
+    $min-value,
+    $max-screen,
+    $max-value,
+    $unit: vw
+) {
+    $a: ($max-value - $min-value) / ($max-screen - $min-screen);
+    $b: $min-value - $a * $min-screen;
+
+    $sign: "+";
+
+    @if ($b < 0) {
+        $sign: "-";
+        $b: abs($b);
+    }
+
+    @return calc(#{$a * 100}#{$unit} #{$sign} #{$b});
+}
+
+/// This is a crude Sass port webkits cubic-bezier-webkits function.
+/// Will return a "solved" cubic-bezier function for any given `$x`.
+/// @author Mike Riethmuller
+/// @group math
+/// @param {Number} $p1x
+/// @param {Number} $p1y
+/// @param {Number} $p2x
+/// @param {Number} $p2y
+/// @param {Number} $x
+/// @link https://madebymike.com.au/writing/precise-control-responsive-typography/
+///
+@function solve-cubic-bezier($p1x, $p1y, $p2x, $p2y, $x) {
+    $cy: 3 * $p1y;
+    $by: 3 * ($p2y - $p1y) - $cy;
+    $ay: 1 - $cy - $by;
+    $t: solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x);
+    @return (($ay * $t + $by) * $t + $cy) * $t;
+}
+
+/// Solves a bezier's `$x` for a given cubic-bezier set.
+/// @author Mike Riethmuller
+/// @group math
+/// @param {Number} $p1x
+/// @param {Number} $p1y
+/// @param {Number} $p2x
+/// @param {Number} $p2y
+/// @param {Number} $x
+///
+@function solve-bezier-x($p1x, $p1y, $p2x, $p2y, $x) {
+    $cx: 3 * $p1x;
+    $bx: 3 * ($p2x - $p1x) - $cx;
+    $ax: 1 - $cx - $bx;
+
+    $t0: 0;
+    $t1: 1;
+    $t2: $x;
+    $x2: 0;
+    $res: 1000;
+
+    @while ($t0 < $t1 or $break) {
+        $x2: (($ax * $t2 + $bx) * $t2 + $cx) * $t2;
+        @if (abs($x2 - $x) < $res) {
+            @return $t2;
+        }
+        @if ($x > $x2) {
+            $t0: $t2;
+        } @else {
+            $t1: $t2;
+        }
+        $t2: ($t1 - $t0) * 0.5 + $t0;
+    }
+
+    @return $t2;
+}
+
+/// Linear interpolation
+/// @link https://en.wikipedia.org/wiki/Linear_interpolation
+/// @group math
+/// @param {number} $a
+/// @param {number} $b
+/// @param {number} $t
+///
+@function lerp($a, $b, $t) {
+    @return $a + ($b - $a) * $t;
+}
+
+/// Get the golden ratio from `$base`.
+/// @group Math
+/// @param {Number} $base [1]
+/// @returns {number}
+///
+@function golden($base: 1) {
+    @return (1/2 + sqrt(5) / 2) * $base;
+}
+
+/// @param $angle
+/// @group Math
+///
+@function rad($angle) {
+    $unit: unit($angle);
+    $unitless: $angle / ($angle * 0 + 1);
+    // If the angle has 'deg' as unit, convert to radians.
+    @if $unit == deg {
+        $unitless: $unitless / 180 * $pi;
+    }
+    @return $unitless;
+}
+
+/// @alias rad
+/// @param $angle
+/// @group Math
+///
+@function angle-to-rad($angle) {
+    @return rad($angle);
+}
+
+// Unused functions
+// ------------------------------------
+// Hyperbolic sine
+// @param $number
+// @group Math
+// @function sinh($number) {
+//     $top: exponent($e, (2 * $number)) - 1;
+//     $bottom: 2 * exponent($e, $number);
+//     @return  $top / $bottom;
+// }
+
+// Determines the Cosine of an angle.
+// @group Math
+// @param $angle
+// @returns {number}
+// @function cos($angle) {
+//     $cos: 0;
+//     $angle: rad($angle);
+//     // Iterate a bunch of times.
+//     @for $i from 0 through 10 {
+//         $cos: $cos + pow(-1, $i) * pow($angle, 2 * $i) / fact(2 * $i);
+//     }
+//     @return $cos;
+// }
