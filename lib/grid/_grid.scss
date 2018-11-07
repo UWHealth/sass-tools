@@ -58,18 +58,40 @@
     $flex: $grid-flex,
     $inline-block: $grid-inline-block,
     $floats: $grid-floats,
-    $bem: $grid-bem-naming
+    $bem: $grid-bem-naming,
+    $format: 'grid{__}{%child%}{--}{%modifier%}'
 ) {
     // Allow for BEM naming instead of snake-case
     $child: '_';
     $mod: '_';
 
-    @if $bem {
+    @if $bem == true {
         $child: '__';
         $mod: '--';
+        $format: '{%block%}{__}{%child%}{--}{%modifier%}';
     }
 
+    $format: if(
+        variable-exists('grid-class-format'),
+        $grid-class-format,
+        $format
+    );
+
     $class-type: if($silent, '%', '.');
+    // Preprocess the grid class name
+    $format: _interpolate-class-name(
+        $class-type + $format,
+        (
+            'block': 'grid',
+        )
+    );
+    $grid-child: _class(
+        $format,
+        (
+            child: 'item',
+            modifier: '',
+        )
+    );
 
     %grid_reset,
     %grid--reset {
@@ -86,17 +108,16 @@
     //    $GRID SETUP
     //*------------------------------------
 
-    #{$class-type}grid {
+    #{_class($format, (child: '', modifier: ''))} {
         @include grid-row();
     }
 
-    #{$class-type}grid#{$child}item {
+    #{$grid-child} {
         @include grid-item(12, 12);
     }
 
     // Special class for grid items that need to behave like both grids and grid__items.
-    #{$class-type}grid#{$child}item#{$mod}reset,
-    #{$class-type}grid#{$mod}reset#{$child}item {
+    #{_class($format, (child: 'item', modifier: 'reset'))} {
         @include grid-row();
         margin-left: 0;
         width: 100%;
@@ -107,11 +128,12 @@
     // Reversed grids allow you to structure your source in the opposite order to
     // how your rendered layout will appear. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}reverse {
+    #{_class($format, (child: '', modifier: 'reverse'))} {
         @if $floats {
             @extend %grid--clearfix;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$class-type}grid#{$child}item,
+            & > #{$grid-child} {
                 float: right;
             }
         }
@@ -119,7 +141,7 @@
             direction: rtl;
             text-align: left;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-child} {
                 direction: ltr;
                 text-align: left;
             }
@@ -129,11 +151,11 @@
     //
     // Align the entire grid to the right. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}right {
+    #{_class($format, (child: '', modifier: 'right'))} {
         @if $inline-block {
             text-align: right;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-child} {
                 text-align: left;
             }
         }
@@ -145,7 +167,7 @@
     // Centered grids align grid items centrally without needing to use push or pull
     // classes. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}center {
+    #{_class($format, (child: '', modifier: 'center'))} {
         @if $flex {
             justify-content: center;
         }
@@ -153,7 +175,7 @@
         @if $inline-block {
             text-align: center;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-child} {
                 text-align: left;
             }
         }
@@ -163,16 +185,18 @@
     // Align grid cells vertically (`.grid--middle` or `.grid--bottom`). Extends
     // `.grid`.
     //
-    #{$class-type}grid#{$mod}middle {
+    #{_class($format, (child: '', modifier: 'middle'))} {
+        & > #{$grid-child},
         & > #{$class-type}grid#{$child}item {
+            vertical-align: middle;
             @if $flex {
                 align-self: center;
             }
-            vertical-align: middle;
         }
     }
 
-    #{$class-type}grid#{$mod}bottom {
+    #{_class($format, (child: '', modifier: 'bottom'))} {
+        & > #{$grid-child},
         & > #{$class-type}grid#{$child}item {
             @if $flex {
                 align-self: flex-end;
@@ -184,10 +208,11 @@
     // Gutterless grids have all the properties of regular grids, minus any spacing.
     // Extends `.grid`.
 
-    #{$class-type}grid#{$mod}full {
+    #{_class($format, (child: '', modifier: 'full'))} {
         margin-left: 0;
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$grid-child},
+        & > #{$class-type}grid#{$child}item {
             padding-left: 0;
         }
     }
@@ -195,10 +220,11 @@
     //
     // Create grids with narrower gutters. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}narrow {
+    #{_class($format, (child: '', modifier: 'narrow'))} {
         @include type-space(margin-left, -0.5, $unit: $gutter);
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$grid-child},
+        & > #{$class-type}grid#{$child}item {
             @include type-space(padding-left, 0.5, $unit: $gutter);
         }
     }
@@ -206,10 +232,10 @@
     //
     // Create grids with wider gutters. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}wide {
+    #{_class($format, (child: '', modifier: 'wide'))} {
         @include type-space(margin-left, -2, $unit: $gutter);
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$grid-child} {
             @include type-space(padding-left, 2, $unit: $gutter);
         }
     }
@@ -217,7 +243,7 @@
     //
     // Cause layout items to take up a non-explicit amount of width.
     //
-    #{$class-type}grid#{$mod}auto {
+    #{_class($format, (child: '', modifier: 'auto'))} {
         @if $inline-block {
             text-align: justify;
 
@@ -229,8 +255,7 @@
             }
         }
 
-        & > #{$class-type}grid#{$child}item,
-        #{$class-type}grid#{$child}item#{$mod}auto {
+        & > #{$grid-child} {
             width: auto;
 
             @if $inline-block {
@@ -371,20 +396,28 @@
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin width-classes($silent: $grid-silent-classes, $important: false) {
+    $format: if(
+        variable-exists('width-class-format'),
+        $width-class-format,
+        'width-{%numerator%}\\/{%denominator%}{\\@}{%breakpoint%}'
+    );
     //Include flex-basis (and max-width) for flex-box grids
-
     $column-props: if($grid-flex, ('width' 'max-width' 'flex-basis'), 'width');
 
-    @include width-setup('', $silent, $column-props, $important);
+    @include width-setup(
+        '', $silent, $column-props, $important,
+        $format: _interpolate-class-name($format, (breakpoint: ''))
+    );
 
     // Our responsive classes, if we have enabled them.
     @each $name in $breakpoint-has-widths {
         @include media-query($name) {
             @include width-setup(
-                '#{$name}#{$breakpoint-namespace-character}',
+                '',
                 $silent,
                 $column-props,
-                $important
+                $important,
+                $format: _interpolate-class-name($format, (breakpoint: $name))
             );
         }
     }
@@ -395,15 +428,28 @@
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin push-classes($silent: $grid-silent-classes, $important: false) {
-    @include width-setup($grid-push-namespace, $silent, 'left', $important);
+    $format: if(
+        variable-exists('push-class-format'),
+        $push-class-format,
+        'push-{%numerator%}\\/{%denominator%}{\\@}{%breakpoint%}'
+    );
+
+    @include width-setup(
+        '',
+        $silent,
+        'left',
+        $important,
+        $format: _interpolate-class-name($format, (breakpoint: ''))
+    );
 
     @each $name in $breakpoint-has-push {
         @include media-query($name) {
             @include width-setup(
-                '#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}',
+                '',
                 $silent,
                 'left',
-                $important
+                $important,
+                $format: _interpolate-class-name($format, (breakpoint: $name))
             );
         }
     }
@@ -414,15 +460,24 @@
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin pull-classes($silent: $grid-silent-classes, $important: false) {
-    @include width-setup($grid-pull-namespace, $silent, 'right', $important);
+    $format: if(
+        variable-exists('pull-class-format'),
+        $pull-class-format,
+        'pull-{%numerator%}\\/{%denominator%}{\\@}{%breakpoint%}'
+    );
+    @include width-setup(
+        '', $silent, 'right', $important,
+        $format: _interpolate-class-name($format, (breakpoint: ''))
+    );
 
     @each $name in $breakpoint-has-pull {
         @include media-query($name) {
             @include width-setup(
-                '#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}',
+                '',
                 $silent,
                 'right',
-                $important
+                $important,
+                $format: _interpolate-class-name($format, (breakpoint: $name))
             );
         }
     }
