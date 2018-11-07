@@ -1,13 +1,28 @@
-// stylelint-disable
 //------------------------------------
 //      $SPACING UTILITIES
 //------------------------------------
 
-$_default-spacing-classes-config: (
+/// Utility spacing class configuration.
+///
+/// @type map
+/// @prop {map} $config [()]
+/// @prop {boolean} $config.silent [true] - Output silent classes?
+/// @prop {boolean} $config.important [false] - Make declarations important?
+/// @prop {string} $config.format [] - Class formatting. Accepts `property`, `direction`, `amount`, and `breakpoint`. See `format-class-name` for more information.
+/// @prop {map} $config.directions [('-t': 'top')] - Names and directions to append to class names.
+/// @prop {map} $config.amounts [('-2': 2)] - Names and values to multiply by each `unit`.
+/// @prop {map} $config.properties [('m': margin)] - Names for each property.
+/// @prop {boolean} $config.unit ['auto'] - What unit to multiply each 'amounts'. Passed directly to `type-space`.
+///
+/// @require format-class-name
+/// @group config
+///
+$spacing-classes: (
     silent: true,
     important: false,
+    format: 'u-{%property%}{%direction%}{%amount%}{\\@}{%breakpoint%}',
     properties: (
-        'm': margin,
+        'margin': margin,
     ),
     directions: (
         '': '',
@@ -16,99 +31,54 @@ $_default-spacing-classes-config: (
         '': 1,
     ),
     unit: 'auto',
-    format: '{%namespace%}{%class%}{%breakpoint-namespace%}{%breakpoint%}'
-);
+) !default;
 
-$spacing-classes: $_default-spacing-classes-config !default;
-
-/// Generates responsive spacing and padding classes. The `$namespace` argument is the media query's name, which will be appended to all generated classes. The `$config` argument is a map that allows JS-style arguments. Outputs class name as: `breakpoint_prefix_direction_amount`.
+/// Generates responsive spacing and padding classes.
 ///
-/// **`$config` Keys:**
-/// * `directions:` names and directions to append to class names .`('-t': 'top')`
-/// * `amounts:` Names and values to multiply by each `unit`. `('-2': 2)`
-/// * `properties:` Class names for each property. `('pad': padding)`
-/// * `silent:` boolean for outputting silent/non-silent classes.
-/// * `important:` Whether to output `!important` after each declaration.
-/// * `unit`: What unit to multiply each 'amounts'.
+/// @group utils
+/// @param {map} $config - same values as $spacing-classes
+/// @see $spacing-classes
 ///
-/// @param {string} $namespace [""] - a string to prepend to all spacing classes. Usually used for the media query's name that is calling this mixin.
-/// @param {map} $config [()]
-/// @param {map} $config.directions [('': '')]
-/// @param {map} $config.amounts [('': 1)]
-/// @param {map} $config.properties [('m': margin)]
-/// @param {boolean} $config.important [false]
-/// @param {boolean} $config.silent [true]
-/// @param {boolean} $config.unit ['auto']
-/// @param {string} $config.format ['{%namespace%}{%class%}{%breakpoint-namespace%}{%breakpoint%}']
-///
-@mixin _output-spacing-classes($namespace: '', $config: ()) {
-    //Merge the passed map with default values
-    $config: map-extend($_default-spacing-classes-config, $config);
-
-    // Convert map values to variables for
-    //    a better reading experience
-    $classtype: if(map-get($config, silent), unquote('%'), unquote('.'));
-    $properties: map-get($config, properties);
-    $directions: map-get($config, directions);
-    $amounts: map-get($config, amounts);
-    // Allow for legacy 'units' config property
-    $amounts: if(_is-set($amounts), $amounts, map-get($config, units));
-    $important: map-get($config, important);
-    $unit: map-get($config, unit);
-
-    // Check for null properties, set reasonable defaults
-    $properties: if(
-        _is-set($properties), $properties,
-        map-get($_default-spacing-classes-config, 'properties')
-    );
-    $directions: if(
-        _is-set($directions), $directions,
-        map-get($_default-spacing-classes-config, 'directions')
-    );
-    $amounts: if(
-        _is-set($amounts), $amounts,
-        map-get($_default-spacing-classes-config, 'amounts')
-    );
-    // stylelint-enable
-
+@mixin _output-spacing-classes($config: ()) {
     $class-name-list: ();
     $class-cache: ();
 
+    $classtype: if(map-get($config, silent), unquote('%'), unquote('.'));
+
     //Loop through base names, then amounts, then directions.
-    @each $given-name, $base-property in $properties {
-        @each $amount_name, $amount in $amounts {
-            @each $direction_name, $property-directions in $directions {
-                $class_name: format-class-names(
-                    map-get($config, 'format'),
-                    (
-                        'namespace': $namespace,
-                        'class': '#{$given-name}#{$direction_name}#{$amount_name}'
-                    )
-                );
-
-                $class_name: unquote(
-                    '#{$classtype}#{$class_name}'
-                );
-
-                //Skip if the padding is a negative value.
-                @if not(($base-property == 'padding') and ($amount < 0)) {
-                    $class-name-list: map-merge(
-                        $class-name-list,
+    @each $given-name, $base-property in map-get($config, 'properties') {
+        @each $amount-name, $amount in map-get($config, 'amounts') {
+            @each $direction-name,
+                $property-directions in map-get($config, 'directions')
+            {
+                $class_name: '#{$classtype}'+format-class-name(
+                        map-get($config, 'format'),
                         (
-                            $class_name: $amount,
+                            'class':
+                                '#{$given-name}#{$direction-name}#{$amount-name}',
+                            'direction': $direction-name,
+                            'amount': $amount-name,
+                            'property': $given-name,
                         )
                     );
+
+                // Skip if the padding is a negative value.
+                @if not(($base-property == 'padding') and ($amount < 0)) {
+                    //
+                    // Start class declaration
+                    //
                     #{$class_name} {
-                        //multi-direction
                         @each $direction in $property-directions {
                             $property: $base-property;
 
                             @if ($direction) and ($direction != '') {
-                                $property: $property + '-' + $direction;
+                                $property: '#{$property}-#{$direction}';
                             }
 
-                            $property-amount: '#{$property+$amount}';
+                            $property-amount: '#{$property}#{$amount}';
 
+                            // If this property and amount have been used before,
+                            // extend previous value instead of creating.
                             @if map-get($class-cache, $property-amount) {
                                 @extend #{map-get(
                                     $class-cache, $property-amount
@@ -117,7 +87,7 @@ $spacing-classes: $_default-spacing-classes-config !default;
                                 $class-cache: map-merge(
                                     $class-cache,
                                     (
-                                        $property-amount: $class_name
+                                        $property-amount: $class_name,
                                     )
                                 );
                                 //Using type-space mixin,
@@ -125,11 +95,21 @@ $spacing-classes: $_default-spacing-classes-config !default;
                                 @include type-space(
                                     $property,
                                     $amount,
-                                    $important,
-                                    $unit
+                                    map-get($config, 'important'),
+                                    map-get($config, 'unit')
                                 );
                             }
                         }
+                    }
+
+                    // Add to the registry if needed
+                    @if map-get($config, silent) and $debug-silent-classes {
+                        $class-name-list: map-merge(
+                            $class-name-list,
+                            (
+                                $class_name: $amount,
+                            )
+                        );
                     }
                 }
             }
@@ -152,40 +132,43 @@ $spacing-classes: $_default-spacing-classes-config !default;
 /// @group core
 ///
 /// @param {map} $breakpoints [$_all-breakpoints] - breakpoints to loop over.
-/// @param {string} $namespace [""] - string to prepend to all classes.
-/// @param {map} $config [()] - Passed to `_output-spacing-classes` mixin.
+/// @param {map} $config [$spacing-classes] - Passed to `_output-spacing-classes` mixin.
 ///
 @mixin spacing-classes(
     $breakpoints: map-keys($breakpoints),
-    $namespace: '',
-    $config: ()
+    $config: $spacing-classes
 ) {
-    $_defaults: (
-        silent: false,
-        format: '{%namespace%}{%class%}{%breakpoint-namespace%}{%breakpoint%}'
-    );
-    $config: map-extend($_defaults, $spacing-classes, $config, true);
-    $format: format-class-names(
+    $config: _merge-spacing-configs($config);
+    $format: _interpolate-class-name(
         map-get($config, 'format'),
-        ('breakpoint': '', 'breakpoint-namespace': '')
+        (
+            'breakpoint': '',
+        )
     );
     @include _output-spacing-classes(
-        $namespace,
-        map-merge($config, ('format': $format))
+        map-merge(
+            $config,
+            (
+                'format': $format,
+            )
+        )
     );
 
     @each $breakpoint in $breakpoints {
-        @include media-query($breakpoint) {
-            $format: format-class-names(
-                map-get($config, 'format'),
-                (
+        $format: _interpolate-class-name(
+            map-get($config, 'format'),
+            (
                 'breakpoint': $breakpoint,
-                'breakpoint-namespace': $breakpoint-namespace-character
-                )
-            );
+            )
+        );
+        @include media-query($breakpoint) {
             @include _output-spacing-classes(
-                $namespace,
-                map-merge($config, ('format': $format))
+                map-merge(
+                    $config,
+                    (
+                        'format': $format,
+                    )
+                )
             );
         }
     }
@@ -193,18 +176,64 @@ $spacing-classes: $_default-spacing-classes-config !default;
 
 /// @alias spacing-classes
 ///
-@mixin spacing-utilities-init(
-    $breakpoints: $_all-breakpoints,
-    $namespace: '',
-    $config: ()
-) {
-    @include spacing-classes($breakpoints, $namespace, $config);
+@mixin spacing-utilities-init($args...) {
+    @include spacing-classes($args...);
 }
 
 @function _is-set($value) {
-    @return ($value != null or length($value) != 0)
-    //     @return false;
-    // }
-    //
-    // @return true;
+    @return ($value != null or length($value) != 0);
+}
+
+@function _merge-spacing-configs($config) {
+    $_default-spacing-classes-config: (
+        silent: true,
+        important: false,
+        properties: (
+            'margin': margin,
+        ),
+        directions: (
+            '': '',
+        ),
+        amounts: (
+            '': 1,
+        ),
+        unit: 'auto',
+        format: 'u-{%property%}{%direction%}{-}{%amount%}{\\@}{%breakpoint%}',
+    );
+
+    $config: map-extend($_default-spacing-classes-config, $config);
+    $properties: map-get($config, properties);
+    $directions: map-get($config, directions);
+    $amounts: map-get($config, amounts);
+    // Allow for legacy 'units' config property
+    $amounts: if(_is-set($amounts), $amounts, map-get($config, units));
+    $important: map-get($config, important);
+    $unit: map-get($config, unit);
+
+    // Check for null properties, set reasonable defaults
+    $properties: if(
+        _is-set($properties),
+        $properties,
+        map-get($_default-spacing-classes-config, 'properties')
+    );
+    $directions: if(
+        _is-set($directions),
+        $directions,
+        map-get($_default-spacing-classes-config, 'directions')
+    );
+    $amounts: if(
+        _is-set($amounts),
+        $amounts,
+        map-get($_default-spacing-classes-config, 'amounts')
+    );
+
+    @return (
+        silent: map-get($config, 'silent'),
+        important: map-get($config, 'important'),
+        properties: $properties,
+        directions: $directions,
+        amounts: $amounts,
+        unit: map-get($config, 'unit'),
+        format: map-get($config, 'format')
+    );
 }
