@@ -48,12 +48,9 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 
 /// @alias grid-size
 /// @group grid
-@function columns(
-    $columns,
-    $context: $grid-columns,
-    $total-columns: $grid-columns
-) {
-    @return grid-size($columns, $context, $total-columns);
+///
+@function columns($args...) {
+    @return grid-size($args...);
 }
 
 /// Creates a width property with a percentage based on the `$columns / $total`. Also includes flex-based properties if `$grid-flex` is enabled.
@@ -72,73 +69,66 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 /// @alias grid-width
 /// @group grid
 ///
-@mixin width($columns, $total: $grid-columns) {
-    @include grid-width($columns, $total);
+@mixin width($args...) {
+    @include grid-width($args...);
 }
 
 /// Uses `$_human-readable-numerators` and `$_human-readable-denominators` to create percentages based on `$grid-columns`. `$property` accepts any property, as well as lists of properties.
+///
 /// @group grid
+///
 /// @param {string} $namespace [""] - String to put before grid classes.
 /// @param {boolean} $silent [$grid-silent-classes] - Use silent classes?
 /// @param {string} $property ["width"] - What property should these widths applied to?
 /// @param {boolean} $important [false] - Should `!important` be applied to properties?
 /// @param {string} $property ["width"] - What property should these widths applied to?
-
+///
 @mixin width-setup(
     $namespace: '',
     $silent: $grid-silent-classes,
     $property: 'width',
     $important: false,
     $columns: $grid-columns,
-    $space: if($grid-bem-naming, '-', '_')
+    $format: '{%numerator%}-{%denominator%}'
 ) {
-    // [1] Loop through the $grid-columns.
-    // [2] Loop through $divisor (same number as $grid-columns). This acts as the second number in our column fraction.
-    // [3a]Loop through $divisor before it decreases by 1 from the previous loop.
-    // [3b]After widths are defined, subtract 1 from $divisor.
-    // [4] Assign the numerator and denominator of our fraction to human-readable versions (e.g. three, four, third, quarter, etc.).
-    // [5] Check if the numerator equals 1 (one). If so, we keep our singular human-readable numerators and denominators (e.g. one_twelfth).
-    // [6] If the numerator is larger than 1(one), add an 's' to our selector (e.g. two_eighths).
-    //
-    // Same system used for pushes and pulls.
     $class-type: if($silent, '%', '.');
     $divisor: $columns;
     $class-name-list: ();
     $prefix: '#{$class-type}#{$namespace}';
     $important: if($important, '!important', '');
+    $format: '#{$class-type}#{$format}';
+    $space: '_';
 
-    //To prevent stuff like 12/12 (five-fifths, etc.), we need to declare 1/1 here
-    #{$prefix}one#{$space}whole {
+    //To prevent stuff like 12/12 (five-fifths, etc.),
+    // we need to declare 1/1 here
+    #{_class($format, (numerator: 'one', denominator: 'whole'))} {
         @each $type in $property {
             #{$type}: 100% #{$important};
         }
     }
 
     @for $i from 1 through $columns {
-        // [1]
-
         @while $divisor > 0 {
-            // [2]
-
             @for $dividen from 1 to $divisor {
-                // [3a]
-                //Create numerator (first number, e.g. 'two').
-                $numerator: nth($_human-readable-numerators, $dividen); // [4]
-
-                //Create denominator (second number, e.g. 'thirds').
+                // Assign the numerator and denominator of our fraction to human-readable versions (e.g. three, four, third, quarter, etc.)
+                $numerator: nth($_human-readable-numerators, $dividen);
                 $denominator: nth($_human-readable-denominators, $divisor);
 
-                //Divide first number(numerator) by second number(denominator).
+                // Divide first number(numerator) by second number(denominator).
                 $size: grid-size($dividen, $divisor);
 
-                //Create class name
-                $class-name: '#{$prefix}#{$numerator}#{$space}#{$denominator}';
-
-                //Pluralize anything other than ratios with a numerator of 1
-                @if $numerator != 'one' {
-                    // [5]
-                    $class-name: '#{$class-name}s'; // [6]
+                // Pluralize anything other than ratios with a numerator of 1
+                @if ($numerator != 'one') {
+                    $denominator: '#{$denominator}s';
                 }
+
+                $class-name: format-class-name(
+                    $format,
+                    (
+                        numerator: $numerator,
+                        denominator: $denominator,
+                    )
+                );
 
                 #{$class-name} {
                     @each $type in $property {
@@ -160,23 +150,24 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
                 }
             }
 
-            $divisor: $divisor - 1; //[3b]
+            $divisor: $divisor - 1;
         }
     }
 
     //Allow for fourths as an alias to quarters
-    #{$prefix}one#{$space}fourth {
-        @extend #{$prefix}one#{$space}quarter;
-    }
+    // #{$prefix}one#{$space}fourth {
+    //     @extend #{$prefix}one#{$space}quarter;
+    // }
+    //
+    // #{$prefix}two#{$space}fourths {
+    //     @extend #{$prefix}two#{$space}quarters;
+    // }
+    //
+    // #{$prefix}three#{$space}fourths {
+    //     @extend #{$prefix}three#{$space}quarters;
+    // }
 
-    #{$prefix}two#{$space}fourths {
-        @extend #{$prefix}two#{$space}quarters;
-    }
-
-    #{$prefix}three#{$space}fourths {
-        @extend #{$prefix}three#{$space}quarters;
-    }
-
+    // Add to silent class registry if asked for
     @if $silent and $debug-silent-classes {
         $class-name-list: map-merge(
             $class-name-list,
