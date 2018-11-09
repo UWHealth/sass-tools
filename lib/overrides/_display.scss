@@ -22,26 +22,36 @@ $_default-display-classes: (
 ///
 $display-classes: $_default-display-classes !default;
 
+/// Formatting for utility display classes.
+/// @see format-class-name
+///
+$display-class-format: 'display-{%display%}' '{\\@}{%breakpoint%}' !default;
+
 /// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-/// @param $namespace
 /// @param $silent
 /// @param $important
 /// @param $class-list
+/// @param $format
 ///
 @mixin _output-display-classes(
-    $namespace: '',
     $silent: false,
     $important: true,
-    $class-list: $display-classes
+    $class-list: $display-classes,
+    $format: $display-class-format
 ) {
-    $classtype: if($silent, unquote('%'), unquote('.'));
+    $class-type: if($silent, unquote('%'), unquote('.'));
     $important_str: if($important, ' !important', '');
     $display-lookup: null;
     $display-registry: ();
     $class-name-list: ();
 
     @each $name, $display in $class-list {
-        $class-name: #{$classtype}#{$namespace}#{$name};
+        $class-name: #{class-type}#{format-class-name(
+                $format,
+                (
+                    'display': $display,
+                )
+            )};
         // Check for existence of a previous class using the same display
         $display-lookup: index($display-registry, $display);
         // If it exists, look it up in the map and extend that value.
@@ -49,7 +59,7 @@ $display-classes: $_default-display-classes !default;
             $extender: nth(nth($class-list, $display-lookup), 1);
 
             #{$class-name} {
-                @extend #{$classtype}#{$namespace}#{$extender};
+                @extend #{$class-type}#{$namespace}#{$extender};
             }
         } @else {
             #{$class-name} {
@@ -98,7 +108,8 @@ $display-classes: $_default-display-classes !default;
     $breakpoints: map-keys($breakpoints),
     $namespace: '',
     $silent: false,
-    $important: false
+    $important: false,
+    $format: $display-class-format
 ) {
     $classes: $display-classes;
 
@@ -108,17 +119,34 @@ $display-classes: $_default-display-classes !default;
         $classes: map-extend($_default-display-classes, $display-classes, true);
     }
 
-    @include _output-display-classes($namespace, $silent, $important, $classes);
+    @include _output-display-classes(
+        $silent,
+        $important,
+        $classes,
+        $format:
+            format-class-list(
+                $format,
+                (
+                    breakpoint: '',
+                )
+            )
+    );
 
     @each $name in $breakpoints {
         @include media-query($name) {
-            $name: $namespace + $name;
+            $name: $name;
 
             @include _output-display-classes(
-                '#{$name}#{$breakpoint-namespace-character}',
                 $silent,
                 $important,
-                $classes
+                $classes,
+                $format:
+                    format-class-list(
+                        $format,
+                        (
+                            breakpoint: $name,
+                        )
+                    )
             );
         }
     }
@@ -126,11 +154,6 @@ $display-classes: $_default-display-classes !default;
 
 /// @alias display-classes
 ///
-@mixin display-utilities-init(
-    $breakpoints: map-keys($breakpoints),
-    $namespace: '',
-    $silent: false,
-    $important: false
-) {
-    @include display-classes($breakpoints, $namespace, $silent, $important);
+@mixin display-utilities-init($args...) {
+    @include display-classes($args...);
 }

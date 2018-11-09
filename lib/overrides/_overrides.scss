@@ -11,8 +11,8 @@
 ///
 /// @group core
 ///
-/// @example
-///  //SCSS
+/// @example scss
+///
 ///  @include creat-overrides(
 ///      (
 ///          "class-name": (
@@ -25,7 +25,7 @@
 ///      ('smalls', 'bigs')
 ///  );
 ///
-///  //CSS
+///  //CSS output
 ///  .float-left {
 ///      float: left !important;
 ///   }

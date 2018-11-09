@@ -38,19 +38,6 @@ $grid-pull: true !default;
 /// @group config
 $grid-width-namespace: if($grid-bem-naming, 'w-', '') !default;
 
-/// String to include before grid push classes.
-/// @group config
-$grid-push-namespace: if($grid-bem-naming, 'push--', 'push_') !default;
-
-/// String to include before grid pull classes.
-/// @group config
-$grid-pull-namespace: if($grid-bem-naming, 'pull--', 'pull_') !default;
-
-/// The character used to separate breakpoints when generating responsive classes. For instance `.smalls\@one-fourth`, where `'\\@'` is the namespace character.
-///@group config
-///@type string
-$breakpoint-namespace-character: '\\@' !default;
-
 /// List of media-queries (as defined in `$breakpoints`) that should have width utility classes.
 ///@group config
 ///@type list

@@ -20,7 +20,9 @@
 $spacing-classes: (
     silent: true,
     important: false,
-    format: 'u-{%property%}{%direction%}{%amount%}{\\@}{%breakpoint%}',
+    format: (
+        'u-{%property%}' '{%direction%}{%amount%}' '{\\@}{%breakpoint%}',
+    ),
     properties: (
         'margin': margin,
     ),
@@ -51,7 +53,8 @@ $spacing-classes: (
             @each $direction-name,
                 $property-directions in map-get($config, 'directions')
             {
-                $class_name: '#{$classtype}'+format-class-name(
+                $class_name: $classtype +
+                    format-class-name(
                         map-get($config, 'format'),
                         (
                             'class':
@@ -59,7 +62,8 @@ $spacing-classes: (
                             'direction': $direction-name,
                             'amount': $amount-name,
                             'property': $given-name,
-                        )
+                        ),
+                        true
                     );
 
                 // Skip if the padding is a negative value.
@@ -139,7 +143,7 @@ $spacing-classes: (
     $config: $spacing-classes
 ) {
     $config: _merge-spacing-configs($config);
-    $format: _interpolate-class-name(
+    $format: format-class-name(
         map-get($config, 'format'),
         (
             'breakpoint': '',
@@ -155,7 +159,7 @@ $spacing-classes: (
     );
 
     @each $breakpoint in $breakpoints {
-        $format: _interpolate-class-name(
+        $format: format-class-name(
             map-get($config, 'format'),
             (
                 'breakpoint': $breakpoint,
@@ -198,7 +202,8 @@ $spacing-classes: (
             '': 1,
         ),
         unit: 'auto',
-        format: 'u-{%property%}{%direction%}{-}{%amount%}{\\@}{%breakpoint%}',
+        format: 'u-{%property%}' '{%direction%}' '{-}{%amount%}'
+            '{\\@}{%breakpoint%}',
     );
 
     $config: map-extend($_default-spacing-classes-config, $config);

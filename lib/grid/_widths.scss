@@ -77,14 +77,12 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 ///
 /// @group grid
 ///
-/// @param {string} $namespace [""] - String to put before grid classes.
 /// @param {boolean} $silent [$grid-silent-classes] - Use silent classes?
 /// @param {string} $property ["width"] - What property should these widths applied to?
 /// @param {boolean} $important [false] - Should `!important` be applied to properties?
 /// @param {string} $property ["width"] - What property should these widths applied to?
 ///
 @mixin width-setup(
-    $namespace: '',
     $silent: $grid-silent-classes,
     $property: 'width',
     $important: false,
@@ -92,16 +90,16 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     $format: '{%numerator%}-{%denominator%}'
 ) {
     $class-type: if($silent, '%', '.');
+    $_: $class-type;
     $divisor: $columns;
     $class-name-list: ();
     $prefix: '#{$class-type}#{$namespace}';
     $important: if($important, '!important', '');
-    $format: '#{$class-type}#{$format}';
     $space: '_';
 
     //To prevent stuff like 12/12 (five-fifths, etc.),
     // we need to declare 1/1 here
-    #{_class($format, (numerator: 'one', denominator: 'whole'))} {
+    #{$_}#{_class($format, (numerator: 'one', denominator: 'whole'))} {
         @each $type in $property {
             #{$type}: 100% #{$important};
         }
@@ -122,15 +120,16 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
                     $denominator: '#{$denominator}s';
                 }
 
-                $class-name: format-class-name(
+                $class-name: _class(
                     $format,
                     (
+                        class: '#{$numerator}-#{$denominator}',
                         numerator: $numerator,
                         denominator: $denominator,
                     )
                 );
 
-                #{$class-name} {
+                #{$_}#{$class-name} {
                     @each $type in $property {
                         @if index('top' 'right' 'bottom' 'left', $type) != null
                         {
@@ -154,24 +153,20 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
         }
     }
 
-    //Allow for fourths as an alias to quarters
-    // #{$prefix}one#{$space}fourth {
-    //     @extend #{$prefix}one#{$space}quarter;
-    // }
-    //
-    // #{$prefix}two#{$space}fourths {
-    //     @extend #{$prefix}two#{$space}quarters;
-    // }
-    //
-    // #{$prefix}three#{$space}fourths {
-    //     @extend #{$prefix}three#{$space}quarters;
-    // }
-
     // Add to silent class registry if asked for
     @if $silent and $debug-silent-classes {
         $class-name-list: map-merge(
             $class-name-list,
-            (#{$prefix}one#{$space}whole: 100%)
+            (
+                #{_class(
+                        $format,
+                        (
+                            numerator: 'one',
+                            denominator: 'whole',
+                        )
+                    )}:
+                    100%
+            )
         );
         $_silent-class-registry: silents-register(
             $class-name-list,
