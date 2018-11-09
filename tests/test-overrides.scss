@@ -10,6 +10,7 @@ $breakpoint-has-display-classes: ('smalls', 'bigs', 'desk');
 
 // If $breakpoint-has-spacing-classes is false, this can be ignored
 $spacing-classes: (
+    format: ('{%property%}' '{%direction%}' '{-}{%amount%}' '{\\@\\[}{%breakpoint%}{\\]}'),
     directions: (
         '': '',
         '-t': 'top',
@@ -46,3 +47,4 @@ $debug-fonts: false;
 
 @include spacing-classes;
 @include display-classes;
+// @include grid-init;
