@@ -6,655 +6,6 @@
 // Created to be portable to any project.
 // ***************************************************
 
-/// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
-/// @param {string} $name - function name
-/// @link https://github.com/kaelig/sass-safe-get-function
-/// @group utils
-@function safe-get-function($name) {
-    @if function-exists("get-function") {
-        @return get-function($name);
-    } @else {
-        @return $name;
-    }
-}
-
-/// Wrapper for Sass' internal `call` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
-/// @param {string} $name - function name
-/// @param {any} $args... - function arguments
-/// @group utils
-@function safe-call($name, $args...) {
-    @return call(safe-get-function($name), $args...);
-}
-
-/// Holds all cached function calls.
-/// @type Map
-$_cached-values: ();
-
-/// Memoize (cache) a function's return values and arguments. Speeds up processing on intensive functions that get called many times (with the same arguments).
-/// _NOTE: This can actually **increase** processing time if used too often or on simple functions as the lookup process isn't free. Every cached value is unique._
-/// @param {string} $function-name
-/// @param {} $args... - Arguments to be passed to the function
-/// @group utils
-@function cache($function-name, $args...) {
-    $cache-map: "#{$function-name}, #{$args}";
-    $value: map-get($_cached-values, $cache-map);
-
-    @if $value != null and $value != "" {
-        @return $value;
-    } @else {
-        $result: call(safe-get-function(#{$function-name}), $args...);
-        $_cached-values: map-merge(
-            $_cached-values,
-            (
-                $cache-map: $result
-            )
-        ) !global;
-        @return $result;
-    }
-}
-
-/// Remove lengths (`px`, `em`, `rem`, etc.) from a value. Usually a variable. This is sometimes required because Sass cannot calculate incompatible units (`px * rem` for instance).
-/// @param {Length} $value
-/// @group utils
-@function strip-units($value) {
-    @return $value / ($value * 0 + 1);
-}
-
-/// Changes percent value to decimal.
-/// @param {Number} $percentage
-/// @group utils
-@function percentage-to-decimal($percentage) {
-    @if unit($percentage) == "%" {
-        $percentage: ($percentage/100%);
-    }
-    @return $percentage;
-}
-
-/// Converts pixel dimensions to viewport width (vw) dimensions.
-/// @param {number} $pixels
-/// @returns {number}
-/// @group utils
-@function px-to-vw($pixels) {
-    $vw-context: ($max-site-width * 0.01) * 1px;
-    @return ($pixels / $vw-context) * 1vw;
-}
-
-/// Converts a list to a string with an optional separator.
-/// @param {list} $list
-/// @param {string} $separator [',']
-/// @returns {string}
-/// @group utils
-@function list-to-str($list, $separator: ",") {
-    $string: "";
-
-    @for $i from 1 through length($list) {
-        $string: str-append($string, #{nth($list, $i)});
-
-        @if $i != length($list) {
-            $string: str-append($string, $separator);
-        }
-    }
-
-    @return $string;
-}
-
-/// Casts a string into a number.
-/// @author Hugo Giraudel
-/// @group utils
-///
-/// @param {String | Number} $value - Value to be parsed
-/// @return {Number}
-///
-@function str-to-number($value) {
-    @if type-of($value) == "number" {
-        @return $value;
-    } @else if type-of($value) != "string" {
-        @warn 'Value for `to-number` should be a number or a string.';
-    }
-
-    $result: 0;
-    $digits: 0;
-    $minus: str-slice($value, 1, 1) == "-";
-    $numbers: (
-        "0": 0,
-        "1": 1,
-        "2": 2,
-        "3": 3,
-        "4": 4,
-        "5": 5,
-        "6": 6,
-        "7": 7,
-        "8": 8,
-        "9": 9
-    );
-
-    @for $i from if($minus, 2, 1) through str-length($value) {
-        $character: str-slice($value, $i, $i);
-
-        @if not(index(map-keys($numbers), $character) or $character == ".") {
-            @return to-length(
-                if($minus, -$result, $result),
-                str-slice($value, $i)
-            );
-        }
-
-        @if $character == "." {
-            $digits: 1;
-        } @else if $digits == 0 {
-            $result: $result * 10 + map-get($numbers, $character);
-        } @else {
-            $digits: $digits * 10;
-            $result: $result + map-get($numbers, $character) / $digits;
-        }
-    }
-
-    @return if($minus, -$result, $result);
-}
-
-/// Add `$unit` to `$value`
-/// @author Hugo Giraudel
-/// @group utils
-///
-/// @param {Number} $value - Value to add unit to
-/// @param {String} $unit - String representation of the unit
-/// @return {Number} - `$value` expressed in `$unit`
-///
-@function to-length($value, $unit) {
-    $units: (
-        "px": 1px,
-        "cm": 1cm,
-        "mm": 1mm,
-        "%": 1%,
-        "ch": 1ch,
-        "pc": 1pc,
-        "in": 1in,
-        "em": 1em,
-        "rem": 1rem,
-        "pt": 1pt,
-        "ex": 1ex,
-        "vw": 1vw,
-        "vh": 1vh,
-        "vmin": 1vmin,
-        "vmax": 1vmax
-    );
-
-    @if not index(map-keys($units), $unit) {
-        @warn 'Invalid unit `#{$unit}`.';
-    }
-
-    @return $value * map-get($units, $unit);
-}
-
-/// Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
-/// @group utils
-/// @param {any} $value
-/// @param {string} $keep - accepts `'keys'`, `'values'`, or `'both'` for map conversion.
-///
-@function to-list($value, $keep: "both") {
-    $keep: if(index("keys" "values" "both", $keep), $keep, "both");
-
-    @if type-of($value) == "map" {
-        $keys: ();
-        $values: ();
-
-        @each $key, $val in $value {
-            $keys: append($keys, $key);
-            $values: append($values, $val);
-        }
-
-        @if $keep == "keys" {
-            @return $keys;
-        } @else if $keep == "values" {
-            @return $values;
-        } @else {
-            @return zip($keys, $values);
-        }
-    }
-
-    @return if(type-of($value) != list, ($value), $value);
-}
-
-/// Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean. Delegates methods to the appropriate function based on variable type.
-/// @group utils
-/// @param {map | list | string} $data - the data you're searching through.
-/// @param {} $value - the value you're searching for.
-///
-@function contains($data, $value) {
-    @if type-of($data == "map") {
-        @return map-has-keys($data, $value);
-    } @else if type-of($data == "list") {
-        @return list-contains($data, $value);
-    } @else if type-of($data == "string") {
-        @return str-contains($data, $value);
-    }
-}
-
-/// Converts a map or list to a string (`('this', 'and', 'this')` becomes `'this,and,this'`).
-/// @group utils
-/// @param {list | map} $list
-/// @param {string} $separator [","]
-///
-@function str-join($list, $separator: ",") {
-    @return list-to-str($list, $separator);
-}
-
-/// Checks if a `$string` contains a `$value`. Optionally accepts a start (`$pos`) positon.
-/// @group utils
-/// @param {string} $string
-/// @param {string} $value
-/// @param {number} $pos [0]
-///
-@function str-contains($string, $value, $pos: 0) {
-    $string: str-slice($string, $pos);
-
-    @if str-index($string, $value) != null {
-        @return true;
-    } @else {
-        @return false;
-    }
-}
-
-/// Adds one string to another (e.g. `str-append('hello', 'world')` becomes `hello world`).
-/// @group utils
-/// @param {string} $string
-/// @param {string} $insert
-///
-@function str-append($string, $insert) {
-    $string: if($string == null, "", $string);
-
-    @return str-insert($string, $insert, str-length($string) + 1);
-}
-
-/// Replaces a value in a string with another.
-/// @group utils
-///
-@function str-replace($string, $search, $replace: "") {
-    $index: str-index($string, $search);
-
-    @if $index {
-        @return str-slice($string, 1, $index - 1) + $replace +
-            str-replace(
-                str-slice($string, $index + str-length($search)),
-                $search,
-                $replace
-            );
-    }
-
-    @return $string;
-}
-
-/// Split a string into a list of strings
-/// @link https://gist.github.com/danielpchen/3677421ea15dcf2579ff
-/// @param {string} $string - the string to be split
-/// @param {string} $delimiter - the boundary string
-/// @return {list} - the result list
-///
-@function str-to-list($string, $delimiter) {
-    $result: ();
-    @if $delimiter == "" {
-        @for $i from 1 through str-length($string) {
-            $result: append($result, str-slice($string, $i, $i));
-        }
-        @return $result;
-    }
-    $exploding: true;
-    @while $exploding {
-        $d-index: str-index($string, $delimiter);
-        @if $d-index {
-            @if $d-index > 1 {
-                $result: append($result, str-slice($string, 1, $d-index - 1));
-                $string: str-slice($string, $d-index + str-length($delimiter));
-            } @else if $d-index == 1 {
-                $string: str-slice(
-                    $string,
-                    1,
-                    $d-index + str-length($delimiter)
-                );
-            } @else {
-                $result: append($result, $string);
-                $exploding: false;
-            }
-        } @else {
-            $result: append($result, $string);
-            $exploding: false;
-        }
-    }
-    @return $result;
-}
-
-/// @alias str-to-list
-/// @group utils
-///
-@function explode($string, $delimiter) {
-    @return str-to-list($string, $delimiter);
-}
-
-/// Check if a list contains a value
-/// @group utils
-/// @param $list
-/// @param $value
-///
-@function list-contains($list, $value) {
-    @return not not index($list, $value);
-}
-
-/// Reverse a List
-/// @group utils
-/// @param $list
-/// @param $recursive [false]
-///
-@function list-reverse($list, $recursive: false) {
-    $result: ();
-
-    @for $i from length($list) * -1 through -1 {
-        @if type-of(nth($list, abs($i))) == list and $recursive {
-            $result: append($result, reverse(nth($list, abs($i)), $recursive));
-        } @else {
-            $result: append($result, nth($list, abs($i)));
-        }
-    }
-
-    @return $result;
-}
-
-/// List print
-/// @group utils
-/// @param $list
-/// @param $depth [1]
-///
-@function list-print($list, $depth: 1) {
-    $output: "";
-
-    @if $depth > 0 {
-        @for $i from 1 through $depth {
-            $output: $output + $list;
-        }
-    }
-
-    @return $output;
-}
-
-/// Add to a deeply nested map key. Accepts any number of keys, but the final value is the new key.
-/// @group utils
-/// @param {map} $map
-/// @param {string} $keys... - final argument is considered the value to the be set.
-///
-@function map-deep-set($map, $keys... /*, $value */) {
-    $map-list: ($map);
-    $result: null;
-
-    @if length($keys) == 2 {
-        @return map-merge(
-            $map,
-            (
-                nth($keys, 1): nth($keys, -1)
-            )
-        );
-    }
-
-    @for $i from 1 through length($keys) - 2 {
-        $map-list: append(
-            $map-list,
-            map-get(nth($map-list, -1), nth($keys, $i))
-        );
-    }
-
-    @for $i from length($map-list) through 1 {
-        $result: map-merge(
-            nth($map-list, $i),
-            (
-                nth($keys, $i):
-                    if($i == length($map-list), nth($keys, -1), $result)
-            )
-        );
-    }
-
-    @return $result;
-}
-
-/// Finds a map's depth at its deepest point. Useful for debugging maps.
-/// @group utils
-/// @param {map} $map
-/// @returns {number}
-///
-@function map-depth($map) {
-    $level: 1;
-
-    @each $key, $value in $map {
-        @if type-of($value) == "map" {
-            $level: max(map-depth($value) + 1, $level);
-        }
-    }
-
-    @return $level;
-}
-
-/// Determine whether a map contains certain keys.
-/// @group utils
-/// @param {map} $map
-/// @param {string | list} $keys...
-/// @returns {boolean}
-///
-@function map-has-keys($map, $keys...) {
-    @each $key in $keys {
-        @if not map-has-key($map, $key) {
-            @return false;
-        }
-    }
-
-    @return true;
-}
-
-/// @alias map-has-keys
-/// @group utils
-///
-@function map-contains-keys($map, $keys...) {
-    @return map-has-keys($map, $keys);
-}
-
-/// Check for deep map keys
-/// @group utils
-/// @param {map} $map
-/// @param {string | list} $keys...
-///
-@function map-has-nested-keys($map, $keys...) {
-    @each $key in $keys {
-        @if not map-has-key($map, $key) {
-            @return false;
-        }
-
-        $map: map-get($map, $key);
-    }
-
-    @return true;
-}
-
-/// @alias map-has-nested-keys
-/// @group utils
-///
-@function map-contains-nested-keys($map, $keys...) {
-    @return map-has-nested-keys($map, $keys);
-}
-
-/// Get map value at nested or 'deep' key, per $keys list
-/// @group utils
-/// @param {map} $map
-/// @param {string|list} $keys...
-///
-@function map-get-nested($map, $keys...) {
-    @each $key in $keys {
-        @if type-of($map) != "map" {
-            @return $map;
-        }
-        $map: map-get($map, $key);
-    }
-    @return $map;
-}
-
-/// Merges multiple maps. Similar to jQuery's `extend`.
-/// Takes two maps and merges their differences.
-/// @group utils
-/// @param {map} $map
-/// @param {map|list} $maps... - final value can be `true` for "deep" merging
-///
-@function map-extend($map, $maps... /*, $deep */) {
-    $last: nth($maps, -1);
-    $deep: $last == true;
-    $max: if($deep, length($maps) - 1, length($maps));
-
-    // Loop through all maps in $maps...
-    @for $i from 1 through $max {
-        // Store current map
-        $current: nth($maps, $i);
-
-        // If not in deep mode, simply merge current map with map
-        @if not $deep {
-            $map: map-merge($map, $current);
-        } @else {
-            // If in deep mode, loop through all tuples in current map
-            @each $key, $value in $current {
-                // If value is a nested map and same key from map is a nested map as well
-                @if type-of($value) ==
-                    "map" and
-                    type-of(map-get($map, $key)) ==
-                    "map"
-                {
-                    // Recursive extend
-                    $value: map-extend(map-get($map, $key), $value, true);
-                }
-
-                // Merge current tuple with map
-                $map: map-merge(
-                    $map,
-                    (
-                        $key: $value
-                    )
-                );
-            }
-        }
-    }
-
-    @return $map;
-}
-
-//Map depth-adder
-//-------------------------
-// Adds 'base'(or whatever initial key that's passed in) to a color map.
-// Used by color map generator function (colors/_colorfunctions)
-//--------------------------
-// 1. Check if map is less than or equal to the depth tolerance (default: 1).
-// 2. loops through all keys and values in the map.
-// 3. Make sure value isn't alreayd a map
-//   3a. If value is a map, then check to make sure $new-key is in the map
-//     3b. Duplicate first value of map (in case there are multiple)
-//     3c. Create new map with new-key and duplicated value
-// 4. Reformats those key-value pairs into a (key: (new-key: value ))
-// 5. Merges new depthy key-key-value back into the map.
-// 6. Returns the new map.
-
-/// Adds one level to a map using the new key to a map. Used by `generate_color_varations()`. (e.g. `(key: value, key: value)` becomes `(key:(new-key: value), key:(new-key: value))` )
-/// @group utils
-/// @param {map} $map
-/// @param {string} $new-key ['base']
-///
-@function map-add-depth($map, $new-key: "base") {
-    $formatted-key: ();
-    $new-map: "";
-
-    @each $key, $value in $map {
-        //[2]
-        $formatted-key: ();
-        @if type-of($value) != "map" {
-            //[3]
-            $formatted-key: (
-                $key: (
-                    $new-key: $value
-                )
-            ); //[4]
-        } @else if not map-has-key($value, $new-key) {
-            //[3a]
-            $duplicate-value: map-get($value, nth(map-keys($value), 1)); //[3b]
-            $duplicate-map: (
-                $new-key: $duplicate-value
-            ); //[3c]
-
-            $formatted-key: (
-                $key: (
-                    map-merge($value, $duplicate-map)
-                )
-            ); //[4]
-        }
-        $map: map-merge($map, $formatted-key); //[5]
-    }
-
-    @return $map; //[6]
-}
-
-/// Print maps into a string
-/// @group utils
-/// @param {map} $map
-/// Useful for debugging maps.
-/// @link https://github.com/lunelson/sass-maps-plus
-///
-@function map-inspect($map, $level: 1) {
-    $tab: "    ";
-    $cr: "
-";
-
-    @if type-of($map) != "map" {
-        @return "#{inspect($map)}";
-    }
-
-    $indent: list-print($tab, $level + 1);
-    $output: "{" + $cr + $indent;
-    $i: 1;
-
-    @each $key, $value in $map {
-        @if type-of($value) == "map" {
-            $output: $output + "#{$key}: #{map-inspect($value, $level+1)}";
-        } @else {
-            $output: $output + "#{$key}: #{$value}";
-        }
-
-        @if $i < length(map-keys($map)) {
-            $output: $output + "," + $cr + $indent;
-        }
-
-        $i: $i + 1;
-    }
-
-    $outdent: list-print($tab, $level);
-
-    @return $output + $cr + $outdent + "}";
-}
-
-/// @alias map-inspect
-/// @group utils
-///
-@function map-print($map, $level: 1) {
-    @return map-inspect($map, $level);
-}
-
-/// Add to silent classes registry
-/// @group utils
-///
-@function silents-register($map, $key) {
-    @if $debug-silent-classes {
-        @if map-get($_silent-class-registry, $key) == null {
-            $_silent-class-registry: map-merge(
-                $_silent-class-registry,
-                (
-                    $key: ()
-                )
-            ) !global;
-        }
-        $map: map-merge(map-get($_silent-class-registry, $key), $map);
-        @return map-deep-set($_silent-class-registry, $key, $map);
-    } @else {
-        @return null;
-    }
-}
-
 // Global math constants
 /// @group Math
 $PI: 3.1415926535897932384626433832795028841971693993751;
@@ -1038,7 +389,7 @@ $golden_ratio: golden();
 
 /// Get the golden ratio from `$base`.
 /// @group Math
-/// @param {} $base [1]
+/// @param {Number} $base [1]
 /// @returns {number}
 ///
 @function golden($base: 1) {
@@ -1090,6 +441,1095 @@ $golden_ratio: golden();
 //     }
 //     @return $cos;
 // }
+
+/// Changes percent value to decimal.
+/// @param {Number} $percentage
+/// @group utils
+///
+@function percentage-to-decimal($percentage) {
+    @if unit($percentage) == '%' {
+        $percentage: ($percentage/100%);
+    }
+    @return $percentage;
+}
+
+/// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
+/// @group core
+/// @param {Number} $pixels
+///
+@function px-to-rems($pixels, $base-size: $base-font-size) {
+    @if $pixels == 'auto' or $pixels == 'normal' {
+        @return $pixels;
+    }
+
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include units
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $base-size) * 1rem;
+
+    @return $pixels;
+}
+
+/// @alias px-to-rems
+///
+@function rems($args...) {
+    @return px-to-rems($args...);
+}
+
+/// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
+/// @group core
+/// @param {Number} $pixels
+/// @param {Number} $context [$base-font-size]
+///
+@function px-to-ems($pixels, $context: $base-font-size) {
+    @if (unitless($pixels)) {
+        $pixels: $pixels * 1px;
+    }
+
+    //If 0, don't include rems
+    @if $pixels == 0px {
+        @return 0;
+    }
+
+    $pixels: ($pixels / $context) * 1em;
+
+    @return $pixels;
+}
+
+/// @alias px-to-ems
+///
+@function ems($pixels, $context: $base-font-size) {
+    @return px-to-ems($pixels, $context);
+}
+
+/// Converts pixel dimensions to viewport width (vw) dimensions.
+/// @param {number} $pixels
+/// @returns {number}
+/// @group utils
+///
+@function px-to-vw($pixels) {
+    $vw-context: ($max-site-width * 0.01) * 1px;
+    @return ($pixels / $vw-context) * 1vw;
+}
+
+/// Interpolates lists of strings to generate dynamic class names.
+/// Using a specific format (_see below_) and a set of placeholders provided by functions, a class name can be generated in a more flexible fashion.
+/// Will also filter out optional strings if they appear at the beginning or end of a string (such as values between two placeholders).
+/// Using lists allows for better caching and creates inherent dependencies between optional characters and their placeholders. For instance, `'{%var%}{_}'` implies that the `_` is dependent on `{%var%}` (if `{%var%}` is evaluated to be blank, then `_` is also blank).
+///
+/// **Format Syntax**
+/// * `{%key%}` - **Variable**: Expects to be replaced by a value provided by a map.
+/// * `{_}` - **Placeholder**: Optional spacing value. Will be filtered out if not surrounded by non-blank characters.
+///
+/// @group core
+///
+/// @param {String} $string [] - The string to format.
+/// @param {Map} $values-map [] - map with keys cooresponding to the variables in the string.
+/// @param {boolean} $stringify [false] - Convert the list to a string before returning?
+///
+/// @example scss - Simple example
+///  $class-format: '.{%breakpoint%}_hidden';
+///  format-class-list($class-format, ('breakpoint': 'small'));
+///  // Out: '.small_hidden'
+///
+/// @example scss - Complex example with lists and optional values left blank
+///  $class-format: '.{%breakpoint%}{_}''{%display%}';
+///  format-class-list(
+///    $class-format,
+///    ('display': 'flex', 'breakpoint': '')
+///  );
+/// // Out: '.flex'
+///
+@function format-class-name($list, $values-map, $stringify: false) {
+    $_return: ();
+    @each $group in $list {
+        @if (str-index('#{$group}', '%')) {
+            @each $word, $value in $values-map {
+                @if ((str-index($group, '{%#{$word}%}'))) {
+                    $group: cache(
+                        str-replace,
+                        $group,
+                        '{%#{$word}%}',
+                        '#{$value}'
+                    );
+                    $group: if(
+                        str-index($group, '{'),
+                        cache(_interpolate-placeholders, $group),
+                        $group
+                    );
+                }
+            }
+        }
+        $_return: if(length($group), append($_return, $group), $_return);
+    }
+    @return if($stringify, _fast-str($_return), $_return);
+}
+
+/// @alias format-class-name
+///
+@function format-class-list($args...) {
+    @return format-class-name($args...);
+}
+
+/// Automatically makes $stringify `true`
+/// @group core
+/// @alias format-class-name
+///
+@function _class($args...) {
+    $args: append($args, true);
+    @return format-class-name($args...);
+}
+
+/// Determines if a placeholder (`{_}`) value in a format is needed based on characters in its surrounding.
+/// If two placeholders are next to eachother, both will be deleted. If a placeholder is surrounded by blank values, it will also be deleted.
+/// **Note that this returns a list, and not a fully formatted string.** This allows the return value to be recursed without incuring the performance penalty of re-casting the string to a list.
+///
+/// @group utils
+///
+/// @param {string} $string - String to be parsed and filtered.
+/// @param {boolean} $reverse [false] - Whether to parse the values from right to left or left to right. Reverse typically provides more accurate results.
+///
+/// @example scss
+///   $foo: _filter-placeholders('{-}{%var%}{_}{_}')
+///   @debug inspect($foo) // ">-""{%var%}"
+///
+@function _filter-placeholders($string, $reverse: false) {
+    $list: $string;
+
+    // If we recieved a string, we know this is from a user,
+    // A list will only be received by another function,
+    // In which case, we do not need to do the following process
+    @if type-of($list) == 'string' {
+        @if (str-index($list, '{') == null) {
+            @return $list;
+        }
+        // Change '{}' to '|>|'
+        // so we can split by one character,
+        // while also maintaining a variable indicator
+        $string: str-replace($string, '{', '|>');
+        $string: str-replace($string, '}', '|');
+        @if (str-index($string, '%')) {
+            $string: str-replace($string, '|>%', '{%');
+            $string: str-replace($string, '%|', '%}');
+        }
+        $list: str-split($string, '|');
+        $list: list-filter($list, _is-not-blank);
+    }
+
+    // To keep things in order, we'll just replace values in the current list
+    $_return: $list;
+    $start-i: if($reverse, length($list), 1);
+    $end-i: if($reverse, 1, length($list));
+
+    @for $i from $start-i through $end-i {
+        $item: nth($list, $i);
+
+        // We only need to process items that start with a '>'
+        // since this indicates that it's a placeholder
+        @if (str-index('#{$item}', '>') != null) {
+            $next-index: min(length($list), $i + 1);
+            $next-item: nth($list, $next-index);
+
+            $previous-index: max(1, $i - 1);
+            $previous-item: nth($list, $previous-index);
+
+            // If the next or previous item's index is the current index,
+            // then we'll just make them blank values to simplify comparisons
+            $next-item: if($next-index == $i, '', $next-item);
+            $previous-item: if($previous-index == $i, '', $previous-item);
+
+            // Combined values for simpler comparison
+            $item-str: '#{$previous-item}#{$next-item}';
+
+            // If a either surrounding values are a variable (%), keep it.
+            // If we're just looking at our selves, or another placeholder, throw it out.
+            @if (str-index($item-str, '%')) or
+                (
+                    ($previous-index != $next-index) and
+                        (str-index($item-str, '>') == null)
+                )
+            {
+                // Placeholder should exist
+                $_return: set-nth($_return, $i, $item);
+            } @else {
+                // Set this to placeholder to null
+                $_return: set-nth($_return, $i, null);
+            }
+        } @else {
+            // Anything not a placeholder goes through
+            $_return: if(
+                _is-not-blank($item),
+                set-nth($_return, $i, $item),
+                set-nth($_return, $i, null)
+            );
+        }
+    }
+
+    @return $_return;
+}
+
+/// Container funtion for `_filter-placeholders`.
+/// Takes a string and gives back a string (and not a list).
+/// @group utils
+///
+/// @param {string} $string - string to be interpolated
+/// @returns {string}
+/// @see _filter-placeholders
+///
+@function _interpolate-placeholders($string) {
+    @if type-of($string) == 'list' {
+        $string: _fast-str($string);
+    }
+
+    $split-str: _filter-placeholders($string, true);
+
+    @if length($split-str) == 0 {
+        @return '';
+    }
+
+    $merged-list: _fast-str($split-str);
+
+    // Remove remaining '>'
+    @return if(
+        str-index($merged-list, '>'),
+        str-replace($merged-list, '>', ''),
+        $merged-list
+    );
+}
+
+/// Checks if a value is blank, used specifically for `list-filter`
+/// @param {string} $value - the value to check
+/// @returns {boolean}
+///
+@function _is-not-blank($value, $args...) {
+    @return ($value != '' and $value != null);
+}
+
+/// A faster list-to-string function. Should only be used in cases where speed is very important. Does very little error protection.
+/// @group utils
+///
+/// @param {list} $list - list to be converted
+///
+@function _fast-str($list) {
+    $_return: '';
+    @each $item in $list {
+        $_return: if($item, $_return + $item, $_return);
+    }
+    @return $_return;
+}
+
+
+//stylelint-disable
+@function _legacy-check($new-var, $old-var, $default) {
+    @if ($old-var != $default) {
+        @return $old-var;
+    }
+    @return $new-var;
+}
+
+/// Wrapper for Sass' internal `get-function` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
+/// @param {string} $name - function name
+/// @link https://github.com/kaelig/sass-safe-get-function
+/// @group utils
+///
+@function safe-get-function($name) {
+    @if function-exists('get-function') {
+        @return get-function($name);
+    } @else {
+        @return $name;
+    }
+}
+
+/// Wrapper for Sass' internal `call` that allows for compatibility across Sass versions. If version is higher than 3.5, then the function is returned, otherwise, just the name.
+/// @param {string} $name - function name
+/// @param {any} $args... - function arguments
+/// @group utils
+///
+@function safe-call($name, $args...) {
+    @return call(safe-get-function($name), $args...);
+}
+
+/// Holds all cached function calls and their results.
+/// @type Map
+$_cached-values: ();
+
+/// Memoize (cache) a function's return values and arguments. Speeds up processing on intensive functions that get called many times (with the same arguments).
+/// _NOTE: This can actually **increase** processing time if used too often or on simple functions as the lookup process isn't free. Every cached value is unique._
+/// @param {string} $function-name
+/// @param {} $args... - Arguments to be passed to the function
+/// @group utils
+///
+@function cache($function-name, $args...) {
+    $cache-map: '#{$function-name}, #{$args}';
+    $value: map-get($_cached-values, $cache-map);
+
+    @if $value != null and $value != '' {
+        @return $value;
+    } @else {
+        $result: call(safe-get-function(#{$function-name}), $args...);
+        $_cached-values: map-merge(
+            $_cached-values,
+            (
+                $cache-map: $result
+            )
+        ) !global;
+        @return $result;
+    }
+}
+
+/// Remove lengths (`px`, `em`, `rem`, etc.) from a value. Usually a variable. This is sometimes required because Sass cannot calculate incompatible units (`px * rem` for instance).
+/// @param {Length} $value
+/// @group utils
+@function strip-units($value) {
+    @return $value / ($value * 0 + 1);
+}
+
+/// Converts a list to a string with an optional separator.
+/// @param {list} $list
+/// @param {string} $separator [',']
+/// @returns {string}
+/// @group utils
+///
+@function list-to-str($list, $separator: ",") {
+    $string: "";
+
+    @for $i from 1 through length($list) {
+        $string: str-append($string, #{nth($list, $i)});
+
+        @if $i != length($list) {
+            $string: str-append($string, $separator);
+        }
+    }
+
+    @return $string;
+}
+
+@function list-filter($list, $predicate) {
+    $index: 1;
+    $length: length($list);
+    $result: ();
+
+    @while ($index <= $length) {
+        $value: nth($list, $index);
+        $iteration: call(safe-get-function($predicate), $value, $index, $list);
+
+        @if ($iteration) {
+            $result: append($result, $value);
+        }
+
+        $index: $index + 1;
+    }
+
+    @return $result;
+}
+
+/// Casts a string into a number.
+/// @author Hugo Giraudel
+/// @group utils
+///
+/// @param {String | Number} $value - Value to be parsed
+/// @return {Number}
+///
+@function str-to-number($value) {
+    @if type-of($value) == "number" {
+        @return $value;
+    } @else if type-of($value) != "string" {
+        @warn 'Value for `to-number` should be a number or a string.';
+    }
+
+    $result: 0;
+    $digits: 0;
+    $minus: str-slice($value, 1, 1) == "-";
+    $numbers: (
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9
+    );
+
+    @for $i from if($minus, 2, 1) through str-length($value) {
+        $character: str-slice($value, $i, $i);
+
+        @if not(index(map-keys($numbers), $character) or $character == ".") {
+            @return to-length(
+                if($minus, -$result, $result),
+                str-slice($value, $i)
+            );
+        }
+
+        @if $character == "." {
+            $digits: 1;
+        } @else if $digits == 0 {
+            $result: $result * 10 + map-get($numbers, $character);
+        } @else {
+            $digits: $digits * 10;
+            $result: $result + map-get($numbers, $character) / $digits;
+        }
+    }
+
+    @return if($minus, -$result, $result);
+}
+
+/// Add `$unit` to `$value`
+/// @author Hugo Giraudel
+/// @group utils
+///
+/// @param {Number} $value - Value to add unit to
+/// @param {String} $unit - String representation of the unit
+/// @return {Number} - `$value` expressed in `$unit`
+///
+@function to-length($value, $unit) {
+    $units: (
+        "px": 1px,
+        "cm": 1cm,
+        "mm": 1mm,
+        "%": 1%,
+        "ch": 1ch,
+        "pc": 1pc,
+        "in": 1in,
+        "em": 1em,
+        "rem": 1rem,
+        "pt": 1pt,
+        "ex": 1ex,
+        "vw": 1vw,
+        "vh": 1vh,
+        "vmin": 1vmin,
+        "vmax": 1vmax
+    );
+
+    @if not index(map-keys($units), $unit) {
+        @warn 'Invalid unit `#{$unit}`.';
+    }
+
+    @return $value * map-get($units, $unit);
+}
+
+/// Convert a value to a list. `$keep` accepts `'keys'`, `'values'`, or `'both'` for map conversion.
+/// @group utils
+/// @param {any} $value
+/// @param {string} $keep - accepts `'keys'`, `'values'`, or `'both'` for map conversion.
+///
+@function to-list($value, $keep: "both") {
+    $keep: if(index("keys" "values" "both", $keep), $keep, "both");
+
+    @if type-of($value) == "map" {
+        $keys: ();
+        $values: ();
+
+        @each $key, $val in $value {
+            $keys: append($keys, $key);
+            $values: append($values, $val);
+        }
+
+        @if $keep == "keys" {
+            @return $keys;
+        } @else if $keep == "values" {
+            @return $values;
+        } @else {
+            @return zip($keys, $values);
+        }
+    }
+
+    @return if(type-of($value) != list, ($value), $value);
+}
+
+/// Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean. Delegates methods to the appropriate function based on variable type.
+/// @group utils
+/// @param {map | list | string} $data - the data you're searching through.
+/// @param {} $value - the value you're searching for.
+///
+@function contains($data, $value) {
+    @if type-of($data == "map") {
+        @return map-has-keys($data, $value);
+    } @else if type-of($data == "list") {
+        @return list-contains($data, $value);
+    } @else if type-of($data == "string") {
+        @return str-contains($data, $value);
+    }
+}
+
+/// Converts a map or list to a string (`('this', 'and', 'this')` becomes `'this,and,this'`).
+/// @group utils
+/// @param {list | map} $list
+/// @param {string} $separator [","]
+///
+@function str-join($list, $separator: ",") {
+    @return list-to-str($list, $separator);
+}
+
+/// Checks if a `$string` contains a `$value`. Optionally accepts a start (`$pos`) positon.
+/// @group utils
+/// @param {string} $string
+/// @param {string} $value
+/// @param {number} $pos [0]
+///
+@function str-contains($string, $value, $pos: 0) {
+    $string: str-slice($string, $pos);
+
+    @if str-index($string, $value) != null {
+        @return true;
+    } @else {
+        @return false;
+    }
+}
+
+/// Adds one string to another (e.g. `str-append('hello', 'world')` becomes `hello world`).
+/// @group utils
+/// @param {string} $string
+/// @param {string} $insert
+///
+@function str-append($string, $insert) {
+    $string: if($string == null, "", $string);
+
+    @return str-insert($string, $insert, str-length($string) + 1);
+}
+
+/// Replaces a value in a string with another.
+/// @group utils
+///
+@function str-replace($string, $search, $replace: "") {
+    $index: str-index($string, $search);
+
+    @if $index {
+        @return str-slice($string, 1, $index - 1) + $replace +
+            str-replace(
+                str-slice($string, $index + str-length($search)),
+                $search,
+                $replace
+            );
+    }
+
+    @return $string;
+}
+
+/// splits a String into a list of strings by separating the string into substrings, using a specified separator string to determine where to make each split.
+/// @param {String} $string - string to split.
+/// @param {String} $separator - string points at which each split should occur.
+/// @returns {List}
+///
+@function str-split($string, $separator) {
+    // empty array/list
+    $split-arr: ();
+    // first index of separator in string
+    $index : str-index($string, $separator);
+    // loop through string
+    @while $index != null {
+        // get the substring from the first character to the separator
+        $item: str-slice($string, 1, $index - 1);
+        // push item to array
+        $split-arr: append($split-arr, $item);
+        // remove item and separator from string
+        $string: str-slice($string, $index + 1);
+        // find new index of separator
+        $index: str-index($string, $separator);
+    }
+    // add the remaining string to list (the last item)
+    $split-arr: append($split-arr, $string);
+
+    @return $split-arr;
+}
+
+/// Split a string into a list of strings
+/// @link https://gist.github.com/danielpchen/3677421ea15dcf2579ff
+/// @param {string} $string - the string to be split
+/// @param {string} $delimiter - the boundary string
+/// @return {list} - the result list
+///
+@function str-to-list($string, $delimiter) {
+    $result: ();
+    @if $delimiter == "" {
+        @for $i from 1 through str-length($string) {
+            $result: append($result, str-slice($string, $i, $i));
+        }
+        @return $result;
+    }
+    $exploding: true;
+    @while $exploding {
+        $d-index: str-index($string, $delimiter);
+        @if $d-index {
+            @if $d-index > 1 {
+                $result: append($result, str-slice($string, 1, $d-index - 1));
+                $string: str-slice($string, $d-index + str-length($delimiter));
+            } @else if $d-index == 1 {
+                $string: str-slice(
+                    $string,
+                    1,
+                    $d-index + str-length($delimiter)
+                );
+            } @else {
+                $result: append($result, $string);
+                $exploding: false;
+            }
+        } @else {
+            $result: append($result, $string);
+            $exploding: false;
+        }
+    }
+    @return $result;
+}
+
+/// @alias str-to-list
+/// @group utils
+///
+@function explode($args...) {
+    @return str-to-list($args...);
+}
+
+/// Check if a list contains a value
+/// @group utils
+/// @param $list
+/// @param $value
+///
+@function list-contains($list, $value) {
+    @return not not index($list, $value);
+}
+
+/// Reverse a List
+/// @group utils
+/// @param $list
+/// @param $recursive [false]
+///
+@function list-reverse($list, $recursive: false) {
+    $result: ();
+
+    @for $i from length($list) * -1 through -1 {
+        @if type-of(nth($list, abs($i))) == list and $recursive {
+            $result: append($result, reverse(nth($list, abs($i)), $recursive));
+        } @else {
+            $result: append($result, nth($list, abs($i)));
+        }
+    }
+
+    @return $result;
+}
+
+/// List print
+/// @group utils
+/// @param $list
+/// @param $depth [1]
+///
+@function list-print($list, $depth: 1) {
+    $output: "";
+
+    @if $depth > 0 {
+        @for $i from 1 through $depth {
+            $output: $output + $list;
+        }
+    }
+
+    @return $output;
+}
+
+/// Add to a deeply nested map key. Accepts any number of keys, but the final value is the new key.
+/// @group utils
+/// @param {map} $map
+/// @param {string} $keys... - final argument is considered the value to the be set.
+///
+@function map-deep-set($map, $keys... /*, $value */) {
+    $map-list: ($map);
+    $result: null;
+
+    @if length($keys) == 2 {
+        @return map-merge(
+            $map,
+            (
+                nth($keys, 1): nth($keys, -1)
+            )
+        );
+    }
+
+    @for $i from 1 through length($keys) - 2 {
+        $map-list: append(
+            $map-list,
+            map-get(nth($map-list, -1), nth($keys, $i))
+        );
+    }
+
+    @for $i from length($map-list) through 1 {
+        $result: map-merge(
+            nth($map-list, $i),
+            (
+                nth($keys, $i):
+                    if($i == length($map-list), nth($keys, -1), $result)
+            )
+        );
+    }
+
+    @return $result;
+}
+
+/// Finds a map's depth at its deepest point. Useful for debugging maps.
+/// @group utils
+/// @param {map} $map
+/// @returns {number}
+///
+@function map-depth($map) {
+    $level: 1;
+
+    @each $key, $value in $map {
+        @if type-of($value) == "map" {
+            $level: max(map-depth($value) + 1, $level);
+        }
+    }
+
+    @return $level;
+}
+
+/// Determine whether a map contains certain keys.
+/// @group utils
+/// @param {map} $map
+/// @param {string | list} $keys...
+/// @returns {boolean}
+///
+@function map-has-keys($map, $keys...) {
+    @each $key in $keys {
+        @if not map-has-key($map, $key) {
+            @return false;
+        }
+    }
+
+    @return true;
+}
+
+/// @alias map-has-keys
+/// @group utils
+///
+@function map-contains-keys($map, $keys...) {
+    @return map-has-keys($map, $keys);
+}
+
+/// Check for deep map keys
+/// @group utils
+/// @param {map} $map
+/// @param {string | list} $keys...
+///
+@function map-has-nested-keys($map, $keys...) {
+    @each $key in $keys {
+        @if not map-has-key($map, $key) {
+            @return false;
+        }
+
+        $map: map-get($map, $key);
+    }
+
+    @return true;
+}
+
+/// @alias map-has-nested-keys
+/// @group utils
+///
+@function map-contains-nested-keys($map, $keys...) {
+    @return map-has-nested-keys($map, $keys);
+}
+
+/// Get map value at nested or 'deep' key, per $keys list
+/// @group utils
+/// @param {map} $map
+/// @param {string|list} $keys...
+///
+@function map-get-nested($map, $keys...) {
+    @each $key in $keys {
+        @if type-of($map) != "map" {
+            @return $map;
+        }
+        $map: map-get($map, $key);
+    }
+    @return $map;
+}
+
+/// Merges multiple maps. Similar to jQuery's `extend`.
+/// Takes two maps and merges their differences.
+/// @group utils
+/// @param {map} $map
+/// @param {map|list} $maps... - final value can be `true` for "deep" merging
+///
+@function map-extend($map, $maps... /*, $deep */) {
+    $last: nth($maps, -1);
+    $deep: $last == true;
+    $max: if($deep, length($maps) - 1, length($maps));
+
+    // Loop through all maps in $maps...
+    @for $i from 1 through $max {
+        // Store current map
+        $current: nth($maps, $i);
+
+        // If not in deep mode, simply merge current map with map
+        @if not $deep {
+            $map: map-merge($map, $current);
+        } @else {
+            // If in deep mode, loop through all tuples in current map
+            @each $key, $value in $current {
+                // If value is a nested map and same key from map is a nested map as well
+                @if type-of($value) == "map" and
+                    type-of(map-get($map, $key)) == "map"
+                {
+                    // Recursive extend
+                    $value: map-extend(map-get($map, $key), $value, true);
+                }
+
+                // Merge current tuple with map
+                $map: map-merge(
+                    $map,
+                    (
+                        $key: $value
+                    )
+                );
+            }
+        }
+    }
+
+    @return $map;
+}
+
+//Map depth-adder
+//-------------------------
+// Adds 'base'(or whatever initial key that's passed in) to a color map.
+// Used by color map generator function (colors/_colorfunctions)
+//--------------------------
+// 1. Check if map is less than or equal to the depth tolerance (default: 1).
+// 2. loops through all keys and values in the map.
+// 3. Make sure value isn't alreayd a map
+//   3a. If value is a map, then check to make sure $new-key is in the map
+//     3b. Duplicate first value of map (in case there are multiple)
+//     3c. Create new map with new-key and duplicated value
+// 4. Reformats those key-value pairs into a (key: (new-key: value ))
+// 5. Merges new depthy key-key-value back into the map.
+// 6. Returns the new map.
+
+/// Adds one level to a map using the new key to a map. Used by `generate_color_varations()`. (e.g. `(key: value, key: value)` becomes `(key:(new-key: value), key:(new-key: value))` )
+/// @group utils
+/// @param {map} $map
+/// @param {string} $new-key ['base']
+///
+@function map-add-depth($map, $new-key: "base") {
+    $formatted-key: ();
+    $new-map: "";
+
+    @each $key, $value in $map {
+        //[2]
+        $formatted-key: ();
+        @if type-of($value) != "map" {
+            //[3]
+            $formatted-key: (
+                $key: (
+                    $new-key: $value
+                )
+            ); //[4]
+        } @else if not map-has-key($value, $new-key) {
+            //[3a]
+            $duplicate-value: map-get($value, nth(map-keys($value), 1)); //[3b]
+            $duplicate-map: (
+                $new-key: $duplicate-value
+            ); //[3c]
+
+            $formatted-key: (
+                $key: (
+                    map-merge($value, $duplicate-map)
+                )
+            ); //[4]
+        }
+        $map: map-merge($map, $formatted-key); //[5]
+    }
+
+    @return $map; //[6]
+}
+
+/// Print maps into a string
+/// @group utils
+/// @param {map} $map
+/// Useful for debugging maps.
+/// @link https://github.com/lunelson/sass-maps-plus
+///
+@function map-inspect($map, $level: 1) {
+    $tab: "    ";
+    $cr: "
+";
+
+    @if type-of($map) != "map" {
+        @return "#{inspect($map)}";
+    }
+
+    $indent: list-print($tab, $level + 1);
+    $output: "{" + $cr + $indent;
+    $i: 1;
+
+    @each $key, $value in $map {
+        @if type-of($value) == "map" {
+            $output: $output + "#{$key}: #{map-inspect($value, $level+1)}";
+        } @else {
+            $output: $output + "#{$key}: #{$value}";
+        }
+
+        @if $i < length(map-keys($map)) {
+            $output: $output + "," + $cr + $indent;
+        }
+
+        $i: $i + 1;
+    }
+
+    $outdent: list-print($tab, $level);
+
+    @return $output + $cr + $outdent + "}";
+}
+
+/// @alias map-inspect
+/// @group utils
+///
+@function map-print($map, $level: 1) {
+    @return map-inspect($map, $level);
+}
+
+/// Add to silent classes registry
+/// @group utils
+///
+@function silents-register($map, $key) {
+    @if $debug-silent-classes {
+        @if map-get($_silent-class-registry, $key) == null {
+            $_silent-class-registry: map-merge(
+                $_silent-class-registry,
+                (
+                    $key: ()
+                )
+            ) !global;
+        }
+        $map: map-merge(map-get($_silent-class-registry, $key), $map);
+        @return map-deep-set($_silent-class-registry, $key, $map);
+    } @else {
+        @return null;
+    }
+}
+
+
+
+
+// @debug _interpolate-class-namespaces(
+//     format-class-names(
+//         '{%breakpoint%}{\\@}{%property%}{__}{%direction%}{-}{%amount%}',
+//         ('breakpoint': 'small', 'property': 'pad', 'amount': '2')
+//     )
+// );
+
+//
+// @debug str-replace(
+//     list-to-str(
+//     _format-class-namespaces(
+//     interpolate-class-names(
+//         '{%breakpoint%}{\\@}{%property%}{__}{%direction%}{-}{%amount%}',
+//         ('breakpoint': 'bigs', 'property': 'pad', 'direction': '', 'amount': '2')
+//     )
+//     )
+//     ,''),
+// '>', '');
+
+@function insert-nth($list, $index, $value) {
+    $result: ();
+    @for $i from 1 through length($list) {
+        @if $i == $index {
+            $result: append($result, $value);
+        }
+
+      $result: append($result, nth($list, $i));
+    }
+    @return $result;
+}
+
+
+
+
+// @function _template-string($formatting, $values) {
+//     $_return: $string;
+//
+//     @each $val in $values {
+//         @if str-index($_return, '%s') {
+//             $_return: str-replace($_return, '%s', $val);
+//         }
+//     }
+//
+//     @return $_return;
+// }
+
+// @debug format-class-names(
+//     '{%breakpoint%}{\\@}{%property%}{-}{%direction%}{__}{%amount%}',
+//     ('breakpoint': '', 'property': 'pad', 'direction':'', 'amount': '2')
+// );
+
+// @function placeholder-filter($list, $ltr: false) {
+//     $split-str: if($ltr, $list, list-reverse($list));
+//     $_word-list: ('');
+//     $_i: 1;
+//     @debug '\A\A========================[ I N P U T ]======================== \A #{list-print($split-str)} \A';
+//     @each $split in $split-str {
+//         $_current: if($split != '', '{' + $split, $split);
+//         $second-split: str-split($split, '}');
+//         $_is-split: (type-of($second-split) == 'list' and length($second-split) > 1);
+//         @if $split != '' and length($second-split) > 1 {
+//             @debug "#{list-print($second-split)}";
+//             $second-split: if($ltr, $second-split, list-reverse($second-split));
+//             $_previous-index: max(1, $_i - 1);
+//             //@debug length($second-split);
+//             $_current: nth($second-split, 1);
+//             $_previous: nth($split-str, $_previous-index);
+//
+//             $_next-index: min(length($split-str), $_i + 1);
+//             $_next: nth($second-split, 2);
+//
+//             @if str-index($_current, '}') == null {
+//                 @if (
+//                     _namespace-is-needed($_current, $_next)
+//                 ){
+//                     // @debug '#{$_current} made it through';
+//                     // $_current: if($ltr,
+//                     //     str-slice($_current, 2, -1),
+//                     //     str-slice($_current, 1, -1)
+//                     // );
+//                     $_current: ('#{$_current}}', $_next);
+//                 }
+//                 @else {
+//                     @debug 'Not qualified: ' + $_current;
+//                     $_current: if($_is-split, $_next, "");
+//                 }
+//             }
+//             @else {
+//                 $_current: if(
+//                     str-index($_current, '%') > 1,
+//                     '{#{$_current}}',
+//                     '#{$_current}}'
+//                 );
+//             }
+//         }
+//         $_word-list: if($_current != '', join($_word-list, $_current), $_word-list);
+//         // @debug $_word-list;
+//         $_i: $_i + 1;
+//     }
+//     @debug "OUT: #{list-reverse($_word-list)}";
+//     @return if($ltr, $_word-list, list-reverse($_word-list));
+// }
+
+// @function _add-brackets($check) {
+//     @return if(str-index($check, '}') > 1, '{#{$check}');
+// }
+
+
+
+
+
+// $class-name: 'grid';
+//
+// @debug format-class-names('.u-%class%\\@%breakpoint%', ('class': $class-name, 'breakpoint': 'sm'));
+
+// '.u-%class%\\@%breakpoint%', ('class': $class, 'breakpoint': $breakpoint)
 
 //------------------------------------*\
 //    $COLOR FUNCTIONS
@@ -2413,7 +2853,7 @@ $base-colors: (
 
 /// Map of cubic-bezier values representing named easing values (eg. `ease-in`, `ease-out-quart`). Can be "easily" accessed with `easing`.
 /// @see easing
-/// @group core
+/// @group utils
 ///
 $easings: (
     'linear': (
@@ -2740,7 +3180,7 @@ $easings: (
 //  Wrapper class for grid widths. Puts a negative left margin of one unit. When not using floats, adds appropriate letter-spacing (for inline-block-based grid).
 //
 // * `[% || .]grid_item`
-//  Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
+
 //
 // * `[% || .]grid_reverse`
 //  Makes grid columns start from the right.
@@ -2808,19 +3248,6 @@ $grid-pull: true !default;
 /// @group config
 $grid-width-namespace: if($grid-bem-naming, 'w-', '') !default;
 
-/// String to include before grid push classes.
-/// @group config
-$grid-push-namespace: if($grid-bem-naming, 'push--', 'push_') !default;
-
-/// String to include before grid pull classes.
-/// @group config
-$grid-pull-namespace: if($grid-bem-naming, 'pull--', 'pull_') !default;
-
-/// The character used to separate breakpoints when generating responsive classes. For instance `.smalls\@one-fourth`, where `'\\@'` is the namespace character.
-///@group config
-///@type string
-$breakpoint-namespace-character: '\\@' !default;
-
 /// List of media-queries (as defined in `$breakpoints`) that should have width utility classes.
 ///@group config
 ///@type list
@@ -2886,12 +3313,9 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 
 /// @alias grid-size
 /// @group grid
-@function columns(
-    $columns,
-    $context: $grid-columns,
-    $total-columns: $grid-columns
-) {
-    @return grid-size($columns, $context, $total-columns);
+///
+@function columns($args...) {
+    @return grid-size($args...);
 }
 
 /// Creates a width property with a percentage based on the `$columns / $total`. Also includes flex-based properties if `$grid-flex` is enabled.
@@ -2910,75 +3334,67 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 /// @alias grid-width
 /// @group grid
 ///
-@mixin width($columns, $total: $grid-columns) {
-    @include grid-width($columns, $total);
+@mixin width($args...) {
+    @include grid-width($args...);
 }
 
 /// Uses `$_human-readable-numerators` and `$_human-readable-denominators` to create percentages based on `$grid-columns`. `$property` accepts any property, as well as lists of properties.
+///
 /// @group grid
-/// @param {string} $namespace [""] - String to put before grid classes.
+///
 /// @param {boolean} $silent [$grid-silent-classes] - Use silent classes?
 /// @param {string} $property ["width"] - What property should these widths applied to?
 /// @param {boolean} $important [false] - Should `!important` be applied to properties?
 /// @param {string} $property ["width"] - What property should these widths applied to?
-
+///
 @mixin width-setup(
-    $namespace: '',
     $silent: $grid-silent-classes,
     $property: 'width',
     $important: false,
     $columns: $grid-columns,
-    $space: if($grid-bem-naming, '-', '_')
+    $format: '{%numerator%}-{%denominator%}'
 ) {
-    // [1] Loop through the $grid-columns.
-    // [2] Loop through $divisor (same number as $grid-columns). This acts as the second number in our column fraction.
-    // [3a]Loop through $divisor before it decreases by 1 from the previous loop.
-    // [3b]After widths are defined, subtract 1 from $divisor.
-    // [4] Assign the numerator and denominator of our fraction to human-readable versions (e.g. three, four, third, quarter, etc.).
-    // [5] Check if the numerator equals 1 (one). If so, we keep our singular human-readable numerators and denominators (e.g. one_twelfth).
-    // [6] If the numerator is larger than 1(one), add an 's' to our selector (e.g. two_eighths).
-    //
-    // Same system used for pushes and pulls.
     $class-type: if($silent, '%', '.');
+    $_: $class-type;
     $divisor: $columns;
     $class-name-list: ();
     $prefix: '#{$class-type}#{$namespace}';
     $important: if($important, '!important', '');
+    $space: '_';
 
-    //To prevent stuff like 12/12 (five-fifths, etc.), we need to declare 1/1 here
-    #{$prefix}one#{$space}whole {
+    //To prevent stuff like 12/12 (five-fifths, etc.),
+    // we need to declare 1/1 here
+    #{$_}#{_class($format, (numerator: 'one', denominator: 'whole'))} {
         @each $type in $property {
             #{$type}: 100% #{$important};
         }
     }
 
     @for $i from 1 through $columns {
-        // [1]
-
         @while $divisor > 0 {
-            // [2]
-
             @for $dividen from 1 to $divisor {
-                // [3a]
-                //Create numerator (first number, e.g. 'two').
-                $numerator: nth($_human-readable-numerators, $dividen); // [4]
-
-                //Create denominator (second number, e.g. 'thirds').
+                // Assign the numerator and denominator of our fraction to human-readable versions (e.g. three, four, third, quarter, etc.)
+                $numerator: nth($_human-readable-numerators, $dividen);
                 $denominator: nth($_human-readable-denominators, $divisor);
 
-                //Divide first number(numerator) by second number(denominator).
+                // Divide first number(numerator) by second number(denominator).
                 $size: grid-size($dividen, $divisor);
 
-                //Create class name
-                $class-name: '#{$prefix}#{$numerator}#{$space}#{$denominator}';
-
-                //Pluralize anything other than ratios with a numerator of 1
-                @if $numerator != 'one' {
-                    // [5]
-                    $class-name: '#{$class-name}s'; // [6]
+                // Pluralize anything other than ratios with a numerator of 1
+                @if ($numerator != 'one') {
+                    $denominator: '#{$denominator}s';
                 }
 
-                #{$class-name} {
+                $class-name: _class(
+                    $format,
+                    (
+                        class: '#{$numerator}-#{$denominator}',
+                        numerator: $numerator,
+                        denominator: $denominator,
+                    )
+                );
+
+                #{$_}#{$class-name} {
                     @each $type in $property {
                         @if index('top' 'right' 'bottom' 'left', $type) != null
                         {
@@ -2998,27 +3414,24 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
                 }
             }
 
-            $divisor: $divisor - 1; //[3b]
+            $divisor: $divisor - 1;
         }
     }
 
-    //Allow for fourths as an alias to quarters
-    #{$prefix}one#{$space}fourth {
-        @extend #{$prefix}one#{$space}quarter;
-    }
-
-    #{$prefix}two#{$space}fourths {
-        @extend #{$prefix}two#{$space}quarters;
-    }
-
-    #{$prefix}three#{$space}fourths {
-        @extend #{$prefix}three#{$space}quarters;
-    }
-
+    // Add to silent class registry if asked for
     @if $silent and $debug-silent-classes {
         $class-name-list: map-merge(
             $class-name-list,
-            (#{$prefix}one#{$space}whole: 100%)
+            (
+                #{_class(
+                        $format,
+                        (
+                            numerator: 'one',
+                            denominator: 'whole',
+                        )
+                    )}:
+                    100%
+            )
         );
         $_silent-class-registry: silents-register(
             $class-name-list,
@@ -3061,18 +3474,43 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     $flex: $grid-flex,
     $inline-block: $grid-inline-block,
     $floats: $grid-floats,
-    $bem: $grid-bem-naming
+    $bem: $grid-bem-naming,
+    $format: 'grid{__}' '{%child%}' '{--}{%modifier%}'
 ) {
     // Allow for BEM naming instead of snake-case
     $child: '_';
     $mod: '_';
 
-    @if $bem {
+    @if $bem == true {
         $child: '__';
         $mod: '--';
+        $format: '{%block%}' '{__}{%child%}' '{--}{%modifier%}';
     }
 
-    $class-type: if($silent, '%', '.');
+    $format: if(
+        variable-exists('grid-class-format'),
+        $grid-class-format,
+        $format
+    );
+
+    $_: if($silent, '%', '.');
+
+    // Preprocess the grid class name
+    $format: format-class-name(
+        $format,
+        (
+            'block': 'grid',
+        )
+    );
+
+    $grid-item: '.' +
+        _class(
+            $format,
+            (
+                child: 'item',
+                modifier: '',
+            )
+        );
 
     %grid_reset,
     %grid--reset {
@@ -3089,17 +3527,17 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     //    $GRID SETUP
     //*------------------------------------
 
-    #{$class-type}grid {
+    #{$_}#{_class($format, (child: '', modifier: ''))} {
         @include grid-row();
     }
 
-    #{$class-type}grid#{$child}item {
+    // Sets up a grid column. Uses column padding inherited from parent `%/.grid`.
+    #{$grid-item} {
         @include grid-item(12, 12);
     }
 
     // Special class for grid items that need to behave like both grids and grid__items.
-    #{$class-type}grid#{$child}item#{$mod}reset,
-    #{$class-type}grid#{$mod}reset#{$child}item {
+    #{$_}#{_class($format, (child: 'item', modifier: 'reset'))} {
         @include grid-row();
         margin-left: 0;
         width: 100%;
@@ -3110,11 +3548,11 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     // Reversed grids allow you to structure your source in the opposite order to
     // how your rendered layout will appear. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}reverse {
+    #{$_}#{_class($format, (child: '', modifier: 'reverse'))} {
         @if $floats {
             @extend %grid--clearfix;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-item} {
                 float: right;
             }
         }
@@ -3122,7 +3560,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
             direction: rtl;
             text-align: left;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-item} {
                 direction: ltr;
                 text-align: left;
             }
@@ -3132,11 +3570,11 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     //
     // Align the entire grid to the right. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}right {
+    #{$_}#{_class($format, (child: '', modifier: 'right'))} {
         @if $inline-block {
             text-align: right;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-item} {
                 text-align: left;
             }
         }
@@ -3148,7 +3586,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     // Centered grids align grid items centrally without needing to use push or pull
     // classes. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}center {
+    #{$_}#{_class($format, (child: '', modifier: 'center'))} {
         @if $flex {
             justify-content: center;
         }
@@ -3156,7 +3594,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
         @if $inline-block {
             text-align: center;
 
-            & > #{$class-type}grid#{$child}item {
+            & > #{$grid-item} {
                 text-align: left;
             }
         }
@@ -3166,17 +3604,17 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     // Align grid cells vertically (`.grid--middle` or `.grid--bottom`). Extends
     // `.grid`.
     //
-    #{$class-type}grid#{$mod}middle {
-        & > #{$class-type}grid#{$child}item {
+    #{$_}#{_class($format, (child: '', modifier: 'middle'))} {
+        & > #{$grid-item} {
+            vertical-align: middle;
             @if $flex {
                 align-self: center;
             }
-            vertical-align: middle;
         }
     }
 
-    #{$class-type}grid#{$mod}bottom {
-        & > #{$class-type}grid#{$child}item {
+    #{$_}#{_class($format, (child: '', modifier: 'bottom'))} {
+        & > #{$grid-item} {
             @if $flex {
                 align-self: flex-end;
             }
@@ -3187,10 +3625,10 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     // Gutterless grids have all the properties of regular grids, minus any spacing.
     // Extends `.grid`.
 
-    #{$class-type}grid#{$mod}full {
+    #{$_}#{_class($format, (child: '', modifier: 'full'))} {
         margin-left: 0;
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$grid-item} {
             padding-left: 0;
         }
     }
@@ -3198,10 +3636,10 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     //
     // Create grids with narrower gutters. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}narrow {
+    #{$_}#{_class($format, (child: '', modifier: 'narrow'))} {
         @include type-space(margin-left, -0.5, $unit: $gutter);
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$grid-item} {
             @include type-space(padding-left, 0.5, $unit: $gutter);
         }
     }
@@ -3209,10 +3647,10 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     //
     // Create grids with wider gutters. Extends `.grid`.
     //
-    #{$class-type}grid#{$mod}wide {
+    #{$_}#{_class($format, (child: '', modifier: 'wide'))} {
         @include type-space(margin-left, -2, $unit: $gutter);
 
-        > #{$class-type}grid#{$child}item {
+        & > #{$grid-item} {
             @include type-space(padding-left, 2, $unit: $gutter);
         }
     }
@@ -3220,7 +3658,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     //
     // Cause layout items to take up a non-explicit amount of width.
     //
-    #{$class-type}grid#{$mod}auto {
+    #{$_}#{_class($format, (child: '', modifier: 'auto'))} {
         @if $inline-block {
             text-align: justify;
 
@@ -3232,8 +3670,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
             }
         }
 
-        & > #{$class-type}grid#{$child}item,
-        #{$class-type}grid#{$child}item#{$mod}auto {
+        & > #{$grid-item} {
             width: auto;
 
             @if $inline-block {
@@ -3374,20 +3811,41 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin width-classes($silent: $grid-silent-classes, $important: false) {
+    $format: if(
+        variable-exists('width-class-format'),
+        $width-class-format,
+        'width-' '{%numerator%}-{%denominator%}' '{\\@}{%breakpoint%}'
+    );
     //Include flex-basis (and max-width) for flex-box grids
-
     $column-props: if($grid-flex, ('width' 'max-width' 'flex-basis'), 'width');
 
-    @include width-setup('', $silent, $column-props, $important);
+    @include width-setup(
+        $silent: $silent,
+        $property: $column-props,
+        $important: $important,
+        $format:
+            format-class-name(
+                $format,
+                (
+                    breakpoint: '',
+                )
+            )
+    );
 
     // Our responsive classes, if we have enabled them.
     @each $name in $breakpoint-has-widths {
         @include media-query($name) {
             @include width-setup(
-                '#{$name}#{$breakpoint-namespace-character}',
-                $silent,
-                $column-props,
-                $important
+                $silent: $silent,
+                $property: $column-props,
+                $important: $important,
+                $format:
+                    format-class-name(
+                        $format,
+                        (
+                            breakpoint: $name,
+                        )
+                    )
             );
         }
     }
@@ -3398,15 +3856,38 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
 @mixin push-classes($silent: $grid-silent-classes, $important: false) {
-    @include width-setup($grid-push-namespace, $silent, 'left', $important);
+    $format: if(
+        variable-exists('push-class-format'),
+        $push-class-format,
+        'push-' '{%numerator%}-{%denominator%}' '{\\@}{%breakpoint%}'
+    );
+
+    @include width-setup(
+        $silent: $silent,
+        $property: 'left',
+        $important: $important,
+        $format:
+            format-class-name(
+                $format,
+                (
+                    breakpoint: '',
+                )
+            )
+    );
 
     @each $name in $breakpoint-has-push {
         @include media-query($name) {
             @include width-setup(
-                '#{$name}#{$breakpoint-namespace-character}#{$grid-push-namespace}',
-                $silent,
-                'left',
-                $important
+                $silent: $silent,
+                $property: 'left',
+                $important: $important,
+                $format:
+                    format-class-name(
+                        $format,
+                        (
+                            breakpoint: $name,
+                        )
+                    )
             );
         }
     }
@@ -3416,16 +3897,39 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 /// @group grid
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
+///
 @mixin pull-classes($silent: $grid-silent-classes, $important: false) {
-    @include width-setup($grid-pull-namespace, $silent, 'right', $important);
+    $format: if(
+        variable-exists('pull-class-format'),
+        $pull-class-format,
+        ('pull' '-{%numerator%}-{%denominator%}' '{\\@}{%breakpoint%}')
+    );
+    @include width-setup(
+        $silent: $silent,
+        $property: 'right',
+        $important: $important,
+        $format:
+            format-class-name(
+                $format,
+                (
+                    breakpoint: '',
+                )
+            )
+    );
 
     @each $name in $breakpoint-has-pull {
         @include media-query($name) {
             @include width-setup(
-                '#{$name}#{$breakpoint-namespace-character}#{$grid-pull-namespace}',
-                $silent,
-                'right',
-                $important
+                $silent: $silent,
+                $property: 'right',
+                $important: $important,
+                $format:
+                    format-class-name(
+                        $format,
+                        (
+                            breakpoint: $name,
+                        )
+                    )
             );
         }
     }
@@ -3553,6 +4057,35 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
 //	$MEDIA QUERIES
 //------------------------------------
 
+/// @group config
+$max-site-width: 1360px !default;
+
+/// @group config
+$max-content-width: 690px !default;
+
+/// @group config
+$max-wide-content-width: 910px !default;
+
+/// Breakpoint strings to use with `media-query` mixin.
+/// @see {mixin} media-query
+/// @group config
+$breakpoints: (
+    // Mostly phones
+        smalls: '(max-width:#{($max-wide-content-width/16px)}em)',
+    // Small Phones
+        small: '(max-width: #{($max-content-width/16px)}em)',
+    // Large (Modern) phones/phablets
+        smallish: '(min-width: #{(($max-content-width + 1)/16px)}em)' +
+        ' and (max-width: #{($max-wide-content-width/16px)}em)',
+    // Tablets, Desktops and larger
+        bigs: '(min-width: #{($max-wide-content-width/16px)}em)',
+    // Mostly Tablets and small laptops. Overrides Bigs
+        lap: '(min-width: #{($max-wide-content-width/16px)}em)' +
+        ' and (max-width: #{($max-site-width/16px)}em)',
+    // Large Tablets and Desktops. Overrides Bigs.
+        desk: '(min-width: #{($max-site-width/16px)}em)'
+) !default;
+
 //Accepted media-query expression types
 $media-query-expressions: (
     'device-width',
@@ -3608,35 +4141,6 @@ $media-query-intervals: (
     'vh': 0.01,
     'vw': 0.01,
 );
-
-/// @group config
-$max-site-width: 1360px !default;
-
-/// @group config
-$max-content-width: 690px !default;
-
-/// @group config
-$max-wide-content-width: 910px !default;
-
-/// Breakpoint strings to use with `media-query` mixin.
-/// @see {mixin} media-query
-/// @group config
-$breakpoints: (
-    // Mostly phones
-        'smalls': '(max-width:#{ems($max-wide-content-width)})',
-    // Small Phones
-        'small': '(max-width: #{ems($max-content-width)})',
-    // Large (Modern) phones/phablets
-        'smallish': '(min-width: #{ems($max-content-width+1px)})' +
-        ' and (max-width: #{ems($max-wide-content-width)})',
-    // Tablets, Desktops and larger
-        'bigs': '(min-width: #{ems($max-wide-content-width+1px)})',
-    // Mostly Tablets and small laptops. Overrides Bigs
-        'lap': '(min-width: #{ems($max-wide-content-width + 1px)})' +
-        ' and (max-width: #{ems($max-site-width)})',
-    // Large Tablets and Desktops. Overrides Bigs.
-        'desk': '(min-width: #{ems($max-site-width)})'
-) !default;
 
 
 /// Enclose a block of code with a media query as named in `$breakpoints`. To create more consolodated code, most (if not all) media queries should be called through this mixin. Multiple media-queries can be defined, separated by a comma. This will place your content into multiple separate media-queries at once (useful if you need the same css at different breakpoints).
@@ -3885,42 +4389,67 @@ $debug-silent-classes: false !default;
 //    $DISPLAY UTILITIES
 //------------------------------------
 
-$display-classes: (
+$_default-display-classes: (
     'show': 'block',
+    'bl': 'block',
+    'ilbl': 'inline-block',
+    'tbl': 'table',
+    'tblcl': 'table-cell',
     'hide': 'none',
-) !default;
+    'flex': 'flex',
+    'block': 'block',
+    'inline_block': 'inline-block',
+    'table_cell': 'table-cell',
+    'table': 'table',
+);
+
+/// A description of class names and their associated `display` value. Used for generating utility classes via `display-classes` mixin.
+/// @group config
+/// @type map
+///
+$display-classes: $_default-display-classes !default;
+
+/// Formatting for utility display classes.
+/// @see format-class-name
+///
+$display-class-format: 'display-{%display%}' '{\\@}{%breakpoint%}' !default;
 
 /// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-/// @param $namespace
 /// @param $silent
 /// @param $important
 /// @param $class-list
+/// @param $format
 ///
 @mixin _output-display-classes(
-    $namespace: '',
     $silent: false,
     $important: true,
-    $class-list: $display-classes
+    $class-list: $display-classes,
+    $format: $display-class-format
 ) {
-    $classtype: if($silent, unquote('%'), unquote('.'));
+    $class-type: if($silent, unquote('%'), unquote('.'));
     $important_str: if($important, ' !important', '');
     $display-lookup: null;
     $display-registry: ();
     $class-name-list: ();
 
     @each $name, $display in $class-list {
-        $display-class: #{$classtype}#{$namespace}#{$name};
+        $class-name: #{class-type}#{format-class-name(
+                $format,
+                (
+                    'display': $display,
+                )
+            )};
         // Check for existence of a previous class using the same display
         $display-lookup: index($display-registry, $display);
         // If it exists, look it up in the map and extend that value.
         @if $display-lookup != null {
             $extender: nth(nth($class-list, $display-lookup), 1);
 
-            #{$display-class} {
-                @extend #{$classtype}#{$namespace}#{$extender};
+            #{$class-name} {
+                @extend #{$class-type}#{$namespace}#{$extender};
             }
         } @else {
-            #{$display-class} {
+            #{$class-name} {
                 display: #{$display}#{$important_str};
             }
         }
@@ -3931,7 +4460,7 @@ $display-classes: (
                 $class-name-list: map-merge(
                     $class-name-list,
                     (
-                        $display-class: $display,
+                        $class-name: $display,
                     )
                 );
             }
@@ -3951,20 +4480,6 @@ $display-classes: (
     }
 }
 
-$_default-display-classes: (
-    'show': 'block',
-    'bl': 'block',
-    'il_bl': 'inline-block',
-    'tbl': 'table',
-    'tbl_cl': 'table-cell',
-    'hide': 'none',
-    'flex': 'flex',
-    'block': 'block',
-    'inline_block': 'inline-block',
-    'table_cell': 'table-cell',
-    'table': 'table',
-);
-
 /// The responsive component to `_output-display-classes`. Invokes `_output-display-classes`
 /// while looping through a set of media-queries defined in `$breakpoints`.
 /// This is most useful for creating responsive display classes.
@@ -3980,27 +4495,45 @@ $_default-display-classes: (
     $breakpoints: map-keys($breakpoints),
     $namespace: '',
     $silent: false,
-    $important: false
+    $important: false,
+    $format: $display-class-format
 ) {
     $classes: $display-classes;
 
     @if $silent {
         //Merge user-defined classes with defaults
         // (so we have a wide-array of silent classes)
-        $classes: map-extend($display-classes, $_default-display-classes, true);
+        $classes: map-extend($_default-display-classes, $display-classes, true);
     }
 
-    @include _output-display-classes($namespace, $silent, $important, $classes);
+    @include _output-display-classes(
+        $silent,
+        $important,
+        $classes,
+        $format:
+            format-class-list(
+                $format,
+                (
+                    breakpoint: '',
+                )
+            )
+    );
 
     @each $name in $breakpoints {
         @include media-query($name) {
-            $name: $namespace + $name;
+            $name: $name;
 
             @include _output-display-classes(
-                '#{$name}#{$breakpoint-namespace-character}',
                 $silent,
                 $important,
-                $classes
+                $classes,
+                $format:
+                    format-class-list(
+                        $format,
+                        (
+                            breakpoint: $name,
+                        )
+                    )
             );
         }
     }
@@ -4008,122 +4541,95 @@ $_default-display-classes: (
 
 /// @alias display-classes
 ///
-@mixin display-utilities-init(
-    $breakpoints: $_all-breakpoints,
-    $namespace: '',
-    $silent: false,
-    $important: false
-) {
-    @include display-classes($breakpoints, $namespace, $silent, $important);
+@mixin display-utilities-init($args...) {
+    @include display-classes($args...);
 }
 
 //------------------------------------
 //      $SPACING UTILITIES
 //------------------------------------
 
-$_default-spacing-classes-config: (
+/// Utility spacing class configuration.
+///
+/// @type map
+/// @prop {map} $config [()]
+/// @prop {boolean} $config.silent [true] - Output silent classes?
+/// @prop {boolean} $config.important [false] - Make declarations important?
+/// @prop {string} $config.format [] - Class formatting. Accepts `property`, `direction`, `amount`, and `breakpoint`. See `format-class-name` for more information.
+/// @prop {map} $config.directions [('-t': 'top')] - Names and directions to append to class names.
+/// @prop {map} $config.amounts [('-2': 2)] - Names and values to multiply by each `unit`.
+/// @prop {map} $config.properties [('m': margin)] - Names for each property.
+/// @prop {boolean} $config.unit ['auto'] - What unit to multiply each 'amounts'. Passed directly to `type-space`.
+///
+/// @require format-class-name
+/// @group config
+///
+$spacing-classes: (
     silent: true,
     important: false,
+    format: (
+        'u-{%property%}' '{%direction%}{%amount%}' '{\\@}{%breakpoint%}',
+    ),
+    properties: (
+        'margin': margin,
+    ),
     directions: (
         '': '',
     ),
     amounts: (
         '': 1,
     ),
-    properties: (
-        'pad': padding,
-    ),
     unit: 'auto',
-);
+) !default;
 
-$spacing-classes: $_default-spacing-classes-config !default;
-
-/// Generates responsive spacing and padding classes. The `$namespace` argument is the media query's name, which will be appended to all generated classes. The `$config` argument is a map that allows JS-style arguments. Outputs class name as: `breakpoint_prefix_direction_amount`.
+/// Generates responsive spacing and padding classes.
 ///
-/// **`$config` Keys:**
-/// * `directions:` names and directions to append to class names .`('-t': 'top')`
-/// * `amounts:` Names and values to multiply by each `unit`. `('-2': 2)`
-/// * `properties:` Class names for each property. `('pad': padding)`
-/// * `silent:` boolean for outputting silent/non-silent classes.
-/// * `important:` Whether to output `!important` after each declaration.
-/// * `unit`: What unit to multiply each 'amounts'.
+/// @group utils
+/// @param {map} $config - same values as $spacing-classes
+/// @see $spacing-classes
 ///
-/// @param {string} $namespace [""] - a string to prepend to all spacing classes. Usually used for the media query's name that is calling this mixin.
-/// @param {map} $config [()]
-/// @param {map} $config.directions [('': null)]
-/// @param {map} $config.amounts [('': 1)]
-/// @param {map} $config.properties [('pad': padding)]
-/// @param {boolean} $config.important [false]
-/// @param {boolean} $config.silent [true]
-/// @param {boolean} $config.unit ['auto']
-///
-@mixin _output-spacing-classes($namespace: '', $config: ()) {
-    //Merge the passed map with default values
-    $config: map-extend($_default-spacing-classes-config, $config);
-
-    //Convert map values to variables for simpler parsing
-    $classtype: if(map-get($config, silent), unquote('%'), unquote('.'));
-    $properties: map-get($config, properties);
-    $directions: map-get($config, directions);
-    $amounts: map-get($config, amounts);
-    // Allow for legacy 'units' config property
-    $amounts: if(_is-set($amounts), $amounts, map-get($config, units));
-    $important: map-get($config, important);
-    $unit: map-get($config, unit);
-
-    // Check for null properties, set reasonable defaults
-    $properties: if(
-        _is-set($properties),
-        $properties,
-        (
-            'pad': 'padding',
-        )
-    );
-    $directions: if(
-        _is-set($directions),
-        $directions,
-        (
-            '': '',
-        )
-    );
-    $amounts: if(
-        _is-set($amounts),
-        $amounts,
-        (
-            '': 1,
-        )
-    );
-
+@mixin _output-spacing-classes($config: ()) {
     $class-name-list: ();
     $class-cache: ();
 
-    //Loop through base names, then amounts, then directions.
-    @each $given-name, $base-property in $properties {
-        @each $amount_name, $amount in $amounts {
-            @each $direction_name, $property-directions in $directions {
-                $class_name: unquote(
-                    '#{$classtype}#{$namespace}#{$given-name}'+'#{$direction_name}#{$amount_name}'
-                );
+    $classtype: if(map-get($config, silent), unquote('%'), unquote('.'));
 
-                //Skip if the padding is a negative value.
-                @if not(($base-property == 'padding') and ($amount < 0)) {
-                    $class-name-list: map-merge(
-                        $class-name-list,
+    //Loop through base names, then amounts, then directions.
+    @each $given-name, $base-property in map-get($config, 'properties') {
+        @each $amount-name, $amount in map-get($config, 'amounts') {
+            @each $direction-name,
+                $property-directions in map-get($config, 'directions')
+            {
+                $class_name: $classtype +
+                    format-class-name(
+                        map-get($config, 'format'),
                         (
-                            $class_name: $amount,
-                        )
+                            'class':
+                                '#{$given-name}#{$direction-name}#{$amount-name}',
+                            'direction': $direction-name,
+                            'amount': $amount-name,
+                            'property': $given-name,
+                        ),
+                        true
                     );
+
+                // Skip if the padding is a negative value.
+                @if not(($base-property == 'padding') and ($amount < 0)) {
+                    //
+                    // Start class declaration
+                    //
                     #{$class_name} {
-                        //multi-direction
                         @each $direction in $property-directions {
                             $property: $base-property;
 
-                            $property-amount: '#{$property+$amount}';
-
                             @if ($direction) and ($direction != '') {
-                                $property: $property + '-' + $direction;
+                                $property: '#{$property}-#{$direction}';
                             }
 
+                            $property-amount: '#{$property}#{$amount}';
+
+                            // If this property and amount have been used before,
+                            // extend previous value instead of creating.
                             @if map-get($class-cache, $property-amount) {
                                 @extend #{map-get(
                                     $class-cache, $property-amount
@@ -4140,11 +4646,21 @@ $spacing-classes: $_default-spacing-classes-config !default;
                                 @include type-space(
                                     $property,
                                     $amount,
-                                    $important,
-                                    $unit
+                                    map-get($config, 'important'),
+                                    map-get($config, 'unit')
                                 );
                             }
                         }
+                    }
+
+                    // Add to the registry if needed
+                    @if map-get($config, silent) and $debug-silent-classes {
+                        $class-name-list: map-merge(
+                            $class-name-list,
+                            (
+                                $class_name: $amount,
+                            )
+                        );
                     }
                 }
             }
@@ -4167,25 +4683,43 @@ $spacing-classes: $_default-spacing-classes-config !default;
 /// @group core
 ///
 /// @param {map} $breakpoints [$_all-breakpoints] - breakpoints to loop over.
-/// @param {string} $namespace [""] - string to prepend to all classes.
-/// @param {map} $config [(silent: false)] - Passed to `_output-spacing-classes` mixin.
+/// @param {map} $config [$spacing-classes] - Passed to `_output-spacing-classes` mixin.
 ///
 @mixin spacing-classes(
     $breakpoints: map-keys($breakpoints),
-    $namespace: '',
-    $config: (
-        silent: false,
-    )
+    $config: $spacing-classes
 ) {
-    $config: map-extend($config, $spacing-classes);
-    @include _output-spacing-classes($namespace, $config);
+    $config: _merge-spacing-configs($config);
+    $format: format-class-name(
+        map-get($config, 'format'),
+        (
+            'breakpoint': '',
+        )
+    );
+    @include _output-spacing-classes(
+        map-merge(
+            $config,
+            (
+                'format': $format,
+            )
+        )
+    );
 
-    @each $name in $breakpoints {
-        @include media-query($name) {
-            $name: $namespace + $name;
+    @each $breakpoint in $breakpoints {
+        $format: format-class-name(
+            map-get($config, 'format'),
+            (
+                'breakpoint': $breakpoint,
+            )
+        );
+        @include media-query($breakpoint) {
             @include _output-spacing-classes(
-                '#{$name}#{$breakpoint-namespace-character}',
-                $config
+                map-merge(
+                    $config,
+                    (
+                        'format': $format,
+                    )
+                )
             );
         }
     }
@@ -4193,22 +4727,67 @@ $spacing-classes: $_default-spacing-classes-config !default;
 
 /// @alias spacing-classes
 ///
-@mixin spacing-utilities-init(
-    $breakpoints: $_all-breakpoints,
-    $namespace: '',
-    $config: (
-        silent: false,
-    )
-) {
-    @include spacing-classes($breakpoints, $namespace, $config);
+@mixin spacing-utilities-init($args...) {
+    @include spacing-classes($args...);
 }
 
 @function _is-set($value) {
-    @if $value == null or length($value) == 0 {
-        @return false;
-    }
+    @return ($value != null or length($value) != 0);
+}
 
-    @return true;
+@function _merge-spacing-configs($config) {
+    $_default-spacing-classes-config: (
+        silent: true,
+        important: false,
+        properties: (
+            'margin': margin,
+        ),
+        directions: (
+            '': '',
+        ),
+        amounts: (
+            '': 1,
+        ),
+        unit: 'auto',
+        format: 'u-{%property%}' '{%direction%}' '{-}{%amount%}'
+            '{\\@}{%breakpoint%}',
+    );
+
+    $config: map-extend($_default-spacing-classes-config, $config);
+    $properties: map-get($config, properties);
+    $directions: map-get($config, directions);
+    $amounts: map-get($config, amounts);
+    // Allow for legacy 'units' config property
+    $amounts: if(_is-set($amounts), $amounts, map-get($config, units));
+    $important: map-get($config, important);
+    $unit: map-get($config, unit);
+
+    // Check for null properties, set reasonable defaults
+    $properties: if(
+        _is-set($properties),
+        $properties,
+        map-get($_default-spacing-classes-config, 'properties')
+    );
+    $directions: if(
+        _is-set($directions),
+        $directions,
+        map-get($_default-spacing-classes-config, 'directions')
+    );
+    $amounts: if(
+        _is-set($amounts),
+        $amounts,
+        map-get($_default-spacing-classes-config, 'amounts')
+    );
+
+    @return (
+        silent: map-get($config, 'silent'),
+        important: map-get($config, 'important'),
+        properties: $properties,
+        directions: $directions,
+        amounts: $amounts,
+        unit: map-get($config, 'unit'),
+        format: map-get($config, 'format')
+    );
 }
 
 /// Add clearfix to a class
@@ -4235,8 +4814,8 @@ $spacing-classes: $_default-spacing-classes-config !default;
 ///
 /// @group core
 ///
-/// @example
-///  //SCSS
+/// @example scss
+///
 ///  @include creat-overrides(
 ///      (
 ///          "class-name": (
@@ -4249,7 +4828,7 @@ $spacing-classes: $_default-spacing-classes-config !default;
 ///      ('smalls', 'bigs')
 ///  );
 ///
-///  //CSS
+///  //CSS output
 ///  .float-left {
 ///      float: left !important;
 ///   }
@@ -4317,13 +4896,20 @@ $auto-scale-type: false !default;
 /// @group config
 /// @type number
 ///
+$auto-scale-type-ratio: 1.125 !default;
+
+/// @alias auto-scale-type-ratio
+///
 $scale-ratio: 1.125 !default;
 
-/// Generates a pixel value that is an exponent of a ratio (`$ratio` defaults to `$scale-ratio` value)
+/// Generates a pixel value that is an exponent of a ratio
+/// (`$ratio` defaults to `$scale-ratio` value)
 /// @param {number} $scale
 /// @param {number | list} $ratio [$scale-ratio]
 ///
-@function modular-scale($scale, $ratio: $scale-ratio) {
+@function modular-scale($scale, $ratio: $auto-scale-type-ratio) {
+    // allow for legacy $scale-ratio config
+    $ratio: _legacy-check($auto-scale-type-ratio, $scale-ratio, 1.125);
     $modular-scale: $ratio;
 
     $ratio: cache(_normalize-ratio, $ratio);
@@ -4343,14 +4929,18 @@ $scale-ratio: 1.125 !default;
     @if length($ratio) == 2 {
         // Making sure we don't have a ratio below 1.
         @if nth($ratio, 1) < nth($ratio, 2) {
-            @return (nth($ratio, 2) / nth($scale-ratio, 1));
+            @return (nth($ratio, 2) / nth($ratio, 1));
         } @else {
-            @return (nth($scale-ratio, 1) / nth($scale-ratio, 2));
+            @return (nth($ratio, 1) / nth($ratio, 2));
         }
     }
 
-    @return $scale-ratio;
+    @return $ratio;
 }
+
+/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
+/// @group config
+$rem-px-fallback: false !default;
 
 /// Font size all other values will use for calculation. Will be converted to `rems`.
 /// @group config
@@ -4362,7 +4952,11 @@ $base-line-height: 24px !default;
 
 /// A rough estimate of how loose line-heights should be calculated against their font-sizes (when automatically generated).
 /// @group config
-$font-looseness: 15% !default;
+$auto-line-height-looseness: 15% !default;
+
+/// @alias auto-line-height-looseness
+/// @deprecated
+$font-looseness: $auto-line-height-looseness !default;
 
 /// @group config
 /// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
@@ -4404,10 +4998,6 @@ $primary-font-stack: $system-font-stack !default;
 $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas,
     'DejaVu Sans Mono', Menlo, monospace !default;
 
-/// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
-/// @group config
-$rem-px-fallback: false !default;
-
 /// Description of weights, styles and formats for the project's web fonts. The root key value determines the name, while each inner key determines the weights, styles, and formats.
 /// @type map
 /// @prop font-name - name of the font family
@@ -4434,6 +5024,10 @@ $web-fonts: (
 /// Relative path to fonts from CSS file
 /// @type String
 /// @group config
+$web-fonts-path: '' !default;
+
+/// @alias web-fonts-path
+/// @deprecated
 $font-file-location: '' !default;
 
 /// The base vertical unit. Used in `type-space` and grid functions.
@@ -4504,61 +5098,6 @@ $_headings-use: 0;
     @include px-to-rems($property, $sizes, $important, $base-font);
 }
 
-/// Calculates `rem` values. Used by `px-to-rems` mixin. The `$base-size` is used to calculate the value (e.g. if the body's font-size is `16px`, then the rem value of `24px` would be `1.5rem`).
-/// @group core
-/// @param {Number} $pixels
-///
-@function px-to-rems($pixels, $base-size: $base-font-size) {
-    @if $pixels == 'auto' or $pixels == 'normal' {
-        @return $pixels;
-    }
-
-    @if (unitless($pixels)) {
-        $pixels: $pixels * 1px;
-    }
-
-    //If 0, don't include units
-    @if $pixels == 0px {
-        @return 0;
-    }
-
-    $pixels: ($pixels / $base-size) * 1rem;
-
-    @return $pixels;
-}
-
-/// @alias px-to-rems
-///
-@function rems($pixels, $base-size: $base-font-size) {
-    @return px-to-rems($pixels, $base-size);
-}
-
-/// Function for calculating `em` values. The `$context` is used to calculate the final value. Different from `px-to-rems()` by generating a value with an `em`. `$context` is often necessary based on the situation.
-/// @group core
-/// @param {Number} $pixels
-/// @param {Number} $context [$base-font-size]
-///
-@function px-to-ems($pixels, $context: $base-font-size) {
-    @if (unitless($pixels)) {
-        $pixels: $pixels * 1px;
-    }
-
-    //If 0, don't include rems
-    @if $pixels == 0px {
-        @return 0;
-    }
-
-    $pixels: ($pixels / $context) * 1em;
-
-    @return $pixels;
-}
-
-/// @alias px-to-ems
-///
-@function ems($pixels, $context: $base-font-size) {
-    @return px-to-ems($pixels, $context);
-}
-
 //------------------------------------
 //      $FONT FACE TOOL
 //------------------------------------
@@ -4576,7 +5115,9 @@ $_headings-use: 0;
         $weights: map-get($inner-map, 'weights');
         $italics: map-get($inner-map, 'italics');
         $formats: map-get($inner-map, 'formats');
-        $path: map-get($inner-map, 'path') or $font-file-location;
+        $path: map-get($inner-map, 'path') or
+            $web-fonts-path or
+            $font-file-location;
 
         @each $weight in $weights {
             @include _font-weights($name, $path, $weight, $formats);
@@ -4786,6 +5327,7 @@ $_headings-use: 0;
     $important: false,
     $base-font: $base-font-size
 ) {
+    // Allow for base-font to be declared as third argument
     @if type-of($important) == 'number' {
         $base-font: $important;
         $important: false;
@@ -4812,6 +5354,7 @@ $_headings-use: 0;
 }
 
 /// @alias font-size
+///
 @mixin type-font-size(
     $font-size,
     $line-height: 'auto',
@@ -4822,6 +5365,7 @@ $_headings-use: 0;
 }
 
 /// @alias font-size
+///
 @mixin fs(
     $font-size,
     $line-height: 'auto',
@@ -4879,16 +5423,19 @@ $__font-warn: false;
 /// **TL;DR:** Automatically calculate the baseline of any particular font-size.
 ///
 /// Creates unitless line-heights that align to the baseline grid with consideration to the aesthetics of a given font size. Essentially makes sure larger font-sizes have smaller line-heights, while smaller font-sizes have larger ones.
-/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$font-looseness` increases the upper constraints, allowing for taller line heights on larger font sizes.
+/// Uses constraints based on upper and lower limits of pleasing line-heights, and finds where a given font-size should sit within those constraints. `$baseline-slack` increases the upper constraints, allowing for taller line-heights on larger font sizes.
+///
+/// The rate of change from large to small line-height is mostly a logarithmic curve.
+///
 /// Depends on `baseline()` for calculation and `_baseline-curve()` to determine the deviance from the upper and lower constraints.
 /// @group core
 /// @param {number} $font-size [$base-font-size] - font-size in need of a baseline
-/// @param {number} $baseline-slack [$font-looseness] - Percentage.
+/// @param {number} $baseline-slack [$auto-line-height-looseness] - Percentage.
 /// @returns {number}
 ///
 @function baseline-calc(
     $font-size: $base-font-size,
-    $baseline-slack: $font-looseness
+    $baseline-slack: $auto-line-height-looseness
 ) {
     @if type-of($font-size) != 'number' {
         @warn "Font-size: #{$font-size} must be a number, not a #{type-of($font-size)}.";
@@ -4908,12 +5455,16 @@ $__font-warn: false;
 
     //Make sure baseline-slack is a percentage
     @if unit($baseline-slack) != '%' {
-        @warn "Baseline-slack/font-looseness should be a percentage.";
+        @warn "Baseline-slack ($auto-line-height-looseness) should be a percentage.";
         $basline-slack: strip-units($baseline-slack);
         $baseline-slack: percentage($baseline-slack);
     }
 
     $slack: ($baseline-slack / 100%);
+
+    //Smallest/Largest font sizes to calculate against
+    $sm-font-size: 9 + ($slack * 10);
+    $lg-font-size: 72 + ($slack * 50);
 
     //Base Highest and lowest line-height multiples
     $base-lh-upper-bound: 1.9;
@@ -4926,12 +5477,8 @@ $__font-warn: false;
 
     //Largest font-size's highest/lowest line-height multiple
     // Use baseline slack to determine constraints
-    $lg-lh-upper-bound: 1.02 + ($slack / 2);
-    $lg-lh-lower-bound: 0.91 + ($slack / 2);
-
-    //Smallest/Largest font sizes to calculate against
-    $sm-font-size: 9 + ($slack * 10);
-    $lg-font-size: 95 + ($slack * 50);
+    $lg-lh-upper-bound: 1.05 + ($slack / 2);
+    $lg-lh-lower-bound: 0.8 + ($slack / 2);
 
     //_baseline-curve progress percentages
     $percent-along-current: 0;
@@ -4988,18 +5535,23 @@ $__font-warn: false;
     // stylelint-disable
     @if $debug-fonts {
         @if index($__font-index, $font-size) == null {
-            @debug '\A'+ 'font-size: #{$font-size}\A' + '        %: #{percentage($true-percent-along)} \A' +
-                '       %u: #{percentage($percent-along-upper)}\A' + '       %l: #{percentage($percent-along-lower)}\A' +
-                '       ub: #{$base-lh-upper-bound} (#{$font-size * $base-lh-upper-bound}),' +
-                '\A' + '       lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})' +
-                '\A' + ' sm-lh-ub: #{$sm-lh-upper-bound}, sm-lh-lb: #{$sm-lh-lower-bound}\A' +
-                ' lg-lh-ub: #{$lg-lh-upper-bound}, lg-lh-lb: #{$lg-lh-lower-bound}\A' +
-                '    slack: #{$slack}';
+            @debug '\A'+ 'font-size: #{$font-size}\A' +
+                '    true%: #{percentage($true-percent-along)} \A' +
+                '       %u: #{percentage($percent-along-upper)}\A' +
+                '       %l: #{percentage($percent-along-lower)}\A' +
+                '       ub: #{$base-lh-upper-bound} (#{$font-size * $base-lh-upper-bound}) ' +
+                '\A' +
+                '       lb: #{$base-lh-lower-bound} (#{$font-size * $base-lh-lower-bound})' +
+                '\A' +
+                ' sm-lh-ub: #{$sm-lh-upper-bound} | sm-lh-lb: #{$sm-lh-lower-bound}\A' +
+                ' lg-lh-ub: #{$lg-lh-upper-bound} | lg-lh-lb: #{$lg-lh-lower-bound}\A' +
+                '    slack: #{$slack}\A' +
+                '  base-lh: #{$base-line-height} | base-fs: #{$base-font-size}';
         }
     }
     // stylelint-enable
 
-    //If the lower bound is somehow higher than the upper bound,
+    // If the lower bound is somehow higher than the upper bound,
     // let's just reset the bounds to simple values
     @if $base-lh-lower-bound > $base-lh-upper-bound {
         $base-lh-lower-bound: 1;
@@ -5007,7 +5559,7 @@ $__font-warn: false;
     }
 
     //First attempt
-    $baseline: $base-line-height;
+    $baseline: $base-line-height or 24px;
     $line-height: baseline($font-size, $baseline);
 
     //Second attempt
@@ -5015,7 +5567,7 @@ $__font-warn: false;
         ($line-height > $base-lh-upper-bound)
     {
         //Attempt using a negative line-height for very large sizes
-        @if ($true-percent-along > 0.9) {
+        @if ($true-percent-along > 0.8) {
             $line-height: baseline($font-size, $baseline, 0.5, $floor: true);
         } @else if $font-size < $base-font-size {
             $line-height: baseline($font-size, $baseline, 1.5);
@@ -5042,7 +5594,7 @@ $__font-warn: false;
         $line-height: baseline($font-size, $baseline, $i);
 
         // Bail-out function to prevent infinite loops
-        // Set quit to true so we can escape this hellish loop
+        // Set $quit to true so we can escape this hellish loop
         @if $i > (($font-size / 1px) / 2) {
             @if (not $__font-warn) and ($debug-fonts) {
                 @warn ""+
@@ -5153,9 +5705,6 @@ $__font-warn: false;
     /// @type List | Number
     $type-headings: 6, 5, 4, 3, 2, 1 !global;
 
-    /// Spacing variable for simple inclusion.
-    $type-space: 2 * $type-base-ratio !global;
-
     /// Silent class registry.
     /// Holds all auto-generated silent classes for debugging.
     $_silent-class-registry: () !global;
@@ -5171,31 +5720,6 @@ $__font-warn: false;
         $_all-breakpoints,
         length($_all-breakpoints)
     ) !global;
-
-    //------------------------------------
-    //        $SANITIZE
-    //------------------------------------
-
-    $root-background-color: colors('bg') !global;
-    $root-color: colors('type') !global;
-    $root-font-family: $primary-font-stack !global;
-    $root-font-size: percentage($base-font-size/16px) !global;
-    $root-line-height: $type-base-ratio !global;
-    $root-text-rendering: optimizeLegibility !global;
-    $root-cursor: inherit !global;
-
-    $anchor-text-decoration: none !global;
-    $background-repeat: no-repeat !global;
-    $form-element-min-height: $base-line-height !global;
-    $textarea-resize: vertical !global;
-    $media-element-vertical-align: middle !global;
-    $monospace-font-family: $monospace-font-stack !global;
-    $nav-list-style: none !global;
-    $selection-background-color: mix(color('links'), color('bg'), 80%) !global;
-    $selection-color: black-or-white($selection-background-color) !global;
-    $selection-text-shadow: none !global;
-    $table-border-collapse: collapse !global;
-    $table-border-spacing: 0 !global;
 }
 
 /// Makes sure color map contains the necessary depth to be used by `colors` function
@@ -5250,33 +5774,53 @@ $__font-warn: false;
     /// H1 line-height
     /// @group core
     $h1-lh: _extract-line-height($type-h1-size) !global;
-    @debug 'init';
+
+    /// H2 font-size
     /// @group core
     $h2-fs: nth($type-h2-size, 1) !global;
+    /// H2 line-height
     /// @group core
     $h2-lh: _extract-line-height($type-h2-size) !global;
+
+    /// H3 font-size
     /// @group core
     $h3-fs: nth($type-h3-size, 1) !global;
+    /// h3 line-height
     /// @group core
     $h3-lh: _extract-line-height($type-h3-size) !global;
+
+    /// H4 font-size
     /// @group core
     $h4-fs: nth($type-h4-size, 1) !global;
+    /// h4 line-height
     /// @group core
     $h4-lh: _extract-line-height($type-h4-size) !global;
+
+    /// H5 font-size
     /// @group core
     $h5-fs: nth($type-h5-size, 1) !global;
+    /// h5 line-height
     /// @group core
     $h5-lh: _extract-line-height($type-h5-size) !global;
+
+    /// H6 font-size
     /// @type Number (pixel)
     $h6-fs: nth($type-h6-size, 1) !global;
+    /// h6 line-height
     /// @group core
     $h6-lh: _extract-line-height($type-h6-size) !global;
+
+    /// paragraph font-size
     /// @group core
     $p-fs: nth($type-p-size, 1) !global;
+    /// paragraph line-height
     /// @group core
     $p-lh: _extract-line-height($type-p-size) !global;
+
+    /// small font-size
     /// @group core
     $small-fs: nth($type-small-size, 1) !global;
+    /// small line-height
     /// @group core
     $small-lh: _extract-line-height($type-small-size) !global;
 
