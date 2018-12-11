@@ -12,19 +12,19 @@ $max-wide-content-width: 910px !default;
 /// @group config
 $breakpoints: (
     // Mostly phones
-        'smalls': '(max-width:#{($max-wide-content-width/16px) * 1em})',
+        smalls: '(max-width:#{($max-wide-content-width/16px)}em)',
     // Small Phones
-        'small': '(max-width: #{($max-content-width/16px) * 1em})',
+        small: '(max-width: #{($max-content-width/16px)}em)',
     // Large (Modern) phones/phablets
-        'smallish': '(min-width: #{(($max-content-width + 1)/16px) * 1em})' +
-        ' and (max-width: #{($max-wide-content-width/16px) * 1em})',
+        smallish: '(min-width: #{(($max-content-width + 1)/16px)}em)' +
+        ' and (max-width: #{($max-wide-content-width/16px)}em)',
     // Tablets, Desktops and larger
-        'bigs': '(min-width: #{($max-wide-content-width/16px) * 1em})',
+        bigs: '(min-width: #{($max-wide-content-width/16px)}em)',
     // Mostly Tablets and small laptops. Overrides Bigs
-        'lap': '(min-width: #{($max-wide-content-width/16px) * 1em})' +
-        ' and (max-width: #{($max-site-width/16px) * 1em})',
+        lap: '(min-width: #{($max-wide-content-width/16px)}em)' +
+        ' and (max-width: #{($max-site-width/16px)}em)',
     // Large Tablets and Desktops. Overrides Bigs.
-        'desk': '(min-width: #{($max-site-width/16px) * 1em})'
+        desk: '(min-width: #{($max-site-width/16px)}em)'
 ) !default;
 
 //Accepted media-query expression types
