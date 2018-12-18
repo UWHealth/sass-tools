@@ -93,7 +93,6 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     $_: $class-type;
     $divisor: $columns;
     $class-name-list: ();
-    $prefix: '#{$class-type}#{$namespace}';
     $important: if($important, '!important', '');
     $space: '_';
 
