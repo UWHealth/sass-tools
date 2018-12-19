@@ -57,7 +57,7 @@ $breakpoint-namespace-character: '\\@';
 
 $grid-columns: 12;
 $grid-gutter: $horizontal-space;
-$grid-silent-classes: false;
+$grid-silent-classes: true;
 $grid-push: true;
 $breakpoint-has-push: ('smalls', 'small', 'smallish', 'bigs', 'lap', 'desk');
 $grid-pull: true;

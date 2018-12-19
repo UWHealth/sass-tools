@@ -52,6 +52,7 @@
 /// @param {boolean} $inline-block  [$grid-inline-block] - Use inline-block?
 /// @param {boolean} $floats  [$grid-floats] - Use floats?
 /// @param {boolean} $bem     [$grid-bem-naming] - Use BEM naming? `false` will result in snake-case names.
+///
 @mixin grid-setup(
     $silent: $grid-silent-classes,
     $gutter: $grid-gutter,
@@ -87,7 +88,7 @@
         )
     );
 
-    $grid-item: '.' +
+    $grid-item: $_ +
         _class(
             $format,
             (
@@ -166,6 +167,7 @@
             justify-content: flex-end;
         }
     }
+
     //
     // Centered grids align grid items centrally without needing to use push or pull
     // classes. Extends `.grid`.
@@ -183,6 +185,7 @@
             }
         }
     }
+
     //
     //
     // Align grid cells vertically (`.grid--middle` or `.grid--bottom`). Extends
@@ -208,7 +211,7 @@
 
     // Gutterless grids have all the properties of regular grids, minus any spacing.
     // Extends `.grid`.
-
+    //
     #{$_}#{_class($format, (child: '', modifier: 'full'))} {
         margin-left: 0;
 
@@ -271,6 +274,7 @@
 
 /// Creates a grid container (row) based on your grid configuration.
 /// @group grid
+///
 @mixin grid-row(
     $gutter: $grid-gutter,
     $letter-spacing: $grid-letter-space-fix
@@ -309,6 +313,7 @@
 /// @param {number} $columns [$grid-columns] - Number of columns the item should span.
 /// @param {number} $total-columns [$grid-columns] - Number of columns in total grid space. Only necessary to change if you are nesting grids within grids.
 /// @see grid-width
+///
 @mixin grid-item(
     $columns: $grid-columns,
     $total-columns: $grid-columns,
@@ -359,6 +364,7 @@
 /// @group grid
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
+///
 @mixin grid-init($silent: $grid-silent-classes, $important: false) {
     @if (
         $grid-inline-block !=
@@ -386,6 +392,7 @@
 
 /// @alias grid-setup
 /// @group grid
+///
 @mixin grid-classes($silent: $grid-silent-classes) {
     @include grid-setup($silent);
 }
@@ -394,6 +401,7 @@
 /// @group grid
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
+///
 @mixin width-classes($silent: $grid-silent-classes, $important: false) {
     $format: if(
         variable-exists('width-class-format'),
@@ -439,6 +447,7 @@
 /// @group grid
 /// @param {boolean} $silent [$grid-silent-classes] - generate silent classes?
 /// @param {boolean} $important [false] - make them `!important`?
+///
 @mixin push-classes($silent: $grid-silent-classes, $important: false) {
     $format: if(
         variable-exists('push-class-format'),

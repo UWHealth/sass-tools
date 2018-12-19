@@ -42,9 +42,10 @@ $breakpoint-has-spacing-classes: ('smalls', 'bigs', 'desk');
 
 $auto-scale-type: false;
 $debug-fonts: false;
+$debug-silent-classes: true;
 
 @include init;
 
 @include spacing-classes;
 @include display-classes;
-// @include grid-init;
+@include grid-init($silent: true);

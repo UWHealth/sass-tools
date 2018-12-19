@@ -169,7 +169,7 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
         );
         $_silent-class-registry: silents-register(
             $class-name-list,
-            $type
+            $property
         ) !global;
     }
 }

@@ -2538,38 +2538,11 @@ $base-colors: (
 //
 // */
 
-@mixin color-palette-output($selector, $color-map: $base-colors) {
+@mixin color-palette-output($selector, $color-map: ()) {
     $color-names: ();
     $color-subnames: ();
     $color-fullnames: ();
     $color-values: ();
-
-    //Store color lengths for selector loop
-    $top-colors-len: length($color-names);
-    $sub-colors-len: length($color-subnames) / $top-colors-len;
-    $color-index: 1;
-    $color-loop: 1;
-
-    //Base styles
-    #{$selector} {
-        float: left;
-        margin-right: 0.95%;
-        padding: 1%;
-        //Width is a percentage of the total top-level colors (minus 1% for margin)
-        width: percentage(1 / $top-colors-len) - 1%;
-        overflow: hidden;
-
-        &:before {
-            display: block;
-            white-space: nowrap;
-            @include rems(font-size, modular-scale(-1));
-        }
-
-        &:after {
-            display: block;
-            @include rems(font-size, modular-scale(-2));
-        }
-    }
 
     //Loop through the color map,
     // adding all names, variants, and values to individual lists
@@ -2606,6 +2579,13 @@ $base-colors: (
             }
         }
     }
+
+    //Store color lengths for selector loop
+    $top-colors-len: length($color-names);
+    $sub-colors-len: length($color-subnames) / $top-colors-len;
+    $color-index: 1;
+    $color-loop: 1;
+
 
     //Loop through all colors
     @for $i from 1 through length($color-fullnames) {
@@ -2644,6 +2624,27 @@ $base-colors: (
         @if $color-index > length($color-fullnames) {
             $color-loop: $color-loop + 1;
             $color-index: $color-loop;
+        }
+    }
+
+    //Base styles
+    #{$selector} {
+        float: left;
+        margin-right: 0.95%;
+        padding: 1%;
+        //Width is a percentage of the total top-level colors (minus 1% for margin)
+        width: percentage(1 / $top-colors-len) - 1%;
+        overflow: hidden;
+
+        &:before {
+            display: block;
+            white-space: nowrap;
+            @include rems(font-size, modular-scale(-1));
+        }
+
+        &:after {
+            display: block;
+            @include rems(font-size, modular-scale(-2));
         }
     }
 }
@@ -3358,7 +3359,6 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
     $_: $class-type;
     $divisor: $columns;
     $class-name-list: ();
-    $prefix: '#{$class-type}#{$namespace}';
     $important: if($important, '!important', '');
     $space: '_';
 
