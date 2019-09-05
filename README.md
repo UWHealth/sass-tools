@@ -3,6 +3,8 @@ Central location for framework sass tools
 
 [→ View API docs](https://uwhealth.github.io/sass-tools/)
 
+[→ View sample config](example-config.scss)
+
 ## Installation
 
 ```cli
