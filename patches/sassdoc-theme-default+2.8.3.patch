@@ -1,0 +1,30 @@
+diff --git a/node_modules/sassdoc-theme-default/views/includes/annotations/parameter.html.njk b/node_modules/sassdoc-theme-default/views/includes/annotations/parameter.html.njk
+index e673cc0..00641c3 100644
+--- a/node_modules/sassdoc-theme-default/views/includes/annotations/parameter.html.njk
++++ b/node_modules/sassdoc-theme-default/views/includes/annotations/parameter.html.njk
+@@ -21,7 +21,11 @@
+               {% if parameter.type == '*' %}
+                 Any
+               {% else %}
+-                {{ parameter.type | display_as_type | safe }}
++                {%if parameter.type %}
++                    {{ parameter.type | display_as_type | safe }}
++                {% else %}
++                    -
++                {% endif %}
+               {% endif %}
+             </code>
+           </td>
+diff --git a/node_modules/sassdoc-theme-default/views/includes/annotations/type.html.njk b/node_modules/sassdoc-theme-default/views/includes/annotations/type.html.njk
+index 4b78068..08f4882 100644
+--- a/node_modules/sassdoc-theme-default/views/includes/annotations/type.html.njk
++++ b/node_modules/sassdoc-theme-default/views/includes/annotations/type.html.njk
+@@ -5,7 +5,7 @@
+   {% if item.type == "*" %}
+     Any
+   {% else %}
+-    <code>{{ item.type | display_as_type }}</code>
++    <code>{{ item.type | display_as_type | safe}}</code>
+   {% endif %}
+   </p>
+ {% endif %}

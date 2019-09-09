@@ -1,6 +1,8 @@
 const gulp = require('gulp');
 const series = gulp.series;
 
+require('patch-package');
+
 let serverRunning = false;
 
 gulp.task('sass', () => {

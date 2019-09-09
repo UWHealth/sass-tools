@@ -16,15 +16,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@uwhealth/stylelint-config": "^1.5.1",
-    "browser-sync": "^2.26.3",
-    "gulp": "4.0.0",
-    "gulp-cli": "^2.0.1",
-    "gulp-sass": "^4.0.1",
-    "prettier": "^1.14.2",
-    "sassdoc": "^2.5.1",
-    "scss-bundle": "^2.4.0",
-    "stylelint": "^9.5.0"
+    "@uwhealth/stylelint-config": "^1.5.5",
+    "browser-sync": "^2.26.7",
+    "gulp": "^4.0.2",
+    "gulp-cli": "^2.2.0",
+    "gulp-sass": "^4.0.2",
+    "patch-package": "^6.1.4",
+    "prettier": ">=1.18.2",
+    "sassdoc": "^2.7.1",
+    "scss-bundle": "^3.0.1",
+    "stylelint": ">=10.1.0"
   },
   "dependencies": {},
   "stylelint": {
