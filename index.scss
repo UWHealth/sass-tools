@@ -117,8 +117,9 @@ $golden_ratio: golden();
 }
 
 /// A good aproximation for $x close to 1
-///
 /// @group math
+///
+/// @param {number} $x
 ///
 @function _log($x) {
     $x: ($x - 1) / ($x + 1);
@@ -139,7 +140,7 @@ $golden_ratio: golden();
 ///
 /// @group Math
 ///
-/// @param $x
+/// @param {-} $x
 /// @returns {list} (fraction, exponent)
 ///
 @function frexp($x) {
@@ -182,8 +183,8 @@ $golden_ratio: golden();
 }
 
 /// Returns the factorial of a non-negative integer.
-/// @param {number} $x
 /// @group Math
+/// @param {number} $x
 /// @example
 ///     $value:  fact(0) // 1
 ///     $value2: fact(8) // 40320
@@ -236,7 +237,7 @@ $golden_ratio: golden();
 }
 
 /// @alias sqrt
-/// @param $r
+/// @param {-} $r
 /// @group Math
 ///
 @function sqroot($r) {
@@ -277,7 +278,7 @@ $golden_ratio: golden();
 /// Determines the Sine of an angle.
 /// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
 /// @group Math
-/// @param $angle
+/// @param {number} $angle
 /// @returns {number}
 ///
 @function sin($angle) {
@@ -396,7 +397,7 @@ $golden_ratio: golden();
     @return (1/2 + sqrt(5) / 2) * $base;
 }
 
-/// @param $angle
+/// @param {-} $angle
 /// @group Math
 ///
 @function rad($angle) {
@@ -410,7 +411,7 @@ $golden_ratio: golden();
 }
 
 /// @alias rad
-/// @param $angle
+/// @param {-} $angle
 /// @group Math
 ///
 @function angle-to-rad($angle) {
@@ -420,7 +421,7 @@ $golden_ratio: golden();
 // Unused functions
 // ------------------------------------
 // Hyperbolic sine
-// @param $number
+// @param {-} $number
 // @group Math
 // @function sinh($number) {
 //     $top: exponent($e, (2 * $number)) - 1;
@@ -430,7 +431,7 @@ $golden_ratio: golden();
 
 // Determines the Cosine of an angle.
 // @group Math
-// @param $angle
+// @param {-} $angle
 // @returns {number}
 // @function cos($angle) {
 //     $cos: 0;
@@ -762,7 +763,7 @@ $_cached-values: ();
 /// Memoize (cache) a function's return values and arguments. Speeds up processing on intensive functions that get called many times (with the same arguments).
 /// _NOTE: This can actually **increase** processing time if used too often or on simple functions as the lookup process isn't free. Every cached value is unique._
 /// @param {string} $function-name
-/// @param {} $args... - Arguments to be passed to the function
+/// @param {*} $args... - Arguments to be passed to the function
 /// @group utils
 ///
 @function cache($function-name, $args...) {
@@ -948,7 +949,7 @@ $_cached-values: ();
 /// Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean. Delegates methods to the appropriate function based on variable type.
 /// @group utils
 /// @param {map | list | string} $data - the data you're searching through.
-/// @param {} $value - the value you're searching for.
+/// @param {*} $value - the value you're searching for.
 ///
 @function contains($data, $value) {
     @if type-of($data == "map") {
@@ -1089,8 +1090,8 @@ $_cached-values: ();
 
 /// Check if a list contains a value
 /// @group utils
-/// @param $list
-/// @param $value
+/// @param {List} $list
+/// @param {-} $value
 ///
 @function list-contains($list, $value) {
     @return not not index($list, $value);
@@ -1098,8 +1099,8 @@ $_cached-values: ();
 
 /// Reverse a List
 /// @group utils
-/// @param $list
-/// @param $recursive [false]
+/// @param {-} $list
+/// @param {-} $recursive [false]
 ///
 @function list-reverse($list, $recursive: false) {
     $result: ();
@@ -1117,8 +1118,8 @@ $_cached-values: ();
 
 /// List print
 /// @group utils
-/// @param $list
-/// @param $depth [1]
+/// @param {-} $list
+/// @param {-} $depth [1]
 ///
 @function list-print($list, $depth: 1) {
     $output: "";
@@ -1354,7 +1355,7 @@ $_cached-values: ();
 ///
 @function map-inspect($map, $level: 1) {
     $tab: "    ";
-    $cr: "
+    $cr: "\
 ";
 
     @if type-of($map) != "map" {
@@ -1978,7 +1979,7 @@ $base-colors: (
     @if $foreground == 0 {
         $foreground: 255;
     }
-    @elseif $tmp < 0 {
+    @else if $tmp < 0 {
         $foreground: 0;
     } @else {
         $foreground: $tmp;
@@ -2390,7 +2391,7 @@ $base-colors: (
         @warn "Color '#{$color-name}' not found in $base-colors map. Returning #f00 instead";
         @return red;
     }
-    @elseif not map-has-key(map-get($color-map, $color-name), $tone) {
+    @else if not map-has-key(map-get($color-map, $color-name), $tone) {
         @warn "Tone '#{$tone}' not found in #{$color-name}. Returning #f00 instead.";
         @return red;
     }
@@ -2449,9 +2450,9 @@ $base-colors: (
 /// [Taken from here](https://gist.github.com/voxpelli/6304812)
 ///
 /// @group utils
-/// @param $base
-/// @param $colors
-/// @param $tolerance [0]
+/// @param {Color} $base
+/// @param {List} $colors
+/// @param {Number} $tolerance [0]
 ///
 /// @example
 ///   div {
@@ -2477,7 +2478,7 @@ $base-colors: (
 }
 
 /// Find the relative luminance of a color. Used by `color-contrast()`. [Adapted from color.js](https://github.com/LeaVerou/contrast-ratio/blob/gh-pages/color.js)
-/// @param $color
+/// @param {Color} $color
 /// @returns {number} 0 - 1
 ///
 @function color-luminance($color) {
@@ -2686,8 +2687,12 @@ $base-colors: (
         @each $color, $name in $color-list {
             @each $key, $value in $name {
                 $value: call(safe-get-function($blending-mode), $blending-color, $value, $amount);
-                $temp-key: ($key: $value);
-                $temp-color: ($color: ($temp-key));
+                $temp-key: (
+                    $key: $value
+                );
+                $temp-color: (
+                    $color: ($temp-key)
+                );
                 $temp-name-map: map-merge($temp-name-map, $temp-color);
                 @debug $temp-name-map;
             }
@@ -2695,10 +2700,14 @@ $base-colors: (
         }
 
         $return: map-merge($color-list, $temp-top-map);
-
-    }@else {
+    } @else {
         @each $value in $color-list {
-            $value: call(safe-get-function($blending-mode), $blending-color, $value, $amount);
+            $value: call(
+                safe-get-function($blending-mode),
+                $blending-color,
+                $value,
+                $amount
+            );
             $temp-list: append($temp-list, $value);
         }
         $return: $temp-list;
@@ -2716,11 +2725,11 @@ $base-colors: (
 /// * `$variations`: actual names for each color tone when `colors()` used.
 /// * `$blending-colors`: used when a function is a `blend`. Can be a list or a single color.
 ///
-/// @param $map [$colors],
-/// @param $functions [(tint, tint, tint, shade, shade, shade)],
-/// @param $increments [(20%, 40%, 80%, 20%, 40%, 80%)],
-/// @param $variations [(light, lighter, lightest, dark, darker, darkest)],
-/// @param $blending-colors [null]
+/// @param {Map} $map [$colors]
+/// @param {List | Strings} $functions [(tint, tint, tint, shade, shade, shade)]
+/// @param {List | Numbers} $increments [(20%, 40%, 80%, 20%, 40%, 80%)]
+/// @param {List | Strings} $variations [(light, lighter, lightest, dark, darker, darkest)]
+/// @param {List | Colors} $blending-colors [null]
 ///
 @function generate-color-variations(
     $map: $base-colors,
@@ -3977,10 +3986,10 @@ $_human-readable-denominators: whole, half, third, quarter, fifth, sixth,
             @if ($prop-type == 'number') {
                 $border-width: append($border-width, $property);
             }
-            @elseif (($prop-type == 'color') or ($property == 'currentColor')) {
+            @else if (($prop-type == 'color') or ($property == 'currentColor')) {
                 $border-color: append($border-color, $property);
             }
-            @elseif ($prop-type == 'string') {
+            @else if ($prop-type == 'string') {
                 $border-style: append($border-style, $property);
             }
         }
@@ -4314,7 +4323,7 @@ $media-query-intervals: (
         );
     }
     //Check operators for matches
-    @elseif (index($media-query-operators, $argument)) {
+    @else if (index($media-query-operators, $argument)) {
         //Format operator as the beginning of a parenthesis
         $query-map: map-merge(
             $query-map,
@@ -4324,7 +4333,7 @@ $media-query-intervals: (
         );
     }
     //If its a number, assume its a value
-    @elseif (type-of($argument) == number) {
+    @else if (type-of($argument) == number) {
         //Format value with a colon and closing parenthesis
         $query-map: map-merge(
             $query-map,
@@ -4334,7 +4343,7 @@ $media-query-intervals: (
         );
     }
     //Check devices for matches
-    @elseif (index($media-query-devices, $argument)) {
+    @else if (index($media-query-devices, $argument)) {
         $query-map: map-merge(
             $query-map,
             (
@@ -4424,10 +4433,10 @@ $display-classes: $_default-display-classes !default;
 $display-class-format: 'display-{%display%}' '{\\@}{%breakpoint%}' !default;
 
 /// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-/// @param $silent
-/// @param $important
-/// @param $class-list
-/// @param $format
+/// @param {Boolean} $silent [false]
+/// @param {Boolean} $important [true]
+/// @param {List} $class-list [$display-classes]
+/// @param {List | String} $format [$display-class-format]
 ///
 @mixin _output-display-classes(
     $silent: false,
@@ -4949,61 +4958,77 @@ $scale-ratio: 1.125 !default;
 
 /// Determines whether `rems()` conversion includes a pixel-value fallback for older browsers like IE8.
 /// @group config
+///
 $rem-px-fallback: false !default;
 
 /// Font size all other values will use for calculation. Will be converted to `rems`.
 /// @group config
+///
 $base-font-size: 16px !default;
 /// Line-height for base font-size. Essentially determines the baseline grid for alignment.
 /// @see {function} type-space
 /// @group config
+///
 $base-line-height: 24px !default;
 
 /// A rough estimate of how loose line-heights should be calculated against their font-sizes (when automatically generated).
 /// @group config
+///
 $auto-line-height-looseness: 15% !default;
 
 /// @alias auto-line-height-looseness
 /// @deprecated
+///
 $font-looseness: $auto-line-height-looseness !default;
 
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-h1-size: modular-scale(7) !default;
 
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-h2-size: modular-scale(5) !default;
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-h3-size: modular-scale(4) !default;
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-h4-size: modular-scale(3) !default;
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-h5-size: modular-scale(2) !default;
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-h6-size: modular-scale(1) !default;
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-p-size: ($base-font-size, $base-line-height) !default;
 /// @group config
-/// @type {List | Number} - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+/// @type List | Number - Should be pixel values. A single value is the font-size, while a secondary (optional) value is the line-height.
+///
 $type-small-size: modular-scale(-1) !default;
 
 /// Font-stack for using the user's operating system's native font.
 /// @group core
+///
 $system-font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
     Roboto, 'Helvetica Neue', sans-serif;
 
 /// Reference for the project's main font-stack.
 /// @group config
+///
 $primary-font-stack: $system-font-stack !default;
 
 /// Reference for the project's monospaced font-stack.
 /// @group config
+///
 $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas,
     'DejaVu Sans Mono', Menlo, monospace !default;
 
@@ -5014,6 +5039,7 @@ $monospace-font-stack: 'SFMono-Regular', 'SF Mono', 'Ubuntu Mono', Consolas,
 /// @prop {list|number} font-name.italics - include italics for weights
 /// @prop {list|string} font-name.formats - file formats to include
 /// @group config
+///
 $web-fonts: (
     'system': (
         'weights': (
@@ -5033,20 +5059,24 @@ $web-fonts: (
 /// Relative path to fonts from CSS file
 /// @type String
 /// @group config
+///
 $web-fonts-path: '' !default;
 
 /// @alias web-fonts-path
 /// @deprecated
+///
 $font-file-location: '' !default;
 
 /// The base vertical unit. Used in `type-space` and grid functions.
 /// @see type-space
 /// @group config
+///
 $vertical-space: $base-line-height !default;
 
 /// The base horizontal unit. Used in `type-space` and grid functions.
 /// @group config
 /// @see type-space
+///
 $horizontal-space: $base-line-height !default;
 
 $_headings-use: 0;
@@ -5115,8 +5145,10 @@ $_headings-use: 0;
 ///
 /// Font file names must be the same as their CSS font-family values. Example: arial font, 400 weight would be arial-400.ttf and the CSS value would be font-family: 'arial'; font-weight: 400.
 /// @group core
-/// @param {map} $font-map [$web-fonts]
+///
+/// @param {Map} $font-map [$web-fonts]
 /// @see $web-fonts
+///
 @mixin web-fonts($font-map: $web-fonts) {
     @each $name in map-keys($font-map) {
         $inner-map: map-get($font-map, $name);
@@ -5159,11 +5191,12 @@ $_headings-use: 0;
 
 /// Generates cross-browser font-face declarations when called.
 /// `$name` is required, arbitrary, and what you will use in font stacks.
-/// @param {} $name
-/// @param {} $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
-/// @param {} $eot is required by IE, and is a relative location of the eot file.
-/// @param {} $weight shows if the font is bold, defaults to normal
-/// @param {} $style defaults to normal, might be also italic
+/// @param {String} $name
+/// @param {List} $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
+/// @param {String} $eot is required by IE, and is a relative location of the eot file.
+/// @param {String} $weight shows if the font is bold, defaults to normal
+/// @param {String} $style defaults to normal, might be also italic
+///
 @mixin font-face(
     $name,
     $font-files,
@@ -5689,15 +5722,16 @@ $__font-warn: false;
 /// For instance, the `$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
 /// @group core
 ///
-@mixin init {
+@mixin init() {
     @include _set-global-typography-variables();
 
     //Expand color map if necessary
     $base-colors: _verify-color-map-depth($base-colors) !global;
 
-    /// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
-    /// @type Number
-    /// @group core
+/// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
+/// @type Number
+/// @group core
+///
     $type-base-unit: $base-line-height !global;
 
     @if $base-font-size >= $type-base-unit {
@@ -5705,13 +5739,15 @@ $__font-warn: false;
             $base-font-size !global;
     }
 
-    /// Ratio used to calculate the difference between font sizes and spacing units.
-    /// @type Number
-    /// @group core
+/// Ratio used to calculate the difference between font sizes and spacing units.
+/// @type Number
+/// @group core
+///
     $type-base-ratio: ($type-base-unit / $base-font-size) !global;
 
-    /// Used for defining automatic headings functions.
-    /// @type List | Number
+/// Used for defining automatic headings functions.
+/// @type List | Number
+///
     $type-headings: 6, 5, 4, 3, 2, 1 !global;
 
     /// Silent class registry.
@@ -5732,7 +5768,7 @@ $__font-warn: false;
 }
 
 /// Makes sure color map contains the necessary depth to be used by `colors` function
-/// @param $color-map
+/// @param {Map} $color-map
 ///
 @function _verify-color-map-depth($color-map) {
     $is-deep-enough: true;
@@ -5777,84 +5813,99 @@ $__font-warn: false;
 
     //Check for existence of line-height override, and store it
 
-    /// H1 font-size
-    /// @group core
+/// H1 font-size
+/// @group core
     $h1-fs: nth($type-h1-size, 1) !global;
-    /// H1 line-height
-    /// @group core
+/// H1 line-height
+/// @group core
     $h1-lh: _extract-line-height($type-h1-size) !global;
 
-    /// H2 font-size
-    /// @group core
+/// H2 font-size
+/// @group core
     $h2-fs: nth($type-h2-size, 1) !global;
-    /// H2 line-height
-    /// @group core
+/// H2 line-height
+/// @group core
     $h2-lh: _extract-line-height($type-h2-size) !global;
 
-    /// H3 font-size
-    /// @group core
+/// H3 font-size
+/// @group core
     $h3-fs: nth($type-h3-size, 1) !global;
-    /// h3 line-height
-    /// @group core
+/// h3 line-height
+/// @group core
     $h3-lh: _extract-line-height($type-h3-size) !global;
 
-    /// H4 font-size
-    /// @group core
+/// H4 font-size
+/// @group core
     $h4-fs: nth($type-h4-size, 1) !global;
-    /// h4 line-height
-    /// @group core
+/// h4 line-height
+/// @group core
     $h4-lh: _extract-line-height($type-h4-size) !global;
 
-    /// H5 font-size
-    /// @group core
+/// H5 font-size
+/// @group core
     $h5-fs: nth($type-h5-size, 1) !global;
-    /// h5 line-height
-    /// @group core
+/// h5 line-height
+/// @group core
+///
     $h5-lh: _extract-line-height($type-h5-size) !global;
 
-    /// H6 font-size
-    /// @type Number (pixel)
+/// H6 font-size
+/// @type Number (pixel)
+///
     $h6-fs: nth($type-h6-size, 1) !global;
-    /// h6 line-height
-    /// @group core
+/// h6 line-height
+/// @group core
+///
     $h6-lh: _extract-line-height($type-h6-size) !global;
 
-    /// paragraph font-size
-    /// @group core
+/// paragraph font-size
+/// @group core
+///
     $p-fs: nth($type-p-size, 1) !global;
-    /// paragraph line-height
-    /// @group core
+/// paragraph line-height
+/// @group core
+///
     $p-lh: _extract-line-height($type-p-size) !global;
 
-    /// small font-size
-    /// @group core
+/// small font-size
+/// @group core
+///
     $small-fs: nth($type-small-size, 1) !global;
-    /// small line-height
-    /// @group core
+/// small line-height
+/// @group core
+///
     $small-lh: _extract-line-height($type-small-size) !global;
 
-    /// @alias h1-lh
+/// @alias h1-lh
+///
     $type-h1-lh: $h1-lh !global;
     $type-h1-size: $h1-fs !global;
-    /// @alias h2-lh
+/// @alias h2-lh
+///
     $type-h2-lh: $h2-lh !global;
     $type-h2-size: $h2-fs !global;
-    /// @alias h3-lh
+/// @alias h3-lh
+///
     $type-h3-lh: $h3-lh !global;
     $type-h3-size: $h3-fs !global;
-    /// @alias h4-lh
+/// @alias h4-lh
+///
     $type-h4-lh: $h4-lh !global;
     $type-h4-size: $h4-fs !global;
-    /// @alias h5-lh
+/// @alias h5-lh
+///
     $type-h5-lh: $h5-lh !global;
     $type-h5-size: $h5-fs !global;
-    /// @alias h6-lh
+/// @alias h6-lh
+///
     $type-h6-lh: $h6-lh !global;
     $type-h6-size: $h6-fs !global;
-    /// @alias p-lh
+/// @alias p-lh
+///
     $type-p-lh: $p-lh !global;
     $type-p-size: $p-fs !global;
-    /// @alias small-lh
+/// @alias small-lh
+///
     $type-small-lh: $small-lh !global;
     $type-small-size: $small-fs !global;
 }

@@ -1,4 +1,6 @@
 {
-    "entry": "./lib/index.scss",
-    "dest": "index.scss"
+    "bundlerOptions": {
+        "entryFile": "./lib/index.scss",
+        "outFile": "./index.scss"
+    }
 }
