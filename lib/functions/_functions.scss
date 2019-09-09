@@ -39,7 +39,7 @@ $_cached-values: ();
 /// Memoize (cache) a function's return values and arguments. Speeds up processing on intensive functions that get called many times (with the same arguments).
 /// _NOTE: This can actually **increase** processing time if used too often or on simple functions as the lookup process isn't free. Every cached value is unique._
 /// @param {string} $function-name
-/// @param {} $args... - Arguments to be passed to the function
+/// @param {*} $args... - Arguments to be passed to the function
 /// @group utils
 ///
 @function cache($function-name, $args...) {
@@ -225,7 +225,7 @@ $_cached-values: ();
 /// Generic `contains` function(similar to javascript's `indexOf`). Parses a variable(`$data`) for a `$value`. Returns boolean. Delegates methods to the appropriate function based on variable type.
 /// @group utils
 /// @param {map | list | string} $data - the data you're searching through.
-/// @param {} $value - the value you're searching for.
+/// @param {*} $value - the value you're searching for.
 ///
 @function contains($data, $value) {
     @if type-of($data == "map") {
@@ -366,8 +366,8 @@ $_cached-values: ();
 
 /// Check if a list contains a value
 /// @group utils
-/// @param $list
-/// @param $value
+/// @param {List} $list
+/// @param {-} $value
 ///
 @function list-contains($list, $value) {
     @return not not index($list, $value);
@@ -375,8 +375,8 @@ $_cached-values: ();
 
 /// Reverse a List
 /// @group utils
-/// @param $list
-/// @param $recursive [false]
+/// @param {-} $list
+/// @param {-} $recursive [false]
 ///
 @function list-reverse($list, $recursive: false) {
     $result: ();
@@ -394,8 +394,8 @@ $_cached-values: ();
 
 /// List print
 /// @group utils
-/// @param $list
-/// @param $depth [1]
+/// @param {-} $list
+/// @param {-} $depth [1]
 ///
 @function list-print($list, $depth: 1) {
     $output: "";

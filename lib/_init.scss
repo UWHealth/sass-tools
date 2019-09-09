@@ -4,15 +4,16 @@
 /// For instance, the `$type-h1-size` variable is accepted as a list, but will be available as a single size, while making `$type-h1-lh` available.
 /// @group core
 ///
-@mixin init {
+@mixin init() {
     @include _set-global-typography-variables();
 
     //Expand color map if necessary
     $base-colors: _verify-color-map-depth($base-colors) !global;
 
-    /// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
-    /// @type Number
-    /// @group core
+/// Abstraction of the base spacing unit used in any mixin or function that defines spacing units.
+/// @type Number
+/// @group core
+///
     $type-base-unit: $base-line-height !global;
 
     @if $base-font-size >= $type-base-unit {
@@ -20,13 +21,15 @@
             $base-font-size !global;
     }
 
-    /// Ratio used to calculate the difference between font sizes and spacing units.
-    /// @type Number
-    /// @group core
+/// Ratio used to calculate the difference between font sizes and spacing units.
+/// @type Number
+/// @group core
+///
     $type-base-ratio: ($type-base-unit / $base-font-size) !global;
 
-    /// Used for defining automatic headings functions.
-    /// @type List | Number
+/// Used for defining automatic headings functions.
+/// @type List | Number
+///
     $type-headings: 6, 5, 4, 3, 2, 1 !global;
 
     /// Silent class registry.
@@ -47,7 +50,7 @@
 }
 
 /// Makes sure color map contains the necessary depth to be used by `colors` function
-/// @param $color-map
+/// @param {Map} $color-map
 ///
 @function _verify-color-map-depth($color-map) {
     $is-deep-enough: true;
@@ -92,84 +95,99 @@
 
     //Check for existence of line-height override, and store it
 
-    /// H1 font-size
-    /// @group core
+/// H1 font-size
+/// @group core
     $h1-fs: nth($type-h1-size, 1) !global;
-    /// H1 line-height
-    /// @group core
+/// H1 line-height
+/// @group core
     $h1-lh: _extract-line-height($type-h1-size) !global;
 
-    /// H2 font-size
-    /// @group core
+/// H2 font-size
+/// @group core
     $h2-fs: nth($type-h2-size, 1) !global;
-    /// H2 line-height
-    /// @group core
+/// H2 line-height
+/// @group core
     $h2-lh: _extract-line-height($type-h2-size) !global;
 
-    /// H3 font-size
-    /// @group core
+/// H3 font-size
+/// @group core
     $h3-fs: nth($type-h3-size, 1) !global;
-    /// h3 line-height
-    /// @group core
+/// h3 line-height
+/// @group core
     $h3-lh: _extract-line-height($type-h3-size) !global;
 
-    /// H4 font-size
-    /// @group core
+/// H4 font-size
+/// @group core
     $h4-fs: nth($type-h4-size, 1) !global;
-    /// h4 line-height
-    /// @group core
+/// h4 line-height
+/// @group core
     $h4-lh: _extract-line-height($type-h4-size) !global;
 
-    /// H5 font-size
-    /// @group core
+/// H5 font-size
+/// @group core
     $h5-fs: nth($type-h5-size, 1) !global;
-    /// h5 line-height
-    /// @group core
+/// h5 line-height
+/// @group core
+///
     $h5-lh: _extract-line-height($type-h5-size) !global;
 
-    /// H6 font-size
-    /// @type Number (pixel)
+/// H6 font-size
+/// @type Number (pixel)
+///
     $h6-fs: nth($type-h6-size, 1) !global;
-    /// h6 line-height
-    /// @group core
+/// h6 line-height
+/// @group core
+///
     $h6-lh: _extract-line-height($type-h6-size) !global;
 
-    /// paragraph font-size
-    /// @group core
+/// paragraph font-size
+/// @group core
+///
     $p-fs: nth($type-p-size, 1) !global;
-    /// paragraph line-height
-    /// @group core
+/// paragraph line-height
+/// @group core
+///
     $p-lh: _extract-line-height($type-p-size) !global;
 
-    /// small font-size
-    /// @group core
+/// small font-size
+/// @group core
+///
     $small-fs: nth($type-small-size, 1) !global;
-    /// small line-height
-    /// @group core
+/// small line-height
+/// @group core
+///
     $small-lh: _extract-line-height($type-small-size) !global;
 
-    /// @alias h1-lh
+/// @alias h1-lh
+///
     $type-h1-lh: $h1-lh !global;
     $type-h1-size: $h1-fs !global;
-    /// @alias h2-lh
+/// @alias h2-lh
+///
     $type-h2-lh: $h2-lh !global;
     $type-h2-size: $h2-fs !global;
-    /// @alias h3-lh
+/// @alias h3-lh
+///
     $type-h3-lh: $h3-lh !global;
     $type-h3-size: $h3-fs !global;
-    /// @alias h4-lh
+/// @alias h4-lh
+///
     $type-h4-lh: $h4-lh !global;
     $type-h4-size: $h4-fs !global;
-    /// @alias h5-lh
+/// @alias h5-lh
+///
     $type-h5-lh: $h5-lh !global;
     $type-h5-size: $h5-fs !global;
-    /// @alias h6-lh
+/// @alias h6-lh
+///
     $type-h6-lh: $h6-lh !global;
     $type-h6-size: $h6-fs !global;
-    /// @alias p-lh
+/// @alias p-lh
+///
     $type-p-lh: $p-lh !global;
     $type-p-size: $p-fs !global;
-    /// @alias small-lh
+/// @alias small-lh
+///
     $type-small-lh: $small-lh !global;
     $type-small-size: $small-fs !global;
 }

@@ -86,9 +86,9 @@
 /// [Taken from here](https://gist.github.com/voxpelli/6304812)
 ///
 /// @group utils
-/// @param $base
-/// @param $colors
-/// @param $tolerance [0]
+/// @param {Color} $base
+/// @param {List} $colors
+/// @param {Number} $tolerance [0]
 ///
 /// @example
 ///   div {
@@ -114,7 +114,7 @@
 }
 
 /// Find the relative luminance of a color. Used by `color-contrast()`. [Adapted from color.js](https://github.com/LeaVerou/contrast-ratio/blob/gh-pages/color.js)
-/// @param $color
+/// @param {Color} $color
 /// @returns {number} 0 - 1
 ///
 @function color-luminance($color) {
@@ -323,8 +323,12 @@
         @each $color, $name in $color-list {
             @each $key, $value in $name {
                 $value: call(safe-get-function($blending-mode), $blending-color, $value, $amount);
-                $temp-key: ($key: $value);
-                $temp-color: ($color: ($temp-key));
+                $temp-key: (
+                    $key: $value
+                );
+                $temp-color: (
+                    $color: ($temp-key)
+                );
                 $temp-name-map: map-merge($temp-name-map, $temp-color);
                 @debug $temp-name-map;
             }
@@ -332,10 +336,14 @@
         }
 
         $return: map-merge($color-list, $temp-top-map);
-
-    }@else {
+    } @else {
         @each $value in $color-list {
-            $value: call(safe-get-function($blending-mode), $blending-color, $value, $amount);
+            $value: call(
+                safe-get-function($blending-mode),
+                $blending-color,
+                $value,
+                $amount
+            );
             $temp-list: append($temp-list, $value);
         }
         $return: $temp-list;
@@ -353,11 +361,11 @@
 /// * `$variations`: actual names for each color tone when `colors()` used.
 /// * `$blending-colors`: used when a function is a `blend`. Can be a list or a single color.
 ///
-/// @param $map [$colors],
-/// @param $functions [(tint, tint, tint, shade, shade, shade)],
-/// @param $increments [(20%, 40%, 80%, 20%, 40%, 80%)],
-/// @param $variations [(light, lighter, lightest, dark, darker, darkest)],
-/// @param $blending-colors [null]
+/// @param {Map} $map [$colors]
+/// @param {List | Strings} $functions [(tint, tint, tint, shade, shade, shade)]
+/// @param {List | Numbers} $increments [(20%, 40%, 80%, 20%, 40%, 80%)]
+/// @param {List | Strings} $variations [(light, lighter, lightest, dark, darker, darkest)]
+/// @param {List | Colors} $blending-colors [null]
 ///
 @function generate-color-variations(
     $map: $base-colors,

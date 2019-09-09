@@ -109,8 +109,9 @@ $golden_ratio: golden();
 }
 
 /// A good aproximation for $x close to 1
-///
 /// @group math
+///
+/// @param {number} $x
 ///
 @function _log($x) {
     $x: ($x - 1) / ($x + 1);
@@ -131,7 +132,7 @@ $golden_ratio: golden();
 ///
 /// @group Math
 ///
-/// @param $x
+/// @param {-} $x
 /// @returns {list} (fraction, exponent)
 ///
 @function frexp($x) {
@@ -174,8 +175,8 @@ $golden_ratio: golden();
 }
 
 /// Returns the factorial of a non-negative integer.
-/// @param {number} $x
 /// @group Math
+/// @param {number} $x
 /// @example
 ///     $value:  fact(0) // 1
 ///     $value2: fact(8) // 40320
@@ -228,7 +229,7 @@ $golden_ratio: golden();
 }
 
 /// @alias sqrt
-/// @param $r
+/// @param {-} $r
 /// @group Math
 ///
 @function sqroot($r) {
@@ -269,7 +270,7 @@ $golden_ratio: golden();
 /// Determines the Sine of an angle.
 /// [Reference](https://unindented.org/articles/trigonometry-in-sass/)
 /// @group Math
-/// @param $angle
+/// @param {number} $angle
 /// @returns {number}
 ///
 @function sin($angle) {
@@ -388,7 +389,7 @@ $golden_ratio: golden();
     @return (1/2 + sqrt(5) / 2) * $base;
 }
 
-/// @param $angle
+/// @param {-} $angle
 /// @group Math
 ///
 @function rad($angle) {
@@ -402,7 +403,7 @@ $golden_ratio: golden();
 }
 
 /// @alias rad
-/// @param $angle
+/// @param {-} $angle
 /// @group Math
 ///
 @function angle-to-rad($angle) {
@@ -412,7 +413,7 @@ $golden_ratio: golden();
 // Unused functions
 // ------------------------------------
 // Hyperbolic sine
-// @param $number
+// @param {-} $number
 // @group Math
 // @function sinh($number) {
 //     $top: exponent($e, (2 * $number)) - 1;
@@ -422,7 +423,7 @@ $golden_ratio: golden();
 
 // Determines the Cosine of an angle.
 // @group Math
-// @param $angle
+// @param {-} $angle
 // @returns {number}
 // @function cos($angle) {
 //     $cos: 0;

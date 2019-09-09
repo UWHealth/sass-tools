@@ -28,10 +28,10 @@ $display-classes: $_default-display-classes !default;
 $display-class-format: 'display-{%display%}' '{\\@}{%breakpoint%}' !default;
 
 /// Generates classes with display properties defined in `$class-list`. Intelligently extends duplicated display properties.
-/// @param $silent
-/// @param $important
-/// @param $class-list
-/// @param $format
+/// @param {Boolean} $silent [false]
+/// @param {Boolean} $important [true]
+/// @param {List} $class-list [$display-classes]
+/// @param {List | String} $format [$display-class-format]
 ///
 @mixin _output-display-classes(
     $silent: false,

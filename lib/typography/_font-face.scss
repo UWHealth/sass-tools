@@ -6,8 +6,10 @@
 ///
 /// Font file names must be the same as their CSS font-family values. Example: arial font, 400 weight would be arial-400.ttf and the CSS value would be font-family: 'arial'; font-weight: 400.
 /// @group core
-/// @param {map} $font-map [$web-fonts]
+///
+/// @param {Map} $font-map [$web-fonts]
 /// @see $web-fonts
+///
 @mixin web-fonts($font-map: $web-fonts) {
     @each $name in map-keys($font-map) {
         $inner-map: map-get($font-map, $name);
@@ -50,11 +52,12 @@
 
 /// Generates cross-browser font-face declarations when called.
 /// `$name` is required, arbitrary, and what you will use in font stacks.
-/// @param {} $name
-/// @param {} $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
-/// @param {} $eot is required by IE, and is a relative location of the eot file.
-/// @param {} $weight shows if the font is bold, defaults to normal
-/// @param {} $style defaults to normal, might be also italic
+/// @param {String} $name
+/// @param {List} $font-files is required using font-files('relative/location', 'format'). For best results use this order: woff, opentype/truetype, svg
+/// @param {String} $eot is required by IE, and is a relative location of the eot file.
+/// @param {String} $weight shows if the font is bold, defaults to normal
+/// @param {String} $style defaults to normal, might be also italic
+///
 @mixin font-face(
     $name,
     $font-files,
