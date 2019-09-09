@@ -631,7 +631,7 @@ $_cached-values: ();
 ///
 @function map-inspect($map, $level: 1) {
     $tab: "    ";
-    $cr: "
+    $cr: "\
 ";
 
     @if type-of($map) != "map" {

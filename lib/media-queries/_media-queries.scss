@@ -166,7 +166,7 @@
         );
     }
     //Check operators for matches
-    @elseif (index($media-query-operators, $argument)) {
+    @else if (index($media-query-operators, $argument)) {
         //Format operator as the beginning of a parenthesis
         $query-map: map-merge(
             $query-map,
@@ -176,7 +176,7 @@
         );
     }
     //If its a number, assume its a value
-    @elseif (type-of($argument) == number) {
+    @else if (type-of($argument) == number) {
         //Format value with a colon and closing parenthesis
         $query-map: map-merge(
             $query-map,
@@ -186,7 +186,7 @@
         );
     }
     //Check devices for matches
-    @elseif (index($media-query-devices, $argument)) {
+    @else if (index($media-query-devices, $argument)) {
         $query-map: map-merge(
             $query-map,
             (

@@ -27,7 +27,7 @@
         @warn "Color '#{$color-name}' not found in $base-colors map. Returning #f00 instead";
         @return red;
     }
-    @elseif not map-has-key(map-get($color-map, $color-name), $tone) {
+    @else if not map-has-key(map-get($color-map, $color-name), $tone) {
         @warn "Tone '#{$tone}' not found in #{$color-name}. Returning #f00 instead.";
         @return red;
     }

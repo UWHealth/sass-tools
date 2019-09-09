@@ -31,10 +31,10 @@
             @if ($prop-type == 'number') {
                 $border-width: append($border-width, $property);
             }
-            @elseif (($prop-type == 'color') or ($property == 'currentColor')) {
+            @else if (($prop-type == 'color') or ($property == 'currentColor')) {
                 $border-color: append($border-color, $property);
             }
-            @elseif ($prop-type == 'string') {
+            @else if ($prop-type == 'string') {
                 $border-style: append($border-style, $property);
             }
         }

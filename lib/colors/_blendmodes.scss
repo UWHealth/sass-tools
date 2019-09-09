@@ -429,7 +429,7 @@
     @if $foreground == 0 {
         $foreground: 255;
     }
-    @elseif $tmp < 0 {
+    @else if $tmp < 0 {
         $foreground: 0;
     } @else {
         $foreground: $tmp;
