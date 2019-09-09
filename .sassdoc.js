@@ -27,7 +27,7 @@ module.exports = {
         'file>',
         'line<',
     ],
-    basePath: 'https://github.com/UWHealth/sass-tools/tree/master',
+    basePath: 'https://github.com/UWHealth/sass-tools/tree/master/lib',
     'no-update-notifier': false,
     verbose: true,
     strict: false,
